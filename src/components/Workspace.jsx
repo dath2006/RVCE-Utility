@@ -227,13 +227,12 @@ const WorkspaceCard = ({ file, onRemove, onView, onDownload }) => {
   );
 };
 
-const Workspace = ({ onClose }) => {
+const Workspace = ({ onClose, setViewerFile }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [files, setFiles] = useState(() => {
     const saved = localStorage.getItem("workspace");
     return saved ? JSON.parse(saved) : [];
   });
-  const [viewerFile, setViewerFile] = useState(null);
   const [downloadStatus, setDownloadStatus] = useState(null);
 
   useEffect(() => {
@@ -262,6 +261,7 @@ const Workspace = ({ onClose }) => {
   };
 
   const onView = (item) => {
+    onClose();
     setViewerFile(item);
   };
 
@@ -325,12 +325,6 @@ const Workspace = ({ onClose }) => {
         ))}
       </FileGrid>
       <AnimatePresence>
-        {viewerFile && (
-          <FileViewer
-            url={viewerFile.webViewLink}
-            onClose={() => setViewerFile(null)}
-          />
-        )}
         {downloadStatus && (
           <DownloadStatus
             initial={{ opacity: 0, y: 50 }}

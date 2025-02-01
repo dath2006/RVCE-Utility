@@ -37,6 +37,7 @@ const Header = styled.div`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   @media (max-width: 768px) {
+    top: 60px;
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;

@@ -9,7 +9,7 @@ import Contributors from "./pages/Contributors";
 import Quizzes from "./pages/Quizzes";
 import Workspace from "./components/Workspace";
 import GlobalStyles from "./styles/GlobalStyles";
-
+import FileViewer from "./components/FileViewer";
 import WorkspacesIcon from "@mui/icons-material/Workspaces";
 import { motion, AnimatePresence } from "framer-motion";
 import Todo from "./components/Todo";
@@ -117,6 +117,19 @@ const TodoContainer = styled(motion.div)`
   }
 `;
 
+const ViewerContainer = styled(motion.div)`
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: ${(props) => props.theme.surface};
+  z-index: 96;
+  display: flex;
+  flex-direction: column;
+  transform-origin: right;
+`;
+
 const overlayVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1 },
@@ -131,6 +144,7 @@ function App() {
   );
   const [showWorkspace, setShowWorkspace] = useState(false);
   const [showTodoMenu, setShowTodoMenu] = useState(false);
+  const [viewerFile, setViewerFile] = useState(null);
 
   const toggleTheme = () => {
     setTheme((prev) => {
@@ -163,6 +177,24 @@ function App() {
                 <Route path="/quizzes" element={<Quizzes />} />
               </Routes>
             </div>
+            <AnimatePresence mode="wait">
+              {viewerFile && (
+                <FileViewer
+                  key="file-viewer"
+                  url={viewerFile.webViewLink}
+                  onClose={() => setViewerFile(null)}
+                  initial={{ x: "100%" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "100%" }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30,
+                  }}
+                />
+              )}
+            </AnimatePresence>
+
             <WorkspaceButton
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -190,11 +222,13 @@ function App() {
                       onClose={() => {
                         handleWorkspaceClose();
                       }}
+                      setViewerFile={setViewerFile}
                     />
                   </WorkspaceContainer>
                 </WorkspaceOverlay>
               </>
             )}
+
             {showTodoMenu && (
               <TodoOverlay
                 initial={{ opacity: 0 }}
