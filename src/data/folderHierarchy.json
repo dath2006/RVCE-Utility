@@ -10,6 +10,60 @@
         "mimeType": "application/vnd.google-apps.folder",
         "children": [
           {
+            "id": "1NoN1e_Alh_9SOAEpMbe3Kf78NPJ4U-zN",
+            "name": "Basic Electronics",
+            "mimeType": "application/vnd.google-apps.folder",
+            "children": [
+              {
+                "id": "1628K2d6dhDVTX_UuAa-jbfHUnwOXTWfm",
+                "name": "notes",
+                "mimeType": "application/vnd.google-apps.folder",
+                "children": [
+                  {
+                    "id": "1G3y0TPEC8YSNn4xr3-yqCKerRvx3l80q",
+                    "name": "UNIT 5 ECE BOARD -Communication System.docx.pdf",
+                    "mimeType": "application/pdf",
+                    "children": [],
+                    "webViewLink": "https://drive.google.com/file/d/1G3y0TPEC8YSNn4xr3-yqCKerRvx3l80q/preview",
+                    "webContentLink": "https://drive.google.com/uc?id=1G3y0TPEC8YSNn4xr3-yqCKerRvx3l80q&export=download"
+                  },
+                  {
+                    "id": "1F7Ie6aVI0n-5FfD2y2mD3209LYXI6a1Z",
+                    "name": "UNIT4-Notes ECE Board.pdf",
+                    "mimeType": "application/pdf",
+                    "children": [],
+                    "webViewLink": "https://drive.google.com/file/d/1F7Ie6aVI0n-5FfD2y2mD3209LYXI6a1Z/preview",
+                    "webContentLink": "https://drive.google.com/uc?id=1F7Ie6aVI0n-5FfD2y2mD3209LYXI6a1Z&export=download"
+                  },
+                  {
+                    "id": "1tmPfYbvJmBdcgckqG1hd7U3f_AM7qmfW",
+                    "name": "UNIT 3 - ECE Notes.pdf",
+                    "mimeType": "application/pdf",
+                    "children": [],
+                    "webViewLink": "https://drive.google.com/file/d/1tmPfYbvJmBdcgckqG1hd7U3f_AM7qmfW/preview",
+                    "webContentLink": "https://drive.google.com/uc?id=1tmPfYbvJmBdcgckqG1hd7U3f_AM7qmfW&export=download"
+                  },
+                  {
+                    "id": "1MrXwCmU1lqECcz9Bn_Tn1H-FNw8wtpAv",
+                    "name": "UNIT 2 - ECE Notes.pdf",
+                    "mimeType": "application/pdf",
+                    "children": [],
+                    "webViewLink": "https://drive.google.com/file/d/1MrXwCmU1lqECcz9Bn_Tn1H-FNw8wtpAv/preview",
+                    "webContentLink": "https://drive.google.com/uc?id=1MrXwCmU1lqECcz9Bn_Tn1H-FNw8wtpAv&export=download"
+                  },
+                  {
+                    "id": "1wWiMb6SsOiSoK-Qz3tvEJOBak_qAjdZT",
+                    "name": "Unit 1 - ECE Notes.pdf",
+                    "mimeType": "application/pdf",
+                    "children": [],
+                    "webViewLink": "https://drive.google.com/file/d/1wWiMb6SsOiSoK-Qz3tvEJOBak_qAjdZT/preview",
+                    "webContentLink": "https://drive.google.com/uc?id=1wWiMb6SsOiSoK-Qz3tvEJOBak_qAjdZT&export=download"
+                  }
+                ]
+              }
+            ]
+          },
+          {
             "id": "1a_ARmSC5DDMfD6MI6W11364sclzFqE58",
             "name": "Physics (22PHY22C)",
             "mimeType": "application/vnd.google-apps.folder",

@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import { NavLink } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquarePlus } from "lucide-react";
 import UserManual from "./UserManual";
@@ -68,6 +69,23 @@ const SuggestButton = styled(motion.a)`
   }
 `;
 
+const Resources = styled(NavLink)`
+  display: inline-flex;
+  align-items: center;
+  margin-top: 2rem;
+  padding: 0.75rem 2rem;
+  background: ${(props) => props.theme.gradient};
+  color: white;
+  font-weight: 600;
+  border-radius: 8px;
+  text-decoration: none;
+  gap: 0.5rem;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+`;
+
 const newsItems = [
   {
     title: "Campus Placement Updates",
@@ -93,6 +111,13 @@ export default function AfterVisit() {
         <p className="text-xl text-gray-600">
           Your one-stop destination for all college resources and information
         </p>
+        <Resources
+          to="/resources"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          Get Resources
+        </Resources>
       </div>
       <Section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <h2 className="text-2xl font-bold mb-6">Latest College News</h2>

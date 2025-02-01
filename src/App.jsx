@@ -117,19 +117,6 @@ const TodoContainer = styled(motion.div)`
   }
 `;
 
-const ViewerContainer = styled(motion.div)`
-  position: fixed;
-  top: 60px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: ${(props) => props.theme.surface};
-  z-index: 96;
-  display: flex;
-  flex-direction: column;
-  transform-origin: right;
-`;
-
 const overlayVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1 },
