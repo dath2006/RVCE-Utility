@@ -102,7 +102,14 @@ const Home = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <UserManual onComplete={handleManualComplete} />
+            <UserManual
+              onComplete={handleManualComplete}
+              firstVisit={firstVisit}
+              onSkip={() => {
+                setShowManual(false);
+                setShowPopup(true);
+              }}
+            />
           </motion.div>
         )}
 

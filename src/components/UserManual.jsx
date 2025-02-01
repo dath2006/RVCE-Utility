@@ -16,6 +16,24 @@ const CompleteButton = styled(motion.button)`
   cursor: pointer;
 `;
 
+const SkipButton = styled(motion.button)`
+  position: absolute;
+  top: -40px;
+  right: 0;
+  padding: 0.5rem 1rem;
+  background: ${(props) => props.theme.surface};
+  color: ${(props) => props.theme.text};
+  border: 1px solid ${(props) => props.theme.border};
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  z-index: 10;
+
+  &:hover {
+    background: ${(props) => props.theme.secondary};
+  }
+`;
+
 const manualImages = [
   {
     url: "/UserManual/1.png",
@@ -47,7 +65,7 @@ const manualImages = [
   },
 ];
 
-function UserManual({ onComplete }) {
+function UserManual({ onComplete, onSkip, firstVisit }) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const isLastSlide = currentSlide === manualImages.length - 1;
 
@@ -68,6 +86,15 @@ function UserManual({ onComplete }) {
         User Manual
       </h2>
       <div className="relative">
+        {firstVisit && (
+          <SkipButton
+            onClick={onSkip}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Skip Tutorial
+          </SkipButton>
+        )}
         <div className="overflow-hidden rounded-lg h-[500px] bg-gray-100">
           <div className="relative h-full">
             <img
@@ -96,7 +123,7 @@ function UserManual({ onComplete }) {
         </button>
 
         <AnimatePresence>
-          {isLastSlide && (
+          {isLastSlide && firstVisit && (
             <CompleteButton
               onClick={() => onComplete()}
               whileHover={{ scale: 1.05 }}
