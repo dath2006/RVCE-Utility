@@ -96,7 +96,16 @@ const FileExplorer = ({
   const onAddToWorkspace = (item) => {
     const exists = JSON.parse(localStorage.getItem("workspace"));
     if (exists && !exists.find((file) => file.id === item.id)) {
-      item.parentName = currentPath[0];
+      if (!searchQuery) {
+        item.parentName = currentPath[0];
+      } else {
+        item.parentName = ["ESC", "PLC", "ETC"].includes(
+          item.path[0].split(" ")[0]
+        )
+          ? item.path[1]
+          : item.path[0];
+      }
+
       setFiles(() => [...exists, item]);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 2000);

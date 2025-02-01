@@ -1,10 +1,14 @@
 import React from "react";
 import styled from "styled-components";
 import { Search } from "@mui/icons-material";
+import { RxCross1 } from "react-icons/rx";
 
 const Container = styled.div`
   position: relative;
   width: 300px;
+  display: flex;
+  align-items: center;
+  padding-right: 0;
 `;
 
 const Input = styled.input`
@@ -45,6 +49,7 @@ const SearchBar = ({ value, onChange }) => {
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
+      <RxCross1 className="relative -left-8" onClick={() => onChange("")} />
     </Container>
   );
 };
