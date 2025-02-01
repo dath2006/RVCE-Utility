@@ -7,6 +7,7 @@ import UserManual from "./UserManual";
 import { Button } from "@mui/material";
 import { useState } from "react";
 import FileViewer from "./FileViewer";
+import FeaturesSection from "./FeaturesSection";
 
 const Section = styled(motion.section)`
   padding: 2rem;
@@ -154,8 +155,9 @@ export default function AfterVisit() {
           <FileViewer url={viewerFile} onClose={() => setViewerFile(null)} />
         )}
       </AnimatePresence>
-
-      <UserManual />
+      <div className="container mx-auto px-4 py-8">
+        <FeaturesSection />
+      </div>
 
       <SuggestionsSection
         initial={{ opacity: 0, y: 20 }}

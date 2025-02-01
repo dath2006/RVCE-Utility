@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import styled, { ThemeProvider } from "styled-components";
 import { lightTheme, darkTheme } from "./styles/theme";
@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Todo from "./components/Todo";
 import LocomotiveScroll from "locomotive-scroll";
 import { Analytics } from "@vercel/analytics/react";
+import CustomCursor from "./components/CustomCursor";
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -134,6 +135,10 @@ function App() {
   const [showTodoMenu, setShowTodoMenu] = useState(false);
   const [viewerFile, setViewerFile] = useState(null);
 
+  useEffect(() => {
+    localStorage.setItem("theme", "dark");
+  }, []);
+
   const toggleTheme = () => {
     setTheme((prev) => {
       const newTheme = prev === "light" ? "dark" : "light";
@@ -148,6 +153,7 @@ function App() {
 
   return (
     <ThemeProvider theme={theme === "light" ? lightTheme : darkTheme}>
+      <CustomCursor />
       <GlobalStyles />
       <Router>
         <AppContainer>

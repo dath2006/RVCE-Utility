@@ -27,3 +27,29 @@ body {
     --radius: 0.5rem;
   }
 }
+
+* {
+  cursor: none !important;
+}
+
+.cursor-dot {
+  pointer-events: none;
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+  border-radius: 50%;
+  z-index: 9999;
+  box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
+  transition: transform 0.2s ease-out;
+}
+
+.cursor-ring {
+  pointer-events: none;
+  position: fixed;
+  width: 32px;
+  height: 32px;
+  border: 2px solid rgba(79, 172, 254, 0.4);
+  border-radius: 50%;
+  z-index: 9998;
+}

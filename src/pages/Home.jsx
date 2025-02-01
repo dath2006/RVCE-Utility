@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import SelectionPopup from "../components/SelectionPopup";
 import AfterVisit from "../components/AfterVisit";
 import UserManual from "../components/UserManual";
+import FeaturesSection from "../components/FeaturesSection";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -46,7 +47,7 @@ const Home = () => {
   const navigate = useNavigate();
   const [firstVisit, setFirstVisit] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
-  const [showManual, setShowManual] = useState(false);
+  const [showFeatures, setshowFeatures] = useState(false);
   const [filters, setFilters] = useState(() => {
     const saved = localStorage.getItem("filters");
     return saved ? JSON.parse(saved) : null;
@@ -60,11 +61,11 @@ const Home = () => {
   }, []);
 
   const handleGetStarted = () => {
-    setShowManual(true);
+    setshowFeatures(true);
   };
 
-  const handleManualComplete = () => {
-    setShowManual(false);
+  const handleFeaturesComplete = () => {
+    setshowFeatures(false);
     setShowPopup(true);
   };
 
@@ -96,21 +97,27 @@ const Home = () => {
         Get Started
       </GetStartedButton>
       <AnimatePresence>
-        {showManual && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <UserManual
-              onComplete={handleManualComplete}
-              firstVisit={firstVisit}
-              onSkip={() => {
-                setShowManual(false);
-                setShowPopup(true);
-              }}
-            />
-          </motion.div>
+        {showFeatures && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <FeaturesSection />
+            </motion.div>
+            <GetStartedButton
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              onClick={handleFeaturesComplete}
+              className="mb-64 mt-10"
+            >
+              Continue
+            </GetStartedButton>
+          </>
         )}
 
         {showPopup && (
