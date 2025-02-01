@@ -49,7 +49,9 @@ const SearchBar = ({ value, onChange }) => {
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
-      <RxCross1 className="relative -left-8" onClick={() => onChange("")} />
+      {value && (
+        <RxCross1 className="relative -left-8" onClick={() => onChange("")} />
+      )}
     </Container>
   );
 };
