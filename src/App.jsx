@@ -14,6 +14,7 @@ import WorkspacesIcon from "@mui/icons-material/Workspaces";
 import { motion, AnimatePresence } from "framer-motion";
 import Todo from "./components/Todo";
 import LocomotiveScroll from "locomotive-scroll";
+import { Analytics } from "@vercel/analytics/react";
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -150,6 +151,7 @@ function App() {
       <GlobalStyles />
       <Router>
         <AppContainer>
+          <Analytics />
           <div className="w-screen h-screen flex flex-col overflow-x-hidden">
             <Navigation
               toggleTheme={toggleTheme}
