@@ -2,6 +2,10 @@ import React, { useEffect, useState } from "react";
 import { motion, useSpring } from "framer-motion";
 
 const CustomCursor = () => {
+  if ("ontouchstart" in window) {
+    return null;
+  }
+
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
 
