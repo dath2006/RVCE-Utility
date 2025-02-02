@@ -89,14 +89,23 @@ const Resources = styled(NavLink)`
 
 const newsItems = [
   {
+    title: "Resources Contribution is Open.",
+    date: "Febraury 02, 2025",
+    content:
+      "For temporary purpose upload, required files in the Google forms.",
+    url: "https://docs.google.com/forms/d/e/1FAIpQLSdkXHB8g1byUNuY6Qrj3Hzkhnz2BM2Z9n_QnKMmHJvBpw3ygQ/viewform?usp=header",
+  },
+  {
     title: "Campus Placement Updates",
     date: "January 15, 2025",
     content: "......",
+    url: "https://rvce-placements.vercel.app/placements/2025",
   },
   {
     title: "SEE for First Sem Begins from 13th of Feb",
     date: "January 01, 2025",
     content: "If VTU says no USN then dates for the SEE will be postponed",
+    url: null,
   },
 ];
 
@@ -121,7 +130,7 @@ export default function AfterVisit() {
         </Resources>
       </div>
       <Section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <h2 className="text-2xl font-bold mb-6">Latest College News</h2>
+        <h2 className="text-2xl font-bold mb-6">Latest Updates</h2>
         <NewsGrid>
           {newsItems.map((news, index) => (
             <NewsCard
@@ -133,16 +142,16 @@ export default function AfterVisit() {
               <h3>{news.title}</h3>
               <p className="date">{news.date}</p>
               <p className="content">{news.content}</p>
-              {index === 0 && (
+              {news.url && (
                 <Button
                   className="mt-1"
-                  onClick={() =>
-                    setViewerFile(
-                      "https://rvce-placements.vercel.app/placements/2025"
-                    )
-                  }
+                  onClick={() => {
+                    index === 0
+                      ? window.open(news.url)
+                      : setViewerFile(news.url);
+                  }}
                 >
-                  See Stats
+                  Check Out !
                 </Button>
               )}
             </NewsCard>
