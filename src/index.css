@@ -53,3 +53,27 @@ body {
   border-radius: 50%;
   z-index: 9998;
 }
+
+/* Add 3D transform support */
+.translate-z-0 {
+  transform: translateZ(0);
+}
+
+.translate-z-\[-50px\] {
+  transform: translateZ(-50px);
+}
+
+/* Ensure proper 3D rendering */
+#root {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+/* Prevent background image edge visibility */
+.scale-110 {
+  transform: scale(1.1);
+}
+
+.scale-100 {
+  transform: scale(1.03);
+}

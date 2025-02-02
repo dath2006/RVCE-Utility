@@ -16,13 +16,13 @@ import Todo from "./components/Todo";
 import LocomotiveScroll from "locomotive-scroll";
 import { Analytics } from "@vercel/analytics/react";
 import CustomCursor from "./components/CustomCursor";
+import LoadingScreen from "./components/LoadingScreen";
 
 const AppContainer = styled.div`
   min-height: 100vh;
   padding: 0;
   margin: 0;
-  background: url("/BG.png") no-repeat center center fixed;
-  background-size: cover;
+
   color: ${(props) => props.theme.text};
   transition: all 0.3s ease;
   position: relative;
@@ -134,6 +134,13 @@ function App() {
   const [showWorkspace, setShowWorkspace] = useState(false);
   const [showTodoMenu, setShowTodoMenu] = useState(false);
   const [viewerFile, setViewerFile] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  let isMobile = false;
+
+  if ("ontouchstart" in window) {
+    isMobile = true;
+  }
 
   useEffect(() => {
     localStorage.setItem("theme", "dark");
@@ -155,95 +162,125 @@ function App() {
     <ThemeProvider theme={theme === "light" ? lightTheme : darkTheme}>
       <CustomCursor />
       <GlobalStyles />
-      <Router>
-        <AppContainer>
-          <Analytics />
-          <div className="w-screen h-screen flex flex-col overflow-x-hidden">
-            <Navigation
-              toggleTheme={toggleTheme}
-              showTodoMenu={showTodoMenu}
-              setShowTodoMenu={setShowTodoMenu}
-            />
-            <div className="flex-1 overflow-y-auto overflow-x-hidden">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/resources" element={<Resources />} />
-                <Route path="/contributors" element={<Contributors />} />
-                <Route path="/quizzes" element={<Quizzes />} />
-              </Routes>
+      <LoadingScreen
+        isLoading={isLoading}
+        onLoadingComplete={() => setIsLoading(false)}
+        isMobile={isMobile}
+      />
+      <div
+        className={`fixed inset-0 transition-all duration-700 delay-500 ease-in-out ${
+          isLoading ? "opacity-0 scale-110" : "opacity-100 scale-100"
+        }`}
+        style={{
+          backgroundImage: isMobile ? 'url("/BGM.png")' : 'url("/BG.png")',
+          backgroundBlendMode: "overlay",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          backgroundAttachment: "fixed",
+          transformStyle: "preserve-3d",
+          width: "100%",
+          height: "98vh",
+        }}
+      />
+      <div
+        className={`relative min-h-screen z-10 transition-all  duration-1000 ease-in-out ${
+          isLoading
+            ? "opacity-0 translate-z-[-50px]"
+            : "opacity-100 translate-z-0"
+        }`}
+      >
+        <Router>
+          <AppContainer>
+            <Analytics />
+
+            <div className="w-screen h-screen flex flex-col overflow-x-hidden">
+              <Navigation
+                toggleTheme={toggleTheme}
+                showTodoMenu={showTodoMenu}
+                setShowTodoMenu={setShowTodoMenu}
+              />
+              <div className="flex-1 overflow-y-auto overflow-x-hidden">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/resources" element={<Resources />} />
+                  <Route path="/contributors" element={<Contributors />} />
+                  <Route path="/quizzes" element={<Quizzes />} />
+                </Routes>
+              </div>
+              <AnimatePresence mode="wait">
+                {viewerFile && (
+                  <FileViewer
+                    key="file-viewer"
+                    url={viewerFile.webViewLink}
+                    onClose={() => setViewerFile(null)}
+                    initial={{ x: "100%" }}
+                    animate={{ x: 0 }}
+                    exit={{ x: "100%" }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 30,
+                    }}
+                  />
+                )}
+              </AnimatePresence>
+
+              <WorkspaceButton
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShowWorkspace(!showWorkspace)}
+              >
+                <WorkspacesIcon />
+              </WorkspaceButton>
             </div>
-            <AnimatePresence mode="wait">
-              {viewerFile && (
-                <FileViewer
-                  key="file-viewer"
-                  url={viewerFile.webViewLink}
-                  onClose={() => setViewerFile(null)}
-                  initial={{ x: "100%" }}
-                  animate={{ x: 0 }}
-                  exit={{ x: "100%" }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 30,
-                  }}
-                />
+            <AnimatePresence>
+              {showWorkspace && (
+                <>
+                  <WorkspaceOverlay
+                    key="overlay"
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    variants={overlayVariants}
+                    transition={{ duration: 0.3 }}
+                    onClick={() => {
+                      handleWorkspaceClose();
+                    }}
+                  >
+                    <WorkspaceContainer onClick={(e) => e.stopPropagation()}>
+                      <Workspace
+                        onClose={() => {
+                          handleWorkspaceClose();
+                        }}
+                        setViewerFile={setViewerFile}
+                      />
+                    </WorkspaceContainer>
+                  </WorkspaceOverlay>
+                </>
+              )}
+
+              {showTodoMenu && (
+                <TodoOverlay
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setShowTodoMenu(false)}
+                >
+                  <TodoContainer
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.9, opacity: 0 }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Todo onClose={() => setShowTodoMenu(false)} />
+                  </TodoContainer>
+                </TodoOverlay>
               )}
             </AnimatePresence>
-
-            <WorkspaceButton
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setShowWorkspace(!showWorkspace)}
-            >
-              <WorkspacesIcon />
-            </WorkspaceButton>
-          </div>
-          <AnimatePresence>
-            {showWorkspace && (
-              <>
-                <WorkspaceOverlay
-                  key="overlay"
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  variants={overlayVariants}
-                  transition={{ duration: 0.3 }}
-                  onClick={() => {
-                    handleWorkspaceClose();
-                  }}
-                >
-                  <WorkspaceContainer onClick={(e) => e.stopPropagation()}>
-                    <Workspace
-                      onClose={() => {
-                        handleWorkspaceClose();
-                      }}
-                      setViewerFile={setViewerFile}
-                    />
-                  </WorkspaceContainer>
-                </WorkspaceOverlay>
-              </>
-            )}
-
-            {showTodoMenu && (
-              <TodoOverlay
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setShowTodoMenu(false)}
-              >
-                <TodoContainer
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.9, opacity: 0 }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Todo onClose={() => setShowTodoMenu(false)} />
-                </TodoContainer>
-              </TodoOverlay>
-            )}
-          </AnimatePresence>
-        </AppContainer>
-      </Router>
+          </AppContainer>
+        </Router>
+      </div>
     </ThemeProvider>
   );
 }
