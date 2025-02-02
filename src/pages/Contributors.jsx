@@ -181,7 +181,7 @@ const Contributors = () => {
             Want to contribute?
           </h3>
           <CallToAction
-            href="mailto:rvceutility@gmail.com"
+            href="https://docs.google.com/forms/d/e/1FAIpQLSdkXHB8g1byUNuY6Qrj3Hzkhnz2BM2Z9n_QnKMmHJvBpw3ygQ/viewform?usp=header"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
