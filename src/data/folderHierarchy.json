@@ -74,6 +74,38 @@
                 "mimeType": "application/vnd.google-apps.folder",
                 "children": [
                   {
+                    "id": "1bhBPA3czlqGDx1jGNCiaNOMDtA3DUldF",
+                    "name": "Unit 1 Quantum Computing _22PHY22C.pdf",
+                    "mimeType": "application/pdf",
+                    "children": [],
+                    "webViewLink": "https://drive.google.com/file/d/1bhBPA3czlqGDx1jGNCiaNOMDtA3DUldF/preview",
+                    "webContentLink": "https://drive.google.com/uc?id=1bhBPA3czlqGDx1jGNCiaNOMDtA3DUldF&export=download"
+                  },
+                  {
+                    "id": "1ZwpeXLSvjwilgdy-XXRcbEsXh9xs8NmV",
+                    "name": "Unit-5 Dielectrics and Transducers.pdf",
+                    "mimeType": "application/pdf",
+                    "children": [],
+                    "webViewLink": "https://drive.google.com/file/d/1ZwpeXLSvjwilgdy-XXRcbEsXh9xs8NmV/preview",
+                    "webContentLink": "https://drive.google.com/uc?id=1ZwpeXLSvjwilgdy-XXRcbEsXh9xs8NmV&export=download"
+                  },
+                  {
+                    "id": "1Yz99gHyh0mA-I5tGjmXg2d5XYf10qOZG",
+                    "name": "Unit 4 Semiconductor Devices.pdf",
+                    "mimeType": "application/pdf",
+                    "children": [],
+                    "webViewLink": "https://drive.google.com/file/d/1Yz99gHyh0mA-I5tGjmXg2d5XYf10qOZG/preview",
+                    "webContentLink": "https://drive.google.com/uc?id=1Yz99gHyh0mA-I5tGjmXg2d5XYf10qOZG&export=download"
+                  },
+                  {
+                    "id": "1q7kyDPfaCyM8nEd27JMPVROl5hVmt-iQ",
+                    "name": "Unit 2 Basics of Solid State Physics__EEstream (PY211IA).pdf",
+                    "mimeType": "application/pdf",
+                    "children": [],
+                    "webViewLink": "https://drive.google.com/file/d/1q7kyDPfaCyM8nEd27JMPVROl5hVmt-iQ/preview",
+                    "webContentLink": "https://drive.google.com/uc?id=1q7kyDPfaCyM8nEd27JMPVROl5hVmt-iQ&export=download"
+                  },
+                  {
                     "id": "156EIheH0-YUs-BDQZv6pCyMaGln8L_Xo",
                     "name": "Unit 4 Electric Conductivity of Solids_22PHY22C.pdf",
                     "mimeType": "application/pdf",
@@ -104,14 +136,6 @@
                     "children": [],
                     "webViewLink": "https://drive.google.com/file/d/1JVVNewdz8nxUZ1Vvh2e19a2HEGCn4-2v/preview",
                     "webContentLink": "https://drive.google.com/uc?id=1JVVNewdz8nxUZ1Vvh2e19a2HEGCn4-2v&export=download"
-                  },
-                  {
-                    "id": "1bhBPA3czlqGDx1jGNCiaNOMDtA3DUldF",
-                    "name": "Unit 2 Quantum computing _22PHY22C.pdf",
-                    "mimeType": "application/pdf",
-                    "children": [],
-                    "webViewLink": "https://drive.google.com/file/d/1bhBPA3czlqGDx1jGNCiaNOMDtA3DUldF/preview",
-                    "webContentLink": "https://drive.google.com/uc?id=1bhBPA3czlqGDx1jGNCiaNOMDtA3DUldF&export=download"
                   },
                   {
                     "id": "17U8UVt0TNmphOAhhdPMoJjV7RYAxax4t",
