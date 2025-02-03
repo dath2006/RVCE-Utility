@@ -103,6 +103,7 @@ const Resources = () => {
     if (filters.cycle === "C - Cycle") {
       let arr = [];
       [
+        "Question Papers",
         "Chemistry (22CHY12A)",
         "CAEG (ME112GL)",
         "Yoga (22HSY18)",
