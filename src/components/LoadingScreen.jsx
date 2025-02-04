@@ -26,7 +26,7 @@ const LoadingScreen = ({ isLoading, onLoadingComplete, isMobile }) => {
           }}
           className="fixed inset-0 z-50 overflow-hidden"
           style={{
-            backgroundImage: isMobile ? 'url("/BGM.png")' : 'url("/BG.png")',
+            backgroundImage: isMobile ? 'url("/BGM.webp")' : 'url("/BG.webp")',
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",

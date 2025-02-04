@@ -172,7 +172,7 @@ function App() {
           isLoading ? "opacity-0 scale-110" : "opacity-100 scale-100"
         }`}
         style={{
-          backgroundImage: isMobile ? 'url("/BGM.png")' : 'url("/BG.png")',
+          backgroundImage: isMobile ? 'url("/BGM.webp")' : 'url("/BG.webp")',
           backgroundBlendMode: "overlay",
           backgroundSize: "cover",
           backgroundPosition: "center",

@@ -14,6 +14,7 @@ const ViewerContainer = styled(motion.div)`
   z-index: 98;
   display: flex;
   flex-direction: column;
+  cursor: pointer;
 `;
 
 const ControlBar = styled.div`
@@ -21,6 +22,7 @@ const ControlBar = styled.div`
   justify-content: flex-end;
   padding: 0.5rem;
   background: ${(props) => props.theme.surface};
+  z-index: 98;
 `;
 
 const IconButton = styled.button`

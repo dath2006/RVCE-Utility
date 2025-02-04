@@ -101,12 +101,6 @@ const newsItems = [
     content: "......",
     url: "https://rvce-placements.vercel.app/placements/2025",
   },
-  {
-    title: "SEE for First Sem Begins from 13th of Feb",
-    date: "January 01, 2025",
-    content: "If VTU says no USN then dates for the SEE will be postponed",
-    url: null,
-  },
 ];
 
 export default function AfterVisit() {
