@@ -1,8 +1,8 @@
 {
-  "headers": [
+  "rewrites": [
     {
       "source": "/sitemap.xml",
-      "headers": [{ "key": "Access-Control-Allow-Origin", "value": "*" }]
+      "destination": "/sitemap.xml"
     }
   ]
 }
