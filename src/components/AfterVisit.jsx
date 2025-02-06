@@ -3,7 +3,6 @@ import styled from "styled-components";
 import { NavLink } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquarePlus } from "lucide-react";
-import UserManual from "./UserManual";
 import { Button } from "@mui/material";
 import { useState } from "react";
 import FileViewer from "./FileViewer";

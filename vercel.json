@@ -1,4 +1,29 @@
 {
+  "name": "RVCE Utility",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "max-age=0, no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
+  ],
+
   "rewrites": [
     {
       "source": "/sitemap.xml",

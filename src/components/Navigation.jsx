@@ -2,10 +2,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { Menu, Close, DarkMode, LightMode } from "@mui/icons-material";
-import { GitHub, Chat, CheckCircle } from "@mui/icons-material";
+
 import { motion, AnimatePresence } from "framer-motion";
-import Chatgpt from "../assets/chatgpt-icon.svg";
+
 import "./Navigation.css";
+import UtilityDropdown from "./UtilityDropdown";
 
 const Nav = styled.nav`
   padding: 1rem 2rem;
@@ -84,19 +85,6 @@ const MobileMenuButton = styled(IconButton)`
     display: block;
     z-index: 1000;
   }
-`;
-
-const DropdownMenu = styled(motion.div)`
-  position: absolute;
-  right: 0;
-  margin-top: 0.5rem;
-  width: 12rem;
-  background: ${(props) => props.theme.surface};
-  color: ${(props) => props.theme.text};
-  border-radius: 0.375rem;
-  box-shadow: 0 4px 12px ${(props) => props.theme.shadow};
-  overflow: hidden;
-  z-index: 1000;
 `;
 
 const BetaTag = styled(motion.span)`
@@ -223,74 +211,11 @@ const Navigation = ({ toggleTheme, showTodoMenu, setShowTodoMenu }) => {
 
             <AnimatePresence>
               {showUtilityMenu && (
-                <DropdownMenu
-                  initial={{ opacity: 0, height: 0, y: -20 }}
-                  animate={{ opacity: 1, height: "auto", y: 0 }}
-                  exit={{ opacity: 0, height: 0, y: -20 }}
-                  transition={{
-                    type: "spring",
-                    damping: 20,
-                    stiffness: 100,
-                  }}
-                  style={{ originY: 0 }}
-                >
-                  <motion.div
-                    initial={{ rotateX: -90 }}
-                    animate={{ rotateX: 0 }}
-                    exit={{ rotateX: -90 }}
-                    transition={{
-                      type: "spring",
-                      damping: 20,
-                      stiffness: 100,
-                    }}
-                  >
-                    <a
-                      href="https://chat.openai.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={
-                        "flex items-center gap-2 px-2 py-2 " +
-                        (isDarkMode
-                          ? " hover:bg-gray-700"
-                          : "hover:bg-gray-200")
-                      }
-                    >
-                      <img
-                        rel="icon"
-                        type="image/svg+xml"
-                        href="../assets/chatgpt-icon.svg"
-                      />
-                      <img src={Chatgpt} className="h-6 " />
-                      <span>ChatGPT</span>
-                    </a>
-                    <a
-                      href="https://github.com/aditya-bhandari-cd23/FIRST-YEARS-ARCHIVE"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={
-                        "flex items-center gap-2 px-4 py-2" +
-                        (isDarkMode
-                          ? " hover:bg-gray-700"
-                          : "hover:bg-gray-200")
-                      }
-                    >
-                      <GitHub size={18} />
-                      <span>GitHub</span>
-                    </a>
-                    <button
-                      onClick={() => {
-                        setShowTodoMenu(!showTodoMenu);
-                      }}
-                      className={
-                        "w-full flex items-center gap-2 px-4 py-2 " +
-                        (isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-200")
-                      }
-                    >
-                      <CheckCircle size={18} />
-                      <span>Taskflow</span>
-                    </button>
-                  </motion.div>
-                </DropdownMenu>
+                <UtilityDropdown
+                  showTodoMenu={showTodoMenu}
+                  setShowTodoMenu={setShowTodoMenu}
+                  isDarkMode={isDarkMode}
+                />
               )}
             </AnimatePresence>
           </div>

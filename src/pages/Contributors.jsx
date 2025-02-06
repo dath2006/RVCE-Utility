@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { motion } from "framer-motion";
-import { GitHub, LinkedIn, Language } from "@mui/icons-material";
+import { GitHub } from "@mui/icons-material";
 
 const Container = styled.div`
   padding: 2rem;
@@ -34,18 +34,6 @@ const Card = styled(motion.div)`
   box-shadow: 0 8px 30px ${(props) => props.theme.shadow}15;
   border: 1px solid ${(props) => props.theme.border};
   backdrop-filter: blur(10px);
-`;
-
-const ImageContainer = styled.div`
-  width: 100%;
-  height: 200px;
-  overflow: hidden;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
 `;
 
 const Content = styled.div`
@@ -111,12 +99,6 @@ const CallToAction = styled.a`
   }
 `;
 
-const SocialLinks = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-`;
-
 const IconLink = styled.a`
   color: ${(props) => props.theme.text};
   opacity: 0.7;
@@ -127,16 +109,6 @@ const IconLink = styled.a`
     color: ${(props) => props.theme.primary};
   }
 `;
-
-const contributors = [
-  {
-    name: "Adithya bhandari",
-    description:
-      "A shotout to this person and for all those who contributed the resources at github",
-    github: "https://github.com",
-  },
-  // Add more contributors here
-];
 
 const Contributors = () => {
   return (

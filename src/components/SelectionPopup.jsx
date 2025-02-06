@@ -204,16 +204,19 @@ const CloseButton = styled.button`
 `;
 
 const SelectionPopup = ({ onClose, onSubmit }) => {
-  const [year, setYear] = useState(null);
-  const [cycle, setCycle] = useState(null);
+  const [selection, setSelection] = useState({
+    year: "",
+    cycle: "",
+    selectedESC: "",
+    selectedPLC: "",
+    selectedETC: "",
+    selectedKannada: "",
+  });
+
   const [escCourses, setEscCourses] = useState([]);
   const [plcCourses, setPlcCourses] = useState([]);
   const [etcCourses, setEtcCourses] = useState([]);
   const [kannadaCourses, setKannadaCourses] = useState([]);
-  const [selectedESC, setSelectedESC] = useState("");
-  const [selectedPLC, setSelectedPLC] = useState("");
-  const [selectedETC, setSelectedETC] = useState("");
-  const [selectedKannada, setSelectedKannada] = useState("");
   const [showHelp, setShowHelp] = useState([false, ""]);
 
   useEffect(() => {
@@ -251,22 +254,15 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
   }, []);
 
   const handleSubmit = () => {
-    onSubmit({
-      year,
-      cycle,
-      selectedESC,
-      selectedPLC,
-      selectedETC,
-      selectedKannada,
-    });
+    onSubmit(selection);
     onClose();
   };
 
   const isComplete = () => {
-    if (cycle === "C - Cycle") {
-      return selectedESC && selectedPLC;
-    } else if (cycle === "P - Cycle") {
-      return selectedETC && selectedKannada;
+    if (selection.cycle === "C - Cycle") {
+      return selection.selectedESC && selection.selectedPLC;
+    } else if (selection.cycle === "P - Cycle") {
+      return selection.selectedETC && selection.selectedKannada;
     }
     return false;
   };
@@ -300,7 +296,11 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
           <Card
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setYear("1 Year")}
+            onClick={() =>
+              setSelection((prev) => {
+                return { ...prev, year: "1 Year" };
+              })
+            }
           >
             1 Year
           </Card>
@@ -311,19 +311,30 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
           <Card disabled>4 Year</Card>
         </Grid>
 
-        {year === "1 Year" && (
+        {selection.year === "1 Year" && (
           <>
             <h3>Select Cycle</h3>
             <Grid>
               <Card
-                onClick={() => setCycle("C - Cycle")}
+                onClick={() =>
+                  setSelection((prev) => {
+                    return { ...prev, cycle: "C - Cycle" };
+                  })
+                }
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 C - Cycle
               </Card>
               <Card
-                onClick={() => setCycle("P - Cycle")}
+                onClick={() =>
+                  setSelection((prev) => {
+                    return {
+                      ...prev,
+                      cycle: "P - Cycle",
+                    };
+                  })
+                }
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -333,13 +344,17 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
           </>
         )}
 
-        {cycle === "C - Cycle" && (
+        {selection.cycle === "C - Cycle" && (
           <>
             <h3>Select Courses</h3>
             <div className="flex items-center">
               <StyledSelect
-                value={selectedESC}
-                onChange={(e) => setSelectedESC(e.target.value)}
+                value={selection.selectedESC}
+                onChange={(e) =>
+                  setSelection((prev) => {
+                    return { ...prev, selectedESC: e.target.value };
+                  })
+                }
               >
                 <option value="">-- Select ESC Course --</option>
                 {escCourses.map(
@@ -370,8 +385,12 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
 
             <div className="flex items-center">
               <StyledSelect
-                value={selectedPLC}
-                onChange={(e) => setSelectedPLC(e.target.value)}
+                value={selection.selectedPLC}
+                onChange={(e) =>
+                  setSelection((prev) => {
+                    return { ...prev, selectedPLC: e.target.value };
+                  })
+                }
               >
                 <option value="">-- Select PLC Course --</option>
                 {plcCourses.map(
@@ -395,13 +414,17 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
           </>
         )}
 
-        {cycle === "P - Cycle" && (
+        {selection.cycle === "P - Cycle" && (
           <>
             <h3>Select Courses</h3>
             <div className="flex items-center">
               <StyledSelect
-                value={selectedETC}
-                onChange={(e) => setSelectedETC(e.target.value)}
+                value={selection.selectedETC}
+                onChange={(e) =>
+                  setSelection((prev) => {
+                    return { ...prev, selectedETC: e.target.value };
+                  })
+                }
               >
                 <option value="">-- Select ETC Course --</option>
                 {etcCourses.map(
@@ -425,8 +448,12 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
 
             <div className="flex items-center">
               <StyledSelect
-                value={selectedKannada}
-                onChange={(e) => setSelectedKannada(e.target.value)}
+                value={selection.selectedKannada}
+                onChange={(e) =>
+                  setSelection((prev) => {
+                    return { ...prev, selectedKannada: e.target.value };
+                  })
+                }
               >
                 <option value="">-- Select Kannada Course --</option>
                 {kannadaCourses.map(

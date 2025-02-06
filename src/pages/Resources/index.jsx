@@ -9,7 +9,6 @@ import folderHierarchy from "../../data/folderHierarchy.json";
 import searchFolderStructure from "../../hooks/searchFolders";
 import FloatingFilterButton from "../../components/FloatingFilterButton";
 import SelectionPopup from "../../components/SelectionPopup";
-import { useNavigate } from "react-router-dom";
 
 const Container = styled.div`
   padding: 2rem;
