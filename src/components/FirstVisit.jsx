@@ -72,7 +72,7 @@ const FirstVisit = () => {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        Access all your college resources in one place. Browse through study
+        Access RVCE college resources in one place. Browse through study
         materials, notes, and more with our easy-to-use interface.
       </Description>
       <GetStartedButton
