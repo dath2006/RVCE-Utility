@@ -88,6 +88,12 @@ const Resources = styled(NavLink)`
 
 const newsItems = [
   {
+    title: "Code Contribution is Open !",
+    date: "Febraury 06, 2025",
+    content: "Welcome developers to contribute to RVCE Utility Portal.",
+    url: "https://github.com/dath2006/RVCE-Utility",
+  },
+  {
     title: "Resources Contribution is Open.",
     date: "Febraury 02, 2025",
     content:
@@ -139,9 +145,9 @@ export default function AfterVisit() {
                 <Button
                   className="mt-1"
                   onClick={() => {
-                    index === 0
-                      ? window.open(news.url)
-                      : setViewerFile(news.url);
+                    index === 2
+                      ? setViewerFile(news.url)
+                      : window.open(news.url);
                   }}
                 >
                   Check Out !

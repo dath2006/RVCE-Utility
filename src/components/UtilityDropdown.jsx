@@ -21,7 +21,11 @@ const DropdownMenu = styled(motion.div)`
 const UtilityDropdown = ({ showTodoMenu, setShowTodoMenu, isDarkMode }) => {
   const utilityItems = [
     { icon: SiOpenai, label: "ChatGPT", href: "https://chat.openai.com" },
-    { icon: GitHub, label: "GitHub", href: "https://github.com" },
+    {
+      icon: GitHub,
+      label: "GitHub",
+      href: "https://github.com/dath2006/RVCE-Utility",
+    },
     { icon: ListTodo, label: "Todo List", action: "todo" },
   ];
 

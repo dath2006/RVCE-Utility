@@ -100,6 +100,6 @@ MIT License - See LICENSE file for details
 
 ### 🙏 Acknowledgments
 
-- RVCE for supporting the initiative
+- Fellow students of RVCE for supporting the initiative
 - Contributors and maintainers
 - Open source community
