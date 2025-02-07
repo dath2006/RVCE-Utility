@@ -21,11 +21,53 @@
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "Organization",
-        "name": "RVCE Utility",
-        "url": "https://rvce-utility.vercel.app/",
-        "logo": "https://rvce-utility.vercel.app/logo192.png
-        "
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://rvce-utility.vercel.app/",
+            "url": "https://rvce-utility.vercel.app/",
+            "name": "RVCE Utility",
+            "description": "RVCE Resource Portal is the place where you can find notes, PYQ's, lab components, quizzes, and many more.. at one place.",
+            "publisher": {
+              "@type": "Organization",
+              "name": "RVCE Utility",
+              "url": "https://rvce-utility.vercel.app/",
+              "logo": {
+                "@type": "ImageObject",
+                "url": "https://rvce-utility.vercel.app/logo192.png"
+              }
+            }
+          },
+          {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "item": {
+                  "@id": "https://rvce-utility.vercel.app/resources",
+                  "name": "Resources"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "item": {
+                  "@id": "https://rvce-utility.vercel.app/quizzes",
+                  "name": "Quizzes"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "item": {
+                  "@id": "https://rvce-utility.vercel.app/contibutors",
+                  "name": "Contributors"
+                }
+              }
+            ]
+          }
+        ]
       }
     </script>
   </body>
