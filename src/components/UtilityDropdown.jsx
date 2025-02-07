@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { GitHub } from "@mui/icons-material";
 import { ListTodo } from "lucide-react";
-import { SiOpenai } from "react-icons/si";
+import { SiOpenai, SiNotion } from "react-icons/si";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -26,6 +26,7 @@ const UtilityDropdown = ({ showTodoMenu, setShowTodoMenu, isDarkMode }) => {
       label: "GitHub",
       href: "https://github.com/dath2006/RVCE-Utility",
     },
+    { icon: SiNotion, label: "Notion", href: "https://www.notion.so/" },
     { icon: ListTodo, label: "Todo List", action: "todo" },
   ];
 
