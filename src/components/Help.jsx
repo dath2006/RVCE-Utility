@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import { Close } from "@mui/icons-material";
+import { Button } from "@mui/material";
 
 const Overlay = styled(motion.div)`
   position: fixed;
@@ -58,7 +59,7 @@ const Title = styled.h2`
   font-size: 1.5rem;
 `;
 
-const Help = ({ text, isOpen, onClose }) => {
+const Help = ({ text, isOpen, url, onClose }) => {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -79,6 +80,16 @@ const Help = ({ text, isOpen, onClose }) => {
             </CloseButton>
             <Title>Help Info</Title>
             <Content>{text}</Content>
+            <br></br>
+            {url && (
+              <Button
+                onClick={() => {
+                  window.open(url);
+                }}
+              >
+                Check Out !
+              </Button>
+            )}
           </HelpCard>
         </Overlay>
       )}

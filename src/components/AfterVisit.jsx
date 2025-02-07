@@ -7,6 +7,7 @@ import { Button } from "@mui/material";
 import { useState } from "react";
 import FileViewer from "./FileViewer";
 import FeaturesSection from "./FeaturesSection";
+import Help from "./Help";
 
 const Section = styled(motion.section)`
   padding: 2rem;
@@ -109,10 +110,19 @@ const newsItems = [
 ];
 
 export default function AfterVisit() {
+  let txt =
+    "IMP Request : Resources in need! Do upload your required resources in the google forms. Especially, Professional Core Courses and ETC (P - Cycle)";
   const [viewerFile, setViewerFile] = useState(null);
+  const [showHelp, setShowHelp] = useState([true, txt]);
   return (
     <div className="max-w-7xl mx-auto mt-[8rem] px-4 py-8">
       {/* Welcome Section */}
+      <Help
+        text={showHelp[1]}
+        isOpen={showHelp}
+        url="https://docs.google.com/forms/d/e/1FAIpQLSdkXHB8g1byUNuY6Qrj3Hzkhnz2BM2Z9n_QnKMmHJvBpw3ygQ/viewform?usp=header"
+        onClose={() => setShowHelp(false)}
+      />
       <div className="text-center mb-12">
         <h1 className={"text-4xl font-bold  mb-4"}>
           Welcome Back to RVCE Utility Portal
