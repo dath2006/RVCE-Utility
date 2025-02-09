@@ -935,6 +935,44 @@
             "mimeType": "application/vnd.google-apps.folder",
             "children": [
               {
+                "id": "1LaX-L6jNBv720Vl3JSqo1dvKtQU7LRvI",
+                "name": "Semiconductor Devices (EC124ATK)",
+                "mimeType": "application/vnd.google-apps.folder",
+                "children": [
+                  {
+                    "id": "1tVmbgPM_bNAuoUk4qwtbk3tIc3bcfHEV",
+                    "name": "QP",
+                    "mimeType": "application/vnd.google-apps.folder",
+                    "children": [
+                      {
+                        "id": "19iJb75_MfMEM8dzGkM2NJcxflNfNt_lM",
+                        "name": "Model QP_22EM1C10 - RAHUL H S.pdf",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/19iJb75_MfMEM8dzGkM2NJcxflNfNt_lM/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=19iJb75_MfMEM8dzGkM2NJcxflNfNt_lM&export=download"
+                      },
+                      {
+                        "id": "1hOHu1DgGsnBnH0W5uu1Zx1eeTEO1L_3i",
+                        "name": "see2 - RAHUL H S",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/1hOHu1DgGsnBnH0W5uu1Zx1eeTEO1L_3i/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=1hOHu1DgGsnBnH0W5uu1Zx1eeTEO1L_3i&export=download"
+                      },
+                      {
+                        "id": "14hkg80BiNPDy6dpJ2PN0VRg-NWT8wTRe",
+                        "name": "see1 - RAHUL H S",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/14hkg80BiNPDy6dpJ2PN0VRg-NWT8wTRe/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=14hkg80BiNPDy6dpJ2PN0VRg-NWT8wTRe&export=download"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
                 "id": "1jv5wBFG7gtB-6f-YTh7ewhN5_UwftWP6",
                 "name": "Bioinspired Engineering (BT124AT)",
                 "mimeType": "application/vnd.google-apps.folder",
