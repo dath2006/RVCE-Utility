@@ -28,7 +28,7 @@ body {
   }
 }
 
-* {
+/* * {
   cursor: none !important;
 }
 
@@ -52,7 +52,7 @@ body {
   border: 2px solid rgba(79, 172, 254, 0.4);
   border-radius: 50%;
   z-index: 1000;
-}
+} */
 
 /* Add 3D transform support */
 .translate-z-0 {

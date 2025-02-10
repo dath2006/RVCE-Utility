@@ -160,7 +160,7 @@ function App() {
 
   return (
     <ThemeProvider theme={theme === "light" ? lightTheme : darkTheme}>
-      <CustomCursor />
+      {/* <CustomCursor /> */}
       <GlobalStyles />
       <LoadingScreen
         isLoading={isLoading}
