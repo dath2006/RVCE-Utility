@@ -117,6 +117,7 @@ const Resources = () => {
     } else {
       let arr = [];
       [
+        "Mechanical Engineering",
         "Basic Electronics",
         "Physics (22PHY22C)",
         "Idea lab (22ME28)",

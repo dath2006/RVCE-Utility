@@ -10,6 +10,36 @@
         "mimeType": "application/vnd.google-apps.folder",
         "children": [
           {
+            "id": "1ypi9Z7MZiefxKJDIKczJnWT4mTzuHcSB",
+            "name": "Mechanical Engineering",
+            "mimeType": "application/vnd.google-apps.folder",
+            "children": [
+              {
+                "id": "1Z2fDstSqgMxSt39Mn71XdspiF_OlVnPm",
+                "name": "notes",
+                "mimeType": "application/vnd.google-apps.folder",
+                "children": [
+                  {
+                    "id": "1HRK6OrZXJR9gKsZcRkhqbPOY6A_GvfdG",
+                    "name": "UNIT 2 - Anup Kothari.pdf",
+                    "mimeType": "application/pdf",
+                    "children": [],
+                    "webViewLink": "https://drive.google.com/file/d/1HRK6OrZXJR9gKsZcRkhqbPOY6A_GvfdG/preview",
+                    "webContentLink": "https://drive.google.com/uc?id=1HRK6OrZXJR9gKsZcRkhqbPOY6A_GvfdG&export=download"
+                  },
+                  {
+                    "id": "1H43j9WU0wKrZPPpyqMpw4D0EG8RBXKrJ",
+                    "name": "UNIT 1 - Anup Kothari.pdf",
+                    "mimeType": "application/pdf",
+                    "children": [],
+                    "webViewLink": "https://drive.google.com/file/d/1H43j9WU0wKrZPPpyqMpw4D0EG8RBXKrJ/preview",
+                    "webContentLink": "https://drive.google.com/uc?id=1H43j9WU0wKrZPPpyqMpw4D0EG8RBXKrJ&export=download"
+                  }
+                ]
+              }
+            ]
+          },
+          {
             "id": "1NoN1e_Alh_9SOAEpMbe3Kf78NPJ4U-zN",
             "name": "Basic Electronics",
             "mimeType": "application/vnd.google-apps.folder",
