@@ -2236,6 +2236,21 @@
                 "mimeType": "application/vnd.google-apps.folder",
                 "children": [
                   {
+                    "id": "1TjBVex5Udovyd_bGfYRS0s5FckZQSioe",
+                    "name": "qp",
+                    "mimeType": "application/vnd.google-apps.folder",
+                    "children": [
+                      {
+                        "id": "1GOxKzEFW89KsjKteYLfwXYpMZ6UsCoO_",
+                        "name": "SEE 24-25.pdf",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/1GOxKzEFW89KsjKteYLfwXYpMZ6UsCoO_/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=1GOxKzEFW89KsjKteYLfwXYpMZ6UsCoO_&export=download"
+                      }
+                    ]
+                  },
+                  {
                     "id": "1sVBEsbxlzLqwNawrmpKpggGZkHK47Bft",
                     "name": "notes",
                     "mimeType": "application/vnd.google-apps.folder",
@@ -3606,6 +3621,14 @@
                     "name": "notes",
                     "mimeType": "application/vnd.google-apps.folder",
                     "children": [
+                      {
+                        "id": "1hyaHjZe2fkSUfMJLqVP0tdGt2kMdDgGy",
+                        "name": "1-Introduction to Programming - Anup Kothari.pdf",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/1hyaHjZe2fkSUfMJLqVP0tdGt2kMdDgGy/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=1hyaHjZe2fkSUfMJLqVP0tdGt2kMdDgGy&export=download"
+                      },
                       {
                         "id": "1lLwzBD0kC_wZBN8GAA4mDN_91mLfe4Da",
                         "name": "unit 5 Structures and pointers.pdf",
