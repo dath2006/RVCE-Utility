@@ -370,28 +370,115 @@
                 "mimeType": "application/vnd.google-apps.folder",
                 "children": [
                   {
-                    "id": "1-_Cn5d7kcm11wff8e0UYhjymdgZw6AlE",
-                    "name": "ಡಾ. ವಿಶ್ವೇಶ್ವರಯ್ಯ - ವ್ಯಕ್ತಿ ಮತ್ತು ಐತಿಹ್ಯ.pdf",
-                    "mimeType": "application/pdf",
-                    "children": [],
-                    "webViewLink": "https://drive.google.com/file/d/1-_Cn5d7kcm11wff8e0UYhjymdgZw6AlE/preview",
-                    "webContentLink": "https://drive.google.com/uc?id=1-_Cn5d7kcm11wff8e0UYhjymdgZw6AlE&export=download"
-                  },
-                  {
-                    "id": "18pGql52Qr4a6hLQLGSKqCS7F19-0LMj6",
-                    "name": "ಆಡಲಿತ ಭಾಷೆಯಾಗಿ ಕನ್ನಡ.pdf",
-                    "mimeType": "application/pdf",
-                    "children": [],
-                    "webViewLink": "https://drive.google.com/file/d/18pGql52Qr4a6hLQLGSKqCS7F19-0LMj6/preview",
-                    "webContentLink": "https://drive.google.com/uc?id=18pGql52Qr4a6hLQLGSKqCS7F19-0LMj6&export=download"
-                  },
-                  {
-                    "id": "1_EZ0cWgegdGps4YUBo7k-4XajLIq4W7V",
-                    "name": "ಮಂಕುತಿಮ್ಮನ ಕಗ್ಗ.pdf",
-                    "mimeType": "application/pdf",
-                    "children": [],
-                    "webViewLink": "https://drive.google.com/file/d/1_EZ0cWgegdGps4YUBo7k-4XajLIq4W7V/preview",
-                    "webContentLink": "https://drive.google.com/uc?id=1_EZ0cWgegdGps4YUBo7k-4XajLIq4W7V&export=download"
+                    "id": "1_mG8BoP7vAYgjdmR-LcGrnRX7hCfGhqU",
+                    "name": "Notes",
+                    "mimeType": "application/vnd.google-apps.folder",
+                    "children": [
+                      {
+                        "id": "18to-UPcSAJDdnFy0KF-5U69xzpyev9EU",
+                        "name": "ಅಧ್ಯಾಯ-7 ಮಂಕುತಿಮ್ಮನ ಕಗ್ಗ.pdf",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/18to-UPcSAJDdnFy0KF-5U69xzpyev9EU/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=18to-UPcSAJDdnFy0KF-5U69xzpyev9EU&export=download"
+                      },
+                      {
+                        "id": "1SU8YidPpYaBSqz89LoH1sXqtBYg1lJYv",
+                        "name": "ವಚನಗಳು.pdf",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/1SU8YidPpYaBSqz89LoH1sXqtBYg1lJYv/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=1SU8YidPpYaBSqz89LoH1sXqtBYg1lJYv&export=download"
+                      },
+                      {
+                        "id": "1tpmStV1wN73uhmRwz23ur7q-bypt0Z3m",
+                        "name": "ಅಧ್ಯಾಯ-11 ಕರಕುಶ.pdf",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/1tpmStV1wN73uhmRwz23ur7q-bypt0Z3m/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=1tpmStV1wN73uhmRwz23ur7q-bypt0Z3m&export=download"
+                      },
+                      {
+                        "id": "1jDpN4j7s9rkgtOx4DHTZkGm15aSg8YGt",
+                        "name": "ಕರ್ನಾಟಕದ ಏಕೀಕರಣ ಒಂದು ಅಪೂರ್ವ ಚರಿತ್ರೆ-5.pdf",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/1jDpN4j7s9rkgtOx4DHTZkGm15aSg8YGt/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=1jDpN4j7s9rkgtOx4DHTZkGm15aSg8YGt&export=download"
+                      },
+                      {
+                        "id": "18JhgFjqvl3YAyeEdSi5Bc6TzeC5j3UFn",
+                        "name": "ಆಡಳಿತ ಭಾಷೆಯಾಗಿ ಕನ್ನಡ.pdf",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/18JhgFjqvl3YAyeEdSi5Bc6TzeC5j3UFn/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=18JhgFjqvl3YAyeEdSi5Bc6TzeC5j3UFn&export=download"
+                      },
+                      {
+                        "id": "1D4xCWdrLvJeNAuKx5SHyvCVvSNK-Kgvl",
+                        "name": "ಕರ್ನಾಟಕದ ಏಕೀಕರಣ ಒಂದು ಅಪೂರ್ವ ಚರಿತ್ರೆ.pdf.pdf",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/1D4xCWdrLvJeNAuKx5SHyvCVvSNK-Kgvl/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=1D4xCWdrLvJeNAuKx5SHyvCVvSNK-Kgvl&export=download"
+                      },
+                      {
+                        "id": "1lFn1ZT7b5GE9grdYTlyazfkternUKFmS",
+                        "name": "ಕೀರ್ತನೆಗಳು.pdf",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/1lFn1ZT7b5GE9grdYTlyazfkternUKFmS/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=1lFn1ZT7b5GE9grdYTlyazfkternUKFmS&export=download"
+                      },
+                      {
+                        "id": "1p_jaGNXBF2yuIfZ1rLnNaDKmjzVNhtCO",
+                        "name": "ಅಧ್ಯಾಯ-10 ಡಾ ವಿ.pdf",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/1p_jaGNXBF2yuIfZ1rLnNaDKmjzVNhtCO/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=1p_jaGNXBF2yuIfZ1rLnNaDKmjzVNhtCO&export=download"
+                      },
+                      {
+                        "id": "1vLnQoSeRKgBKQwYjgb3KKzsrTRx_oydp",
+                        "name": "ಅಧ್ಯಾಯ -9 ಹೊಸ ಬಾಳಿನ ಗೀತೆ.pdf",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/1vLnQoSeRKgBKQwYjgb3KKzsrTRx_oydp/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=1vLnQoSeRKgBKQwYjgb3KKzsrTRx_oydp&export=download"
+                      },
+                      {
+                        "id": "1rzwKGfxStsNckw1-Uj5Agp__um0f3Ew6",
+                        "name": "ಅಧ್ಯಾಯ-13 ಪ್ರವಾ.pdf",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/1rzwKGfxStsNckw1-Uj5Agp__um0f3Ew6/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=1rzwKGfxStsNckw1-Uj5Agp__um0f3Ew6&export=download"
+                      },
+                      {
+                        "id": "1c1u2KBv5r4uo6x8EYO0Ad-zM1KcJLynk",
+                        "name": "ಅಧ್ಯಾಯ-8 ಕುರುಡುಕಾಂಚಾಣ.pdf",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/1c1u2KBv5r4uo6x8EYO0Ad-zM1KcJLynk/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=1c1u2KBv5r4uo6x8EYO0Ad-zM1KcJLynk&export=download"
+                      },
+                      {
+                        "id": "1-_Cn5d7kcm11wff8e0UYhjymdgZw6AlE",
+                        "name": "ಡಾ. ವಿಶ್ವೇಶ್ವರಯ್ಯ - ವ್ಯಕ್ತಿ ಮತ್ತು ಐತಿಹ್ಯ.pdf",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/1-_Cn5d7kcm11wff8e0UYhjymdgZw6AlE/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=1-_Cn5d7kcm11wff8e0UYhjymdgZw6AlE&export=download"
+                      },
+                      {
+                        "id": "1_EZ0cWgegdGps4YUBo7k-4XajLIq4W7V",
+                        "name": "ಮಂಕುತಿಮ್ಮನ ಕಗ್ಗ.pdf",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/1_EZ0cWgegdGps4YUBo7k-4XajLIq4W7V/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=1_EZ0cWgegdGps4YUBo7k-4XajLIq4W7V&export=download"
+                      }
+                    ]
                   }
                 ]
               }
@@ -2397,29 +2484,6 @@
         "mimeType": "application/vnd.google-apps.folder",
         "children": [
           {
-            "id": "1Yc8vilZt6VAzezm-Gs4UpZv_RZSpRIca",
-            "name": "Question Papers",
-            "mimeType": "application/vnd.google-apps.folder",
-            "children": [
-              {
-                "id": "1rAjsDciYSemZAPJrm2ftKobi7whuhrAZ",
-                "name": "C-Cycle CIE 2 2024.pdf",
-                "mimeType": "application/pdf",
-                "children": [],
-                "webViewLink": "https://drive.google.com/file/d/1rAjsDciYSemZAPJrm2ftKobi7whuhrAZ/preview",
-                "webContentLink": "https://drive.google.com/uc?id=1rAjsDciYSemZAPJrm2ftKobi7whuhrAZ&export=download"
-              },
-              {
-                "id": "1VAhng84p22q80ZCSM0FGhvXpy17hR2N1",
-                "name": "C-Cycle CIE-1 2024.pdf",
-                "mimeType": "application/pdf",
-                "children": [],
-                "webViewLink": "https://drive.google.com/file/d/1VAhng84p22q80ZCSM0FGhvXpy17hR2N1/preview",
-                "webContentLink": "https://drive.google.com/uc?id=1VAhng84p22q80ZCSM0FGhvXpy17hR2N1&export=download"
-              }
-            ]
-          },
-          {
             "id": "1sKm8anlQU04ahjPfVWX3IbB86B9qrrNh",
             "name": "Chemistry (22CHY12A)",
             "mimeType": "application/vnd.google-apps.folder",
@@ -2429,6 +2493,14 @@
                 "name": "qp",
                 "mimeType": "application/vnd.google-apps.folder",
                 "children": [
+                  {
+                    "id": "1_2aErWwBcfnNntNbPobZBjK2fJxsMHO1",
+                    "name": "Chem CIE, SEE 24-25.pdf",
+                    "mimeType": "application/pdf",
+                    "children": [],
+                    "webViewLink": "https://drive.google.com/file/d/1_2aErWwBcfnNntNbPobZBjK2fJxsMHO1/preview",
+                    "webContentLink": "https://drive.google.com/uc?id=1_2aErWwBcfnNntNbPobZBjK2fJxsMHO1&export=download"
+                  },
                   {
                     "id": "1L7pYWZjaDmOMTZD0IX_ws6K6DW4k8BxL",
                     "name": "cies + see 23-24.pdf",
@@ -3333,6 +3405,14 @@
                     "mimeType": "application/vnd.google-apps.folder",
                     "children": [
                       {
+                        "id": "17IRts1m4x-N497CEH4S7LhJviFmhhEph",
+                        "name": "Electronics CIE, SEE 24-25.pdf",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/17IRts1m4x-N497CEH4S7LhJviFmhhEph/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=17IRts1m4x-N497CEH4S7LhJviFmhhEph&export=download"
+                      },
+                      {
                         "id": "1Nl_IrMS0WcMK8OmhD1T34grxrgSqzRWH",
                         "name": "mqp.pdf",
                         "mimeType": "application/pdf",
@@ -4015,6 +4095,14 @@
                 "mimeType": "application/vnd.google-apps.folder",
                 "children": [
                   {
+                    "id": "1UePacrLy4clGn0bW91-kqcWfpDJIOTo_",
+                    "name": "CAEG CIE 24-25.pdf",
+                    "mimeType": "application/pdf",
+                    "children": [],
+                    "webViewLink": "https://drive.google.com/file/d/1UePacrLy4clGn0bW91-kqcWfpDJIOTo_/preview",
+                    "webContentLink": "https://drive.google.com/uc?id=1UePacrLy4clGn0bW91-kqcWfpDJIOTo_&export=download"
+                  },
+                  {
                     "id": "15nQgvAU4uBVUrG8F-p71RIeG_1ZRQTT7",
                     "name": "mqp.pdf",
                     "mimeType": "application/pdf",
@@ -4440,6 +4528,14 @@
                     "mimeType": "application/vnd.google-apps.folder",
                     "children": [
                       {
+                        "id": "1EmPhwbWenJyfjULU6W_4hPGDxifyYeO-",
+                        "name": "Python CIE, SEE 24- 25.pdf",
+                        "mimeType": "application/pdf",
+                        "children": [],
+                        "webViewLink": "https://drive.google.com/file/d/1EmPhwbWenJyfjULU6W_4hPGDxifyYeO-/preview",
+                        "webContentLink": "https://drive.google.com/uc?id=1EmPhwbWenJyfjULU6W_4hPGDxifyYeO-&export=download"
+                      },
+                      {
                         "id": "1kiRReLbTSHt35dUJe63bBNLf3-oBGdiD",
                         "name": "cies + see 22-23 II.pdf",
                         "mimeType": "application/pdf",
@@ -4658,6 +4754,14 @@
                 "name": "qp",
                 "mimeType": "application/vnd.google-apps.folder",
                 "children": [
+                  {
+                    "id": "11ZTUctw9GyqgxUiyahDZ7Gsmtkyt2OU6",
+                    "name": "Maths CIE , SEE 24-25.pdf",
+                    "mimeType": "application/pdf",
+                    "children": [],
+                    "webViewLink": "https://drive.google.com/file/d/11ZTUctw9GyqgxUiyahDZ7Gsmtkyt2OU6/preview",
+                    "webContentLink": "https://drive.google.com/uc?id=11ZTUctw9GyqgxUiyahDZ7Gsmtkyt2OU6&export=download"
+                  },
                   {
                     "id": "1ycQK76CtROrUgl2Q5RHFe27A1C0_ncaE",
                     "name": "mqp 1.pdf",
