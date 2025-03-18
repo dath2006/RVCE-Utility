@@ -55,7 +55,7 @@ const UtilityDropdown = ({ showTodoMenu, setShowTodoMenu, isDarkMode }) => {
       <div className="relative">
         {/* Floating dock background */}
         <motion.div
-          className={`absolute inset-0 backdrop-blur-md rounded-full border border-white/10 ${
+          className={`absolute inset-0 backdrop-blur-md rounded-2xl border border-white/10 ${
             isDarkMode ? " bg-zinc-800" : " bg-slate-500"
           }`}
           layoutId="dock-background"

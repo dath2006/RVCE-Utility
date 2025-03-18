@@ -33,7 +33,10 @@ const Header = styled.div`
   background: ${(props) => props.theme.background};
   padding: 1rem 2rem;
   z-index: 10;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 248, 248, 0.07);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(7.8px);
 
   @media (max-width: 768px) {
     top: 60px;
@@ -86,11 +89,11 @@ const Resources = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredFiles, setFilteredFiles] = useState([]);
   const [filteredFolders, setFilteredFolders] = useState(folderHierarchy);
-  const [showFilterDialog, setShowFilterDialog] = useState(false);
   const [filters, setFilters] = useState(() => {
     const saved = localStorage.getItem("filters");
     return saved ? JSON.parse(saved) : null;
   });
+  const [showFilterDialog, setShowFilterDialog] = useState(false);
 
   useEffect(() => {
     filters && handleShowFolders();
@@ -125,6 +128,7 @@ const Resources = () => {
         "Maths (22MA21C)",
         filters.selectedETC,
         filters.selectedKannada,
+        filters.selectedESC,
       ].map((sub) => {
         searchFolderStructure(sub).map((data) => arr.push(data));
       });

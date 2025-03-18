@@ -10,11 +10,18 @@ import UtilityDropdown from "./UtilityDropdown";
 
 const Nav = styled.nav`
   padding: 1rem 2rem;
-  background: ${(props) => props.theme.gradient};
+  background: rgba(255, 248, 248, 0.07);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(7.8px);
+  border: 1px solid rgba(255, 248, 248, 0.12);
   position: fixed;
   width: 100%;
   top: 0;
   z-index: 99;
+  @media (max-width: 500px) {
+    padding: 0.5rem 1rem;
+  }
 `;
 
 const NavContainer = styled.div`
@@ -26,7 +33,7 @@ const NavContainer = styled.div`
   padding: 0;
 
   @media (max-width: 500px) {
-    height: 2rem;
+    height: 2.7rem;
   }
 `;
 
@@ -38,8 +45,8 @@ const Logo = styled(Link)`
 `;
 
 const NavLinks = styled.div`
-  display: flex;
   gap: 2rem;
+  display: flex;
 
   @media (max-width: 768px) {
     display: ${(props) => (props.isOpen ? "flex" : "none")};
@@ -48,15 +55,20 @@ const NavLinks = styled.div`
     left: 0;
     right: 0;
     flex-direction: column;
-    background: ${(props) => props.theme.gradient};
+    background: ${(props) => props.theme.surface};
     padding: 1rem;
-    gap: 1rem;
+    justify-content: center;
     z-index: 999;
+    // background: rgba(255, 248, 248, 0.07);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    -webkit-backdrop-filter: blur(7.8px);
+    border: 1px solid rgba(255, 248, 248, 0.12);
   }
 `;
 
 const NavLink = styled(Link)`
-  color: white;
+  color: ${(props) => props.theme.text};
+
   text-decoration: none;
   font-weight: 500;
 
@@ -68,7 +80,8 @@ const NavLink = styled(Link)`
 const IconButton = styled.button`
   background: none;
   border: none;
-  color: white;
+  color: ${(props) => props.theme.text};
+
   cursor: pointer;
   padding: 0.5rem;
   display: flex;
@@ -90,13 +103,20 @@ const MobileMenuButton = styled(IconButton)`
 const BetaTag = styled(motion.span)`
   font-size: 0.7rem;
   padding: 0.2rem 0.4rem;
-  background: ${(props) => props.theme.gradient};
+  background: black;
   color: white;
   border-radius: 4px;
   margin-left: 0.5rem;
   font-weight: 600;
   vertical-align: middle;
   cursor: default;
+`;
+
+const Title = styled.h1`
+  color: ${(props) => props.theme.text};
+  @media (max-width: 500px) {
+    font-size: 1.2rem;
+  }
 `;
 
 const Navigation = ({ toggleTheme, showTodoMenu, setShowTodoMenu }) => {
@@ -108,8 +128,8 @@ const Navigation = ({ toggleTheme, showTodoMenu, setShowTodoMenu }) => {
 
   const dropdownRef = useRef(null);
 
-  const letters = "Utility".split("");
-  const reversedLetters = "Utility".split("").reverse();
+  // const letters = "Utility".split("");
+  // const reversedLetters = "Utility".split("").reverse();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -133,33 +153,34 @@ const Navigation = ({ toggleTheme, showTodoMenu, setShowTodoMenu }) => {
         <div className="flex items-center gap-3">
           <div className="content">
             <Logo to="/">
-              <div className="title">ಆರ್.ವಿ</div>
+              <Title className="title">ಆರ್.ವಿ</Title>
 
-              <div class="aurora">
+              {/* <div class="aurora">
                 <div class="aurora__item"></div>
                 <div class="aurora__item"></div>
                 <div class="aurora__item"></div>
                 <div class="aurora__item"></div>
-              </div>
+              </div> */}
             </Logo>
           </div>
-          <div className="relative" ref={dropdownRef}>
-            <motion.button
-              onClick={() => setShowUtilityMenu(!showUtilityMenu)}
-              className="px-4 py-2 rounded-md relative overflow-hidden"
+          <div
+            className="relative"
+            onMouseEnter={() => setShowUtilityMenu(true)}
+            onMouseLeave={() => setShowUtilityMenu(false)}
+            ref={dropdownRef}
+          >
+            <button
+              class="button"
+              data-text="Awesome"
               initial={false}
+              onClick={() => setShowUtilityMenu(!showUtilityMenu)}
             >
-              <motion.div
-                className="absolute inset-0 border-2 rounded-md"
-                animate={{
-                  borderColor: ["#f97316", "#ef4444", "#f97316"],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              />
+              <span class="actual-text">&nbsp;utility&nbsp;</span>
+              <span aria-hidden="true" class="hover-text">
+                &nbsp;utility&nbsp;
+              </span>
+            </button>
+            {/* <motion.div className="absolute inset-0 " />
               <div className="relative h-6">
                 <div className="flex space-x-[0.2em]">
                   {letters.map((letter, index) => (
@@ -206,8 +227,7 @@ const Navigation = ({ toggleTheme, showTodoMenu, setShowTodoMenu }) => {
                     </motion.span>
                   ))}
                 </div>
-              </div>
-            </motion.button>
+              </div>  */}
 
             <AnimatePresence>
               {showUtilityMenu && (
@@ -234,6 +254,7 @@ const Navigation = ({ toggleTheme, showTodoMenu, setShowTodoMenu }) => {
           <NavLink to="/contributors">Contributors</NavLink>
           <NavLink to="/quizzes">Quizzes</NavLink>
         </NavLinks>
+
         <div style={{ display: "flex", gap: "1rem" }}>
           <IconButton onClick={handleThemeToggle}>
             {isDarkMode ? <LightMode /> : <DarkMode />}

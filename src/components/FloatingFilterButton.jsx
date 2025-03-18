@@ -6,9 +6,9 @@ import { FilterList } from "@mui/icons-material";
 const FloatingButton = styled(motion.button)`
   position: fixed;
   bottom: 2rem;
-  left: 2rem;
-  width: 56px;
-  height: 56px;
+  left: 1.9rem;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   background: ${(props) => props.theme.gradient};
   border: none;
@@ -19,11 +19,6 @@ const FloatingButton = styled(motion.button)`
   justify-content: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 100;
-
-  @media (max-width: 768px) {
-    width: 45px;
-    height: 45px;
-  }
 `;
 
 const FloatingFilterButton = ({ onClick }) => {
@@ -31,14 +26,6 @@ const FloatingFilterButton = ({ onClick }) => {
     <FloatingButton
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.9 }}
-      animate={{
-        scale: [1, 1.1, 1],
-      }}
-      transition={{
-        duration: 2,
-        repeat: Infinity,
-        repeatType: "reverse",
-      }}
       onClick={onClick}
     >
       <FilterList />

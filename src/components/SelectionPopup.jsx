@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import jsonData from "../data/folderHierarchy.json";
 import { TbHelpSquareRoundedFilled } from "react-icons/tb";
 import Help from "./Help";
 import searchFiles from "../hooks/searchFiles";
-import { Close } from "@mui/icons-material";
+import { Close, ArrowForward, ArrowBack } from "@mui/icons-material";
 
 const Overlay = styled(motion.div)`
   position: fixed;
@@ -13,124 +13,137 @@ const Overlay = styled(motion.div)`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
   padding: 1rem;
-
-  /* Custom Scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: ${(props) => props.theme.secondary}66;
-    border-radius: 3px;
-  }
+  overflow-y: auto;
 `;
 
 const PopupCard = styled(motion.div)`
   background: ${(props) => props.theme.surface};
-  padding: 2rem;
-  border-radius: 15px;
+  padding: 1.5rem;
+  border-radius: 16px;
   width: 95%;
-  max-width: 600px;
+  max-width: 500px;
   position: relative;
-  max-height: 90vh;
-  overflow-y: auto;
-  max-height: 95vh;
+  margin: 1rem auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid ${(props) => props.theme.border || "rgba(255,255,255,0.1)"};
+  overflow: visible;
+`;
+
+const StepContainer = styled(motion.div)`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  min-height: 250px;
+`;
+
+const StepHeader = styled.div`
+  text-align: center;
+  margin-bottom: 1.5rem;
 
   h2 {
-    font-size: clamp(1.5rem, 4vw, 2rem);
-    margin-bottom: 1.5rem;
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
+    font-weight: 600;
+    color: ${(props) => props.theme.text};
+    margin-bottom: 0.25rem;
   }
 
-  h3 {
-    font-size: clamp(1.2rem, 3vw, 1.5rem);
-    margin: 1.5rem 0 1rem;
-  }
-
-  @media (max-width: 768px) {
-    padding: 1.5rem;
-    width: 100%;
+  p {
+    color: ${(props) => props.theme.text + "80"};
+    font-size: 0.95rem;
   }
 `;
 
-const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
+const StepIndicator = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-bottom: 1.5rem;
+`;
 
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
+const StepDot = styled(motion.div)`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: ${(props) =>
+    props.active ? props.theme.primary : props.theme.text + "40"};
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: scale(1.2);
   }
+`;
+
+const StepContent = styled(motion.div)`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 `;
 
 const Card = styled(motion.div)`
-  padding: 1.5rem;
+  padding: 1rem;
   background: ${(props) =>
-    props.disabled ? props.theme.secondary : props.theme.gradient};
-  color: ${(props) => (props.disabled ? props.theme.text : "white")};
+    props.selected
+      ? props.theme.gradient
+      : props.disabled
+      ? props.theme.secondary + "20"
+      : props.theme.surface};
+  color: ${(props) =>
+    props.selected
+      ? "white"
+      : props.disabled
+      ? props.theme.text + "80"
+      : props.theme.text};
   border-radius: 12px;
   cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
   opacity: ${(props) => (props.disabled ? 0.5 : 1)};
   text-align: center;
-  font-size: clamp(1rem, 3vw, 1.2rem);
+  font-size: 0.95rem;
   font-weight: 500;
+  border: 1px solid
+    ${(props) =>
+      props.selected
+        ? props.theme.primary
+        : props.theme.border || "rgba(255,255,255,0.1)"};
+  transition: all 0.3s ease;
 
-  @media (max-width: 768px) {
-    padding: 1.25rem;
-    min-height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  &:hover {
+    transform: ${(props) => (props.disabled ? "none" : "translateY(-2px)")};
+    box-shadow: ${(props) =>
+      props.disabled ? "none" : `0 4px 12px ${props.theme.primary}30`};
   }
-`;
-
-const ContinueButton = styled(motion.button)`
-  width: 100%;
-  padding: 1rem;
-  margin-top: 1.5rem;
-  border: none;
-  border-radius: 8px;
-  background: ${(props) =>
-    props.disabled ? props.theme.secondary : props.theme.gradient};
-  color: ${(props) => (props.disabled ? props.theme.text : "white")};
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
-  opacity: ${(props) => (props.disabled ? 0.5 : 1)};
-  transition: opacity 0.2s;
 `;
 
 const StyledSelect = styled.select`
   appearance: none;
   width: 100%;
-  padding: 1rem;
-  margin: 0.5rem 0;
-  border-radius: 8px;
-  border: 2px solid ${(props) => props.theme.border};
+  padding: 0.875rem;
+  border-radius: 12px;
+  border: 1px solid ${(props) => props.theme.border || "rgba(255,255,255,0.1)"};
   background: ${(props) => props.theme.surface};
   color: ${(props) => props.theme.text};
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
-  background-position: right 1rem center;
-  background-size: 1em;
+  background-position: right 0.75rem center;
+  background-size: 0.875em;
 
   &:focus {
     outline: none;
     border-color: ${(props) => props.theme.primary};
-    box-shadow: 0 0 0 3px ${(props) => props.theme.primary}33;
+    box-shadow: 0 0 0 2px ${(props) => props.theme.primary}33;
   }
 
   &:hover {
@@ -139,71 +152,87 @@ const StyledSelect = styled.select`
   }
 
   option {
-    padding: 1rem;
+    padding: 0.75rem;
     background: ${(props) => props.theme.surface};
     color: ${(props) => props.theme.text};
     font-weight: 500;
+    font-size: 0.95rem;
   }
+`;
 
-  & option {
-    padding: 16px;
-    margin: 8px;
-    font-size: 1rem;
-    background-color: ${(props) => props.theme.surface};
-    color: ${(props) => props.theme.text};
+const SelectContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  .help-icon {
+    color: ${(props) => props.theme.primary};
     cursor: pointer;
-    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-size: 1.25rem;
 
     &:hover {
-      background-color: ${(props) => props.theme.primary};
-      color: white;
-    }
-
-    &:checked {
-      background: ${(props) => props.theme.gradient};
-      color: white;
+      transform: scale(1.1);
+      color: ${(props) => props.theme.secondary};
     }
   }
+`;
 
-  /* Custom Scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: ${(props) => props.theme.secondary}66;
-    border-radius: 3px;
-  }
+const NavigationButtons = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  gap: 0.75rem;
+`;
 
-  @media (max-width: 768px) {
-    padding: 0.75rem;
-    margin: 0.75rem 0;
+const NavButton = styled(motion.button)`
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  background: ${(props) =>
+    props.disabled ? props.theme.secondary + "20" : props.theme.gradient};
+  color: ${(props) => (props.disabled ? props.theme.text + "80" : "white")};
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
+  opacity: ${(props) => (props.disabled ? 0.5 : 1)};
+  transition: all 0.3s ease;
+  border: 1px solid ${(props) => props.theme.border || "rgba(255,255,255,0.1)"};
+
+  &:hover {
+    transform: ${(props) => (props.disabled ? "none" : "translateY(-2px)")};
+    box-shadow: ${(props) =>
+      props.disabled ? "none" : `0 4px 12px ${props.theme.primary}30`};
   }
 `;
 
 const CloseButton = styled.button`
   position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: none;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: ${(props) => props.theme.surface};
+  border: 1px solid ${(props) => props.theme.border || "rgba(255,255,255,0.1)"};
   color: ${(props) => props.theme.text};
   cursor: pointer;
-  padding: 0.5rem;
+  padding: 0.35rem;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   z-index: 1000;
+  transition: all 0.3s ease;
 
   &:hover {
-    background: ${(props) => props.theme.secondary};
+    background: ${(props) => props.theme.primary};
+    color: white;
+    transform: rotate(90deg);
   }
 `;
 
 const SelectionPopup = ({ onClose, onSubmit }) => {
+  const [currentStep, setCurrentStep] = useState(0);
   const [selection, setSelection] = useState({
     year: "",
     cycle: "",
@@ -217,7 +246,7 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
   const [plcCourses, setPlcCourses] = useState([]);
   const [etcCourses, setEtcCourses] = useState([]);
   const [kannadaCourses, setKannadaCourses] = useState([]);
-  const [showHelp, setShowHelp] = useState([false, ""]);
+  const [showHelp, setShowHelp] = useState([false, "hi"]);
 
   useEffect(() => {
     const firstYear = jsonData.find((item) => item.name === "1 Year");
@@ -245,6 +274,8 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
         const kannada = pCycle.children.find(
           (item) => item.name === "Kannada (22HSXK17)"
         );
+        const esc = cCycle.children.find((item) => item.name === "ESC");
+        setEscCourses(esc ? esc.children.map((course) => course.name) : []);
         setEtcCourses(etc ? etc.children.map((course) => course.name) : []);
         setKannadaCourses(
           kannada ? kannada.children.map((course) => course.name) : []
@@ -253,23 +284,251 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
     }
   }, []);
 
-  const handleSubmit = () => {
-    onSubmit(selection);
-    onClose();
-  };
-
-  const isComplete = () => {
-    if (selection.cycle === "C - Cycle") {
-      return selection.selectedESC && selection.selectedPLC;
-    } else if (selection.cycle === "P - Cycle") {
-      return selection.selectedETC && selection.selectedKannada;
-    }
-    return false;
-  };
-
   const getContent = (text) => {
     const results = searchFiles(`_which ${text} to choose.txt`);
-    return results.map((result, index) => result.Content);
+    return results ? results[0].Content : "No help content available.";
+  };
+
+  const steps = [
+    {
+      title: "Select Your Year",
+      description: "Choose your current year of study",
+      content: (
+        <StepContent>
+          <Card
+            selected={selection.year === "1 Year"}
+            onClick={() =>
+              setSelection((prev) => {
+                return { ...prev, year: "1 Year" };
+              })
+            }
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            1 Year
+          </Card>
+          <Card disabled>2 Year</Card>
+          <Card disabled>3 Year</Card>
+          <Card disabled>4 Year</Card>
+        </StepContent>
+      ),
+    },
+    {
+      title: "Choose Your Cycle",
+      description: "Select your academic cycle",
+      content: (
+        <StepContent>
+          <Card
+            selected={selection.cycle === "C - Cycle"}
+            onClick={() =>
+              setSelection((prev) => {
+                return { ...prev, cycle: "C - Cycle" };
+              })
+            }
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            C - Cycle
+          </Card>
+          <Card
+            selected={selection.cycle === "P - Cycle"}
+            onClick={() =>
+              setSelection((prev) => {
+                return { ...prev, cycle: "P - Cycle" };
+              })
+            }
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            P - Cycle
+          </Card>
+        </StepContent>
+      ),
+    },
+    {
+      title: "Select Your Courses",
+      description: "Choose your courses based on your cycle",
+      content: (
+        <StepContent>
+          {selection.cycle === "C - Cycle" ? (
+            <>
+              <SelectContainer>
+                <StyledSelect
+                  value={selection.selectedESC}
+                  onChange={(e) =>
+                    setSelection((prev) => {
+                      return { ...prev, selectedESC: e.target.value };
+                    })
+                  }
+                >
+                  <option value="">-- Select ESC Course --</option>
+                  {escCourses.map(
+                    (course, index) =>
+                      !course.includes(".txt") && (
+                        <option key={index} value={course}>
+                          {course}
+                        </option>
+                      )
+                  )}
+                </StyledSelect>
+                <TbHelpSquareRoundedFilled
+                  className="help-icon"
+                  onClick={() => {
+                    setShowHelp([true, getContent("esc")]);
+                  }}
+                />
+              </SelectContainer>
+
+              <SelectContainer>
+                <StyledSelect
+                  value={selection.selectedPLC}
+                  onChange={(e) =>
+                    setSelection((prev) => {
+                      return { ...prev, selectedPLC: e.target.value };
+                    })
+                  }
+                >
+                  <option value="">-- Select PLC Course --</option>
+                  {plcCourses.map(
+                    (course, index) =>
+                      !course.includes(".txt") && (
+                        <option key={index} value={course}>
+                          {course}
+                        </option>
+                      )
+                  )}
+                </StyledSelect>
+                <TbHelpSquareRoundedFilled
+                  className="help-icon"
+                  onClick={() => {
+                    setShowHelp([true, getContent("plc")]);
+                  }}
+                />
+              </SelectContainer>
+            </>
+          ) : (
+            <>
+              <SelectContainer>
+                <StyledSelect
+                  value={selection.selectedETC}
+                  onChange={(e) =>
+                    setSelection((prev) => {
+                      return { ...prev, selectedETC: e.target.value };
+                    })
+                  }
+                >
+                  <option value="">-- Select ETC Course --</option>
+                  {etcCourses.map(
+                    (course, index) =>
+                      !course.includes(".txt") && (
+                        <option key={index} value={course}>
+                          {course}
+                        </option>
+                      )
+                  )}
+                </StyledSelect>
+                <TbHelpSquareRoundedFilled
+                  className="help-icon"
+                  onClick={() => {
+                    setShowHelp([true, getContent("etc")]);
+                  }}
+                />
+              </SelectContainer>
+
+              <SelectContainer>
+                <StyledSelect
+                  value={selection.selectedESC}
+                  onChange={(e) =>
+                    setSelection((prev) => {
+                      return { ...prev, selectedESC: e.target.value };
+                    })
+                  }
+                >
+                  <option value="">-- Select ESC Course --</option>
+                  {escCourses.map(
+                    (course, index) =>
+                      !course.includes(".txt") && (
+                        <option key={index} value={course}>
+                          {course}
+                        </option>
+                      )
+                  )}
+                </StyledSelect>
+                <TbHelpSquareRoundedFilled
+                  className="help-icon"
+                  onClick={() => {
+                    setShowHelp([true, getContent("esc")]);
+                  }}
+                />
+              </SelectContainer>
+
+              <SelectContainer>
+                <StyledSelect
+                  value={selection.selectedKannada}
+                  onChange={(e) =>
+                    setSelection((prev) => {
+                      return { ...prev, selectedKannada: e.target.value };
+                    })
+                  }
+                >
+                  <option value="">-- Select Kannada Course --</option>
+                  {kannadaCourses.map(
+                    (course, index) =>
+                      !course.includes(".txt") && (
+                        <option key={index} value={course}>
+                          {course}
+                        </option>
+                      )
+                  )}
+                </StyledSelect>
+                <TbHelpSquareRoundedFilled
+                  className="help-icon"
+                  onClick={() => {
+                    setShowHelp([true, "You Know Na Dude! 😁"]);
+                  }}
+                />
+              </SelectContainer>
+            </>
+          )}
+        </StepContent>
+      ),
+    },
+  ];
+
+  const handleNext = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep((prev) => prev + 1);
+    } else {
+      onSubmit(selection);
+      onClose();
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep((prev) => prev - 1);
+    }
+  };
+
+  const isStepComplete = () => {
+    switch (currentStep) {
+      case 0:
+        return selection.year !== "";
+      case 1:
+        return selection.cycle !== "";
+      case 2:
+        if (selection.cycle === "C - Cycle") {
+          return selection.selectedESC && selection.selectedPLC;
+        } else {
+          return (
+            selection.selectedETC &&
+            selection.selectedKannada &&
+            selection.selectedESC
+          );
+        }
+      default:
+        return false;
+    }
   };
 
   return (
@@ -278,220 +537,68 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <CloseButton
-        onClick={onClose}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-      >
+      <CloseButton onClick={onClose}>
         <Close />
       </CloseButton>
       <PopupCard
-        initial={{ scale: 0.9 }}
-        animate={{ scale: 1 }}
-        exit={{ scale: 0.9 }}
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
       >
-        <h2 className="inline-block">Select Your Year</h2>
+        <StepHeader>
+          <h2>{steps[currentStep].title}</h2>
+          <p>{steps[currentStep].description}</p>
+        </StepHeader>
 
-        <Grid>
-          <Card
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() =>
-              setSelection((prev) => {
-                return { ...prev, year: "1 Year" };
-              })
-            }
+        <StepIndicator>
+          {steps.map((_, index) => (
+            <StepDot
+              key={index}
+              active={index === currentStep}
+              onClick={() => setCurrentStep(index)}
+            />
+          ))}
+        </StepIndicator>
+
+        <AnimatePresence mode="wait">
+          <StepContainer
+            key={currentStep}
+            initial={{ x: 50, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -50, opacity: 0 }}
+            transition={{ duration: 0.3 }}
           >
-            1 Year
-          </Card>
-          <Card className="flex-1" disabled>
-            2 Year
-          </Card>
-          <Card disabled>3 Year</Card>
-          <Card disabled>4 Year</Card>
-        </Grid>
+            {steps[currentStep].content}
+          </StepContainer>
+        </AnimatePresence>
 
-        {selection.year === "1 Year" && (
-          <>
-            <h3>Select Cycle</h3>
-            <Grid>
-              <Card
-                onClick={() =>
-                  setSelection((prev) => {
-                    return { ...prev, cycle: "C - Cycle" };
-                  })
-                }
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                C - Cycle
-              </Card>
-              <Card
-                onClick={() =>
-                  setSelection((prev) => {
-                    return {
-                      ...prev,
-                      cycle: "P - Cycle",
-                    };
-                  })
-                }
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                P - Cycle
-              </Card>
-            </Grid>
-          </>
-        )}
-
-        {selection.cycle === "C - Cycle" && (
-          <>
-            <h3>Select Courses</h3>
-            <div className="flex items-center">
-              <StyledSelect
-                value={selection.selectedESC}
-                onChange={(e) =>
-                  setSelection((prev) => {
-                    return { ...prev, selectedESC: e.target.value };
-                  })
-                }
-              >
-                <option value="">-- Select ESC Course --</option>
-                {escCourses.map(
-                  (course, index) =>
-                    !course.includes(".txt") && (
-                      <option key={index} value={course}>
-                        {course}
-                      </option>
-                    )
-                )}
-              </StyledSelect>
-              <span
-                className="ml-2 text-gray-500 cursor-pointer text-2xl"
-                onClick={() => {
-                  setShowHelp([true, getContent("esc")]);
-                }}
-              >
-                <TbHelpSquareRoundedFilled />
-              </span>
-            </div>
-            {showHelp[0] && (
-              <Help
-                text={showHelp[1]}
-                isOpen={showHelp}
-                onClose={() => setShowHelp(false)}
-              />
-            )}
-
-            <div className="flex items-center">
-              <StyledSelect
-                value={selection.selectedPLC}
-                onChange={(e) =>
-                  setSelection((prev) => {
-                    return { ...prev, selectedPLC: e.target.value };
-                  })
-                }
-              >
-                <option value="">-- Select PLC Course --</option>
-                {plcCourses.map(
-                  (course, index) =>
-                    !course.includes(".txt") && (
-                      <option key={index} value={course}>
-                        {course}
-                      </option>
-                    )
-                )}
-              </StyledSelect>
-              <span
-                className="ml-2 text-gray-500 cursor-pointer text-2xl"
-                onClick={() => {
-                  setShowHelp([true, getContent("plc")]);
-                }}
-              >
-                <TbHelpSquareRoundedFilled />
-              </span>
-            </div>
-          </>
-        )}
-
-        {selection.cycle === "P - Cycle" && (
-          <>
-            <h3>Select Courses</h3>
-            <div className="flex items-center">
-              <StyledSelect
-                value={selection.selectedETC}
-                onChange={(e) =>
-                  setSelection((prev) => {
-                    return { ...prev, selectedETC: e.target.value };
-                  })
-                }
-              >
-                <option value="">-- Select ETC Course --</option>
-                {etcCourses.map(
-                  (course, index) =>
-                    !course.includes(".txt") && (
-                      <option key={index} value={course}>
-                        {course}
-                      </option>
-                    )
-                )}
-              </StyledSelect>
-              <span
-                className="ml-2 text-gray-500 cursor-pointer text-2xl"
-                onClick={() => {
-                  setShowHelp([true, getContent("etc")]);
-                }}
-              >
-                <TbHelpSquareRoundedFilled />
-              </span>
-            </div>
-
-            <div className="flex items-center">
-              <StyledSelect
-                value={selection.selectedKannada}
-                onChange={(e) =>
-                  setSelection((prev) => {
-                    return { ...prev, selectedKannada: e.target.value };
-                  })
-                }
-              >
-                <option value="">-- Select Kannada Course --</option>
-                {kannadaCourses.map(
-                  (course, index) =>
-                    !course.includes(".txt") && (
-                      <option key={index} value={course}>
-                        {course}
-                      </option>
-                    )
-                )}
-              </StyledSelect>
-              <span
-                className="ml-2 text-gray-500 cursor-pointer text-2xl"
-                onClick={() => {
-                  setShowHelp([true, "You Know Na Dude! 😁"]);
-                }}
-              >
-                <TbHelpSquareRoundedFilled />
-              </span>
-            </div>
-            {showHelp[0] && (
-              <Help
-                text={showHelp[1]}
-                isOpen={showHelp}
-                onClose={() => setShowHelp(false)}
-              />
-            )}
-          </>
-        )}
-        <ContinueButton
-          disabled={!isComplete()}
-          whileHover={!isComplete() ? {} : { scale: 1.02 }}
-          whileTap={!isComplete() ? {} : { scale: 0.98 }}
-          onClick={handleSubmit}
-        >
-          Continue
-        </ContinueButton>
+        <NavigationButtons>
+          <NavButton
+            onClick={handleBack}
+            disabled={currentStep === 0}
+            whileHover={currentStep === 0 ? {} : { scale: 1.02 }}
+            whileTap={currentStep === 0 ? {} : { scale: 0.98 }}
+          >
+            <ArrowBack /> Back
+          </NavButton>
+          <NavButton
+            onClick={handleNext}
+            disabled={!isStepComplete()}
+            whileHover={!isStepComplete() ? {} : { scale: 1.02 }}
+            whileTap={!isStepComplete() ? {} : { scale: 0.98 }}
+          >
+            {currentStep === steps.length - 1 ? "Finish" : "Next"}
+            <ArrowForward />
+          </NavButton>
+        </NavigationButtons>
       </PopupCard>
+      {showHelp[0] && (
+        <Help
+          text={showHelp[1]}
+          isOpen={showHelp[0]}
+          onClose={() => setShowHelp([false, ""])}
+        />
+      )}
     </Overlay>
   );
 };

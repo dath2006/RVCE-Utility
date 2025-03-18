@@ -17,6 +17,7 @@ import LocomotiveScroll from "locomotive-scroll";
 import { Analytics } from "@vercel/analytics/react";
 import CustomCursor from "./components/CustomCursor";
 import LoadingScreen from "./components/LoadingScreen";
+import FloatingDrawer from "./components/FloatingDrawer";
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -135,6 +136,7 @@ function App() {
   const [showTodoMenu, setShowTodoMenu] = useState(false);
   const [viewerFile, setViewerFile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   let isMobile = false;
 
@@ -189,6 +191,11 @@ function App() {
             ? "opacity-0 translate-z-[-50px]"
             : "opacity-100 translate-z-0"
         }`}
+        onClick={() => {
+          if (isMenuOpen) {
+            setIsMenuOpen(false);
+          }
+        }}
       >
         <Router>
           <AppContainer>
@@ -226,13 +233,18 @@ function App() {
                 )}
               </AnimatePresence>
 
-              <WorkspaceButton
+              {/* <WorkspaceButton
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setShowWorkspace(!showWorkspace)}
               >
                 <WorkspacesIcon />
-              </WorkspaceButton>
+              </WorkspaceButton> */}
+              <FloatingDrawer
+                setShowWorkspace={setShowWorkspace}
+                isOpen={isMenuOpen}
+                setIsOpen={setIsMenuOpen}
+              />
             </div>
             <AnimatePresence>
               {showWorkspace && (
