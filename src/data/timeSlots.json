@@ -1,0 +1,50 @@
+[
+  {
+    "display": "9.00 - 10.00",
+    "start": 540,
+    "end": 600,
+    "slotId": "slot1"
+  },
+  {
+    "display": "10.00 - 11.00",
+    "start": 600,
+    "end": 660,
+    "slotId": "slot2"
+  },
+  {
+    "display": "Short Break",
+    "start": 660,
+    "end": 690,
+    "slotId": "break1"
+  },
+  {
+    "display": "11.30 - 12.30",
+    "start": 690,
+    "end": 750,
+    "slotId": "slot3"
+  },
+  {
+    "display": "12.30 - 01.30",
+    "start": 750,
+    "end": 810,
+    "slotId": "slot4"
+  },
+  {
+    "display": "Lunch Break",
+    "start": 810,
+    "end": 870,
+    "slotId": "break2"
+  },
+  {
+    "display": "02.30 - 03.30",
+    "start": 870,
+    "end": 930,
+    "slotId": "slot5"
+  },
+  {
+    "display": "03.30 - 04.30",
+    "start": 930,
+    "end": 990,
+    "slotId": "slot6"
+  }
+]

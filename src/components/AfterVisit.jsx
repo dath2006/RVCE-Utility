@@ -7,7 +7,7 @@ import { Button } from "@mui/material";
 import { useState } from "react";
 import FileViewer from "./FileViewer";
 import FeaturesSection from "./FeaturesSection";
-import Help from "./Help";
+import { useUser } from "@clerk/clerk-react";
 
 const HeroSection = styled.div`
   background: linear-gradient(
@@ -207,21 +207,24 @@ const Resources = styled(NavLink)`
       transform: translateX(0);
     }
   }
+
+  @media (max-width: 726px) {
+    font-size: 0.6rem;
+    padding: 0.3rem 1.5rem;
+  }
 `;
 
 const newsItems = [
+  {
+    title: "Resourse Contribution is Open !",
+    date: "April 06, 2025",
+    content: "Contibute college resources to the portal.",
+  },
   {
     title: "Code Contribution is Open !",
     date: "Febraury 06, 2025",
     content: "Welcome developers to contribute to RVCE Utility Portal.",
     url: "https://github.com/dath2006/RVCE-Utility",
-  },
-  {
-    title: "Resources Contribution is Open.",
-    date: "Febraury 02, 2025",
-    content:
-      "For temporary purpose upload, required files in the Google forms.",
-    url: "https://docs.google.com/forms/d/e/1FAIpQLSdkXHB8g1byUNuY6Qrj3Hzkhnz2BM2Z9n_QnKMmHJvBpw3ygQ/viewform?usp=header",
   },
   {
     title: "Campus Placement Updates",
@@ -231,8 +234,10 @@ const newsItems = [
   },
 ];
 
-export default function AfterVisit() {
+export default function AfterVisit({ showAuthCard, setShowAuthCard }) {
   const [viewerFile, setViewerFile] = useState(null);
+  const { isLoaded, isSignedIn } = useUser();
+  const [showAlert, setShowAlert] = useState(false);
 
   return (
     <div className="max-w-7xl mx-auto mt-[6rem] px-4 py-6">
@@ -256,6 +261,7 @@ export default function AfterVisit() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
+          className="flex gap-7 justify-center"
         >
           <Resources
             to="/resources"
@@ -263,6 +269,20 @@ export default function AfterVisit() {
             whileTap={{ scale: 0.95 }}
           >
             Get Resources
+            <ArrowRight size={20} />
+          </Resources>
+
+          <Resources
+            to={isSignedIn && isLoaded && "/attendance"}
+            onClick={() => {
+              if (!isSignedIn) {
+                setShowAuthCard(!showAuthCard);
+              }
+            }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Attendance
             <ArrowRight size={20} />
           </Resources>
         </motion.div>

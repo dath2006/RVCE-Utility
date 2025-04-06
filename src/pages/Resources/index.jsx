@@ -15,7 +15,6 @@ const Container = styled.div`
   height: 100%;
   display: flex;
   flex-direction: column;
-
   @media (max-width: 768px) {
     padding: 1rem;
   }
@@ -84,7 +83,7 @@ const NoResultsMessage = styled(motion.div)`
   opacity: 0.7;
 `;
 
-const Resources = () => {
+const Resources = ({ setDisableWorkSpace }) => {
   const [currentPath, setCurrentPath] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredFiles, setFilteredFiles] = useState([]);
@@ -94,6 +93,13 @@ const Resources = () => {
     return saved ? JSON.parse(saved) : null;
   });
   const [showFilterDialog, setShowFilterDialog] = useState(false);
+
+  useEffect(() => {
+    const setShow = () => {
+      setDisableWorkSpace(false);
+    };
+    setShow();
+  }, []);
 
   useEffect(() => {
     filters && handleShowFolders();

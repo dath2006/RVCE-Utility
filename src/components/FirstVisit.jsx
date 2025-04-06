@@ -3,7 +3,6 @@ import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import SelectionPopup from "./SelectionPopup";
-import FeaturesSection from "./FeaturesSection";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -12,7 +11,6 @@ const Container = styled.div`
   justify-content: center;
   align-items: center;
   background: ${(props) => props.theme.gradient};
-  padding: 2rem;
   margin-top: 4rem;
 `;
 
@@ -43,18 +41,12 @@ const GetStartedButton = styled(motion.button)`
 const FirstVisit = () => {
   const navigate = useNavigate();
   const [showPopup, setShowPopup] = useState(false);
-  const [showFeatures, setshowFeatures] = useState(false);
   const [filters, setFilters] = useState(() => {
     const saved = localStorage.getItem("filters");
     return saved ? JSON.parse(saved) : null;
   });
 
-  const handleGetStarted = () => {
-    setshowFeatures(true);
-  };
-
   const handleFeaturesComplete = () => {
-    setshowFeatures(false);
     setShowPopup(true);
   };
 
@@ -81,45 +73,22 @@ const FirstVisit = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.4 }}
-        onClick={handleGetStarted}
+        onClick={handleFeaturesComplete}
       >
         Get Started
       </GetStartedButton>
-      <AnimatePresence>
-        {showFeatures && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <FeaturesSection />
-            </motion.div>
-            <GetStartedButton
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              onClick={handleFeaturesComplete}
-              className="mb-64 mt-10"
-            >
-              Continue
-            </GetStartedButton>
-          </>
-        )}
 
-        {showPopup && (
-          <SelectionPopup
-            onClose={() => setShowPopup(false)}
-            onSubmit={(selectedFilters) => {
-              setFilters(selectedFilters);
-              localStorage.setItem("filters", JSON.stringify(selectedFilters));
-              navigate("/resources");
-            }}
-          />
-        )}
-      </AnimatePresence>
+      {showPopup && (
+        <SelectionPopup
+          onClose={() => setShowPopup(false)}
+          onSubmit={(selectedFilters) => {
+            setFilters(selectedFilters);
+            localStorage.setItem("filters", JSON.stringify(selectedFilters));
+            navigate("/resources");
+          }}
+        />
+      )}
+      {/* </AnimatePresence> */}
     </Container>
   );
 };

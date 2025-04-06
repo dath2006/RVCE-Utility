@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import styled, { ThemeProvider } from "styled-components";
 import { lightTheme, darkTheme } from "./styles/theme";
@@ -10,7 +10,6 @@ import Quizzes from "./pages/Quizzes";
 import Workspace from "./components/Workspace";
 import GlobalStyles from "./styles/GlobalStyles";
 import FileViewer from "./components/FileViewer";
-import WorkspacesIcon from "@mui/icons-material/Workspaces";
 import { motion, AnimatePresence } from "framer-motion";
 import Todo from "./components/Todo";
 import LocomotiveScroll from "locomotive-scroll";
@@ -18,6 +17,15 @@ import { Analytics } from "@vercel/analytics/react";
 import CustomCursor from "./components/CustomCursor";
 import LoadingScreen from "./components/LoadingScreen";
 import FloatingDrawer from "./components/FloatingDrawer";
+import Contributation from "./pages/Contributation";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+import { RedirectToSignIn, SignedIn, SignedOut } from "@clerk/clerk-react";
+import Statistics from "./components/Statistics";
+import MainAttendance from "./components/MainAttendance";
+import Attendance from "./pages/Attendance";
+import PopupCard from "./components/AuthCard";
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -56,29 +64,6 @@ const WorkspaceContainer = styled(motion.div)`
   margin: 2rem auto;
   max-width: 1200px;
   width: 90%;
-`;
-
-const WorkspaceButton = styled(motion.button)`
-  position: fixed;
-  bottom: 7rem;
-  left: 2rem;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: ${(props) => props.theme.gradient};
-  border: none;
-  color: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 999;
-
-  @media (max-width: 768px) {
-    width: 45px;
-    height: 45px;
-  }
 `;
 
 const WorkspaceOverlay = styled(motion.div)`
@@ -120,6 +105,97 @@ const TodoContainer = styled(motion.div)`
   }
 `;
 
+const StyledToastContainer = styled(ToastContainer)`
+  // Base container styling
+  &.Toastify__toast-container {
+    padding: 10px;
+    width: 320px;
+    box-sizing: border-box;
+  }
+
+  // Common toast styling
+  .Toastify__toast {
+    margin-bottom: 12px;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    padding: 14px 16px;
+    background-color: #f8f9fc; // Light base background
+    color: #464d59;
+    border-left: 4px solid transparent;
+
+    // Smooth transitions
+    transition: all 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  // Different toast types with subtle colors
+  .Toastify__toast--success {
+    background-color: #f3fbf8;
+    border-left-color: #5ccfab;
+
+    .Toastify__progress-bar {
+      background: linear-gradient(to right, #5ccfab, #3db89a);
+    }
+  }
+
+  .Toastify__toast--error {
+    background-color: #fef8f8;
+    border-left-color: #f87878;
+
+    .Toastify__progress-bar {
+      background: linear-gradient(to right, #f87878, #e05c5c);
+    }
+  }
+
+  .Toastify__toast--warning {
+    background-color: #fffaf2;
+    border-left-color: #ffb547;
+
+    .Toastify__progress-bar {
+      background: linear-gradient(to right, #ffb547, #f7a62d);
+    }
+  }
+
+  .Toastify__toast--info {
+    background-color: #f2f8fd;
+    border-left-color: #62b6ff;
+
+    .Toastify__progress-bar {
+      background: linear-gradient(to right, #62b6ff, #4a9af5);
+    }
+  }
+
+  // Progress bar styling
+  .Toastify__progress-bar {
+    height: 3px;
+    opacity: 0.8;
+  }
+
+  // Close button styling
+  .Toastify__close-button {
+    color: #8896aa;
+    opacity: 0.7;
+
+    &:hover {
+      opacity: 1;
+      color: #464d59;
+    }
+  }
+
+  // Toast body styling
+  .Toastify__toast-body {
+    padding: 4px 0;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+`;
+
 const overlayVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1 },
@@ -128,7 +204,6 @@ const overlayVariants = {
 
 function App() {
   const locomotiveScroll = new LocomotiveScroll();
-
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "dark"
   );
@@ -137,6 +212,8 @@ function App() {
   const [viewerFile, setViewerFile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showAuthCard, setShowAuthCard] = useState();
+  const [disableWorkSpace, setDisableWorkSpace] = useState(false);
 
   let isMobile = false;
 
@@ -163,11 +240,24 @@ function App() {
   return (
     <ThemeProvider theme={theme === "light" ? lightTheme : darkTheme}>
       {/* <CustomCursor /> */}
+
       <GlobalStyles />
       <LoadingScreen
         isLoading={isLoading}
         onLoadingComplete={() => setIsLoading(false)}
         isMobile={isMobile}
+      />
+      <StyledToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        limit={7}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
       />
       <div
         className={`fixed inset-0 transition-all duration-700 delay-500 ease-in-out ${
@@ -185,6 +275,7 @@ function App() {
           height: "98vh",
         }}
       />
+
       <div
         className={`relative min-h-screen z-10 transition-all  duration-1000 ease-in-out ${
           isLoading
@@ -206,16 +297,92 @@ function App() {
                 toggleTheme={toggleTheme}
                 showTodoMenu={showTodoMenu}
                 setShowTodoMenu={setShowTodoMenu}
+                showAuthCard={showAuthCard}
+                setShowAuthCard={setShowAuthCard}
               />
               <div className="flex-1 overflow-y-auto overflow-x-hidden">
                 <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/resources" element={<Resources />} />
-                  <Route path="/contributors" element={<Contributors />} />
-                  <Route path="/quizzes" element={<Quizzes />} />
+                  <Route
+                    path="/"
+                    element={
+                      <Home
+                        setDisableWorkSpace={setDisableWorkSpace}
+                        showAuthCard={showAuthCard}
+                        setShowAuthCard={setShowAuthCard}
+                      />
+                    }
+                  />
+
+                  <Route
+                    path="/resources"
+                    element={
+                      <Resources setDisableWorkSpace={setDisableWorkSpace} />
+                    }
+                  />
+                  <Route
+                    path="/contributors"
+                    element={
+                      <Contributors
+                        setDisableWorkSpace={setDisableWorkSpace}
+                        showAuthCard={showAuthCard}
+                        setShowAuthCard={setShowAuthCard}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/contribute"
+                    element={
+                      <>
+                        <SignedIn>
+                          <Contributation
+                            setDisableWorkSpace={setDisableWorkSpace}
+                          />
+                        </SignedIn>
+                        <SignedOut>
+                          <RedirectToSignIn
+                            signInFallbackRedirectUrl={"/contribute"}
+                          />
+                        </SignedOut>
+                      </>
+                    }
+                  />
+                  <Route
+                    path="/attendance"
+                    element={
+                      <>
+                        <SignedIn>
+                          <Attendance
+                            setDisableWorkSpace={setDisableWorkSpace}
+                          />
+                        </SignedIn>
+                        <SignedOut>
+                          <RedirectToSignIn
+                            signInFallbackRedirectUrl={"/attendance"}
+                          />
+                        </SignedOut>
+                      </>
+                    }
+                  />
+                  <Route
+                    path="/quizzes"
+                    element={
+                      <Quizzes setDisableWorkSpace={setDisableWorkSpace} />
+                    }
+                  />
                 </Routes>
               </div>
               <AnimatePresence mode="wait">
+                {showAuthCard && (
+                  <PopupCard
+                    onClose={() => setShowAuthCard(false)}
+                    title="Welcome Back"
+                    description="Sign in to your account or create a new one"
+                  >
+                    <p>
+                      Access your account to enjoy all the features we offer.
+                    </p>
+                  </PopupCard>
+                )}
                 {viewerFile && (
                   <FileViewer
                     key="file-viewer"
@@ -240,13 +407,15 @@ function App() {
               >
                 <WorkspacesIcon />
               </WorkspaceButton> */}
-              <FloatingDrawer
-                setShowWorkspace={setShowWorkspace}
-                isOpen={isMenuOpen}
-                setIsOpen={setIsMenuOpen}
-              />
+              {!disableWorkSpace && (
+                <FloatingDrawer
+                  setShowWorkspace={setShowWorkspace}
+                  isOpen={isMenuOpen}
+                  setIsOpen={setIsMenuOpen}
+                />
+              )}
             </div>
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
               {showWorkspace && (
                 <>
                   <WorkspaceOverlay

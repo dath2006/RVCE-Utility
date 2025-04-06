@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import FileViewer from "../components/FileViewer";
@@ -101,6 +101,7 @@ const Card = styled(motion.div)`
   overflow: hidden;
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+  z-index: -1;
 
   &::before {
     content: "";
@@ -193,8 +194,15 @@ const quizLinks = {
   "Unit - 3": "https://cie-3.netlify.app",
 };
 
-const Quizzes = () => {
+const Quizzes = ({ setDisableWorkSpace }) => {
   const [selectedQuiz, setSelectedQuiz] = useState(null);
+
+  useEffect(() => {
+    const setShow = () => {
+      setDisableWorkSpace(false);
+    };
+    setShow();
+  }, []);
 
   return (
     <Container>

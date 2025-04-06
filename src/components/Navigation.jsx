@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { Menu, Close, DarkMode, LightMode } from "@mui/icons-material";
+import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/clerk-react";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -12,7 +14,7 @@ const Nav = styled.nav`
   padding: 1rem 2rem;
   background: rgba(255, 248, 248, 0.07);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(7.8px);
   border: 1px solid rgba(255, 248, 248, 0.12);
   position: fixed;
@@ -48,7 +50,7 @@ const NavLinks = styled.div`
   gap: 2rem;
   display: flex;
 
-  @media (max-width: 768px) {
+  @media (max-width: 924px) {
     display: ${(props) => (props.isOpen ? "flex" : "none")};
     position: absolute;
     top: 100%;
@@ -94,7 +96,7 @@ const IconButton = styled.button`
 
 const MobileMenuButton = styled(IconButton)`
   display: none;
-  @media (max-width: 768px) {
+  @media (max-width: 924px) {
     display: block;
     z-index: 1000;
   }
@@ -110,6 +112,11 @@ const BetaTag = styled(motion.span)`
   font-weight: 600;
   vertical-align: middle;
   cursor: default;
+
+  @media (max-width: 500px) {
+    font-size: 0.5rem;
+    margin-right: 0.3rem;
+  }
 `;
 
 const Title = styled.h1`
@@ -119,7 +126,14 @@ const Title = styled.h1`
   }
 `;
 
-const Navigation = ({ toggleTheme, showTodoMenu, setShowTodoMenu }) => {
+const Navigation = ({
+  toggleTheme,
+  showTodoMenu,
+  setShowTodoMenu,
+  showAuthCard,
+  setShowAuthCard,
+}) => {
+  const { isSignedIn, isLoaded } = useUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(
     localStorage.getItem("theme") === "dark"
@@ -150,7 +164,7 @@ const Navigation = ({ toggleTheme, showTodoMenu, setShowTodoMenu }) => {
   return (
     <Nav>
       <NavContainer>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <div className="content">
             <Logo to="/">
               <Title className="title">ಆರ್.ವಿ</Title>
@@ -244,18 +258,37 @@ const Navigation = ({ toggleTheme, showTodoMenu, setShowTodoMenu }) => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
           >
-            BETA
+            ALPHA
           </BetaTag>
         </div>
 
         <NavLinks isOpen={isMenuOpen} onClick={() => setIsMenuOpen(false)}>
           <NavLink to="/">Home</NavLink>
           <NavLink to="/resources">Resources</NavLink>
-          <NavLink to="/contributors">Contributors</NavLink>
+          <NavLink to="/contributors">Contribute</NavLink>
           <NavLink to="/quizzes">Quizzes</NavLink>
+          <NavLink
+            to={isSignedIn && isLoaded && "/attendance"}
+            onClick={() => {
+              if (!isSignedIn) {
+                setShowAuthCard(!showAuthCard);
+              }
+            }}
+          >
+            Attendance
+          </NavLink>
         </NavLinks>
-
-        <div style={{ display: "flex", gap: "1rem" }}>
+        <div className="flex gap-1 sm:gap-4">
+          <div className="flex items-center gap-3">
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
+            <SignedOut>
+              <button onClick={() => setShowAuthCard(!showAuthCard)}>
+                <AccountCircleIcon />
+              </button>
+            </SignedOut>
+          </div>
           <IconButton onClick={handleThemeToggle}>
             {isDarkMode ? <LightMode /> : <DarkMode />}
           </IconButton>
