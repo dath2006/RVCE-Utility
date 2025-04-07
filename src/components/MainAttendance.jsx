@@ -858,7 +858,7 @@ const staggerItem = {
 
 const MainAttendance = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const now = new Date().toDateString();
+  const now = new Date().toLocaleDateString("en-CA");
   const { user, isAuthenticated, isLoading } = useAuth0();
   const [accStart, setAccStart] = useState();
   const [accEnd, setAccEnd] = useState();
@@ -1215,7 +1215,7 @@ const MainAttendance = () => {
             >
               <Calendar
                 minDate={new Date(accStart)}
-                maxDate={new Date()}
+                maxDate={new Date().toLocaleDateString("en-CA")}
                 value={date}
                 onChange={(value) => {
                   setDate(value);
