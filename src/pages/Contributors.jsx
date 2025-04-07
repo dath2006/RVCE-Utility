@@ -6,11 +6,11 @@ import { GitHub } from "@mui/icons-material";
 import { FaUsers } from "react-icons/fa";
 import { FaHandshake } from "react-icons/fa";
 import ViewContribution from "../components/ViewContribution";
-import { useUser } from "@clerk/clerk-react";
 import axios from "axios";
 import AllInclusiveIcon from "@mui/icons-material/AllInclusive";
 import CircularProgress from "@mui/material/CircularProgress";
 import { toast } from "react-toastify";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const Container = styled.div`
   padding: 2rem;
@@ -414,9 +414,9 @@ const Contributors = ({
   setDisableWorkSpace,
 }) => {
   const [showContribute, setShowContribute] = useState(false);
-  const { isSignedIn, isLoaded } = useUser();
+  const { isAuthenticated, isLoading } = useAuth0();
   const [contributors, setContributors] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -432,7 +432,7 @@ const Contributors = ({
 
   const getContributors = async () => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/contribute/fetch`
       );
@@ -445,11 +445,11 @@ const Contributors = ({
       console.error("Error fetching contributors:", error);
       toast.error("Error fetching contributors");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  return isLoading ? (
+  return loading ? (
     <LoadingSpinner animate={{ y: 0.1 }} exit={{ opacity: 0 }}>
       <div className="spinner" />
     </LoadingSpinner>
@@ -468,10 +468,12 @@ const Contributors = ({
         <div className="flex justify-around gap-4">
           <Button
             className={
-              isLoaded && !isSignedIn ? "cursor-pointer" : "cursor-pointer"
+              !isLoading && !isAuthenticated
+                ? "cursor-pointer"
+                : "cursor-pointer"
             }
             onClick={() => {
-              if (!isSignedIn && isLoaded) {
+              if (!isAuthenticated && !isLoading) {
                 setShowAuthCard(!showAuthCard);
               } else {
                 navigate("/contribute");
@@ -480,7 +482,7 @@ const Contributors = ({
           >
             Contribute Here
           </Button>
-          {isSignedIn && (
+          {isAuthenticated && (
             <Button
               className={"cursor-pointer"}
               onClick={() => setShowContribute(true)}

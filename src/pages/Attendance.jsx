@@ -10,7 +10,6 @@ import {
   HelpCircle,
   Youtube,
 } from "lucide-react";
-import { useUser } from "@clerk/clerk-react";
 import styled from "styled-components";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -163,16 +162,17 @@ import Statistics from "../components/Statistics";
 import ViewTimeTable from "../components/ViewTimeTable";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const AttendanceSystem = ({ setDisableWorkSpace }) => {
   // States for managing components and navigation
-  const { user, isLoaded, isSignedIn } = useUser();
+  const { user, isAuthenticated, isLoading } = useAuth0();
   const [hasTimeTable, setHasTimeTable] = useState(false);
   const [activeComponent, setActiveComponent] = useState("import");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const setShow = () => {
@@ -182,10 +182,10 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
   }, []);
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
+    if (!isLoading && isAuthenticated) {
       handleHasTimeTable();
     }
-  }, [isLoaded, isSignedIn]);
+  }, [isLoading, isAuthenticated]);
 
   // Handle responsiveness
   useEffect(() => {
@@ -207,12 +207,10 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
 
   const handleHasTimeTable = async () => {
     try {
-      if (isLoaded && isSignedIn) {
-        setIsLoading(true);
+      if (!isLoading && isAuthenticated) {
+        setLoading(true);
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/timetable/check?email=${
-            user.primaryEmailAddress.emailAddress
-          }`
+          `${import.meta.env.VITE_API_URL}/timetable/check?email=${user.email}`
         );
         if (res.data.success) {
           setActiveComponent(res.data.hasTimeTable ? "main" : "import");
@@ -226,7 +224,7 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
       console.error("Error checking time table:", error);
       toast.error("Error checking time table !");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -411,7 +409,7 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
           sidebarOpen && !isMobile ? "ml-64" : "ml-0"
         }`}
       >
-        {isLoading ? (
+        {loading ? (
           <LoadingSpinner>
             <div className="spinner" />
           </LoadingSpinner>

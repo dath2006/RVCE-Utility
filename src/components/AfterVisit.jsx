@@ -7,7 +7,8 @@ import { Button } from "@mui/material";
 import { useState } from "react";
 import FileViewer from "./FileViewer";
 import FeaturesSection from "./FeaturesSection";
-import { useUser } from "@clerk/clerk-react";
+
+import { useAuth0 } from "@auth0/auth0-react";
 
 const HeroSection = styled.div`
   background: linear-gradient(
@@ -209,8 +210,7 @@ const Resources = styled(NavLink)`
   }
 
   @media (max-width: 726px) {
-    font-size: 0.6rem;
-    padding: 0.3rem 1.5rem;
+    padding: 0.6rem 1rem;
   }
 `;
 
@@ -236,8 +236,7 @@ const newsItems = [
 
 export default function AfterVisit({ showAuthCard, setShowAuthCard }) {
   const [viewerFile, setViewerFile] = useState(null);
-  const { isLoaded, isSignedIn } = useUser();
-  const [showAlert, setShowAlert] = useState(false);
+  const { isAuthenticated, isLoading } = useAuth0();
 
   return (
     <div className="max-w-7xl mx-auto mt-[6rem] px-4 py-6">
@@ -261,7 +260,7 @@ export default function AfterVisit({ showAuthCard, setShowAuthCard }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="flex gap-7 justify-center"
+          className="flex gap-4 flex-wrap justify-center"
         >
           <Resources
             to="/resources"
@@ -273,9 +272,9 @@ export default function AfterVisit({ showAuthCard, setShowAuthCard }) {
           </Resources>
 
           <Resources
-            to={isSignedIn && isLoaded && "/attendance"}
+            to={isAuthenticated && !isLoading && "/attendance"}
             onClick={() => {
-              if (!isSignedIn) {
+              if (!isAuthenticated) {
                 setShowAuthCard(!showAuthCard);
               }
             }}

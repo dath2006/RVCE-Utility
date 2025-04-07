@@ -9,8 +9,8 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useUser } from "@clerk/clerk-react";
 import { toast } from "react-toastify";
+import { useAuth0 } from "@auth0/auth0-react";
 
 // Animations
 const fadeIn = keyframes`
@@ -567,8 +567,7 @@ const Contributation = ({ setDisableWorkSpace }) => {
   const [semester, setSemester] = useState("");
   const [branch, setBranch] = useState("");
   const [subject, setSubject] = useState("");
-
-  const { user } = useUser();
+  const { user } = useAuth0();
 
   useEffect(() => {
     const setShow = () => {
@@ -609,9 +608,9 @@ const Contributation = ({ setDisableWorkSpace }) => {
       formData.append(
         "user",
         JSON.stringify({
-          fullName: user.fullName,
-          email: user.primaryEmailAddress.emailAddress,
-          imageUrl: user.imageUrl,
+          fullName: user.name,
+          email: user.email,
+          imageUrl: user.picture,
         })
       );
 

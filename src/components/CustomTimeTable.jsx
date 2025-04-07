@@ -11,9 +11,10 @@ import {
   ArrowBack,
   ArrowForward,
 } from "@mui/icons-material";
-import { useUser } from "@clerk/clerk-react";
+
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useAuth0 } from "@auth0/auth0-react";
 
 // Constants
 const daysOfWeek = ["MON", "TUE", "WED", "THU", "FRI"];
@@ -651,12 +652,12 @@ const TimetableCreator = ({
   setShowHelpModal,
 }) => {
   const theme = useTheme();
-  const { user, isLoaded, isSignedIn } = useUser();
+  const { user, isAuthenticated, isLoading } = useAuth0();
   const [currentTheme, setCurrentTheme] = useState(theme);
   const [currentStep, setCurrentStep] = useState(1);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [calendarMode, setCalendarMode] = useState("start");
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const now = new Date();
 
   const [mergeMode, setMergeMode] = useState(false);
@@ -887,8 +888,8 @@ const TimetableCreator = ({
   // Enhanced getFinalTimetableData
   const getFinalTimetableData = async () => {
     try {
-      setIsLoading(true);
-      if (!isLoaded || !isSignedIn) {
+      setLoading(true);
+      if (!isLoading && !isAuthenticated) {
         toast.error("You must be signed in to save the timetable");
         return;
       }
@@ -911,9 +912,9 @@ const TimetableCreator = ({
             events,
           },
           user: {
-            email: user.primaryEmailAddress.emailAddress,
-            fullName: user.fullName || user.username,
-            imageUrl: user.imageUrl,
+            email: user.email,
+            fullName: user.name,
+            imageUrl: user.picture,
             ...userData,
           },
         }
@@ -929,7 +930,7 @@ const TimetableCreator = ({
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to save timetable");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -1468,7 +1469,7 @@ const TimetableCreator = ({
     }
   };
 
-  return isLoading ? (
+  return loading ? (
     <LoadingSpinner>
       <div className="spinner" />
     </LoadingSpinner>

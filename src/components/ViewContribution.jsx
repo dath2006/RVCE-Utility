@@ -4,10 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { X, CheckCircle, XCircle, Clock, FileText } from "lucide-react";
 import axios from "axios";
-import { useUser } from "@clerk/clerk-react";
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
 import { toast } from "react-toastify";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const Overlay = styled(motion.div)`
   position: fixed;
@@ -243,18 +243,18 @@ const StatusBadge = styled.div`
 `;
 const ViewContribution = ({ onClose, isOpen }) => {
   const [data, setData] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const { isSignedIn, isLoaded, user } = useUser();
+  const [loading, setLoading] = useState(false);
+  const { user, isAuthenticated, isLoading } = useAuth0();
 
   if (!user) {
     return null;
   }
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
+    if (!isLoading && isAuthenticated) {
       getData();
     }
-  }, [isLoaded, isSignedIn]);
+  }, [isLoading, isAuthenticated]);
 
   const stats = {
     approved: data.filter((doc) => doc.approved === "approved").length,
@@ -275,9 +275,9 @@ const ViewContribution = ({ onClose, isOpen }) => {
 
   const getData = async () => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/getData`, {
-        email: user.primaryEmailAddress?.emailAddress,
+        email: user.email,
       });
       if (res.data.success) {
         setData(res.data.resources);
@@ -286,7 +286,7 @@ const ViewContribution = ({ onClose, isOpen }) => {
       console.error(error);
       toast.error("Error fetching data");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
   return (
@@ -312,7 +312,7 @@ const ViewContribution = ({ onClose, isOpen }) => {
               </CloseButton>
             </Header>
 
-            {isLoading ? (
+            {loading ? (
               <Box
                 sx={{
                   display: "flex",

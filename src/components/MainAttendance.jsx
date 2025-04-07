@@ -3,7 +3,6 @@ import d from "date-and-time";
 import { motion, AnimatePresence } from "framer-motion";
 import styled from "styled-components";
 import Calendar from "react-calendar";
-import { useUser } from "@clerk/clerk-react";
 import timeSlots from "../data/timeSlots.json";
 
 import {
@@ -19,6 +18,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useAuth0 } from "@auth0/auth0-react";
 
 // Styled Components
 
@@ -859,7 +859,7 @@ const staggerItem = {
 const MainAttendance = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const now = new Date().toDateString();
-  const { user, isSignedIn, isLoaded } = useUser();
+  const { user, isAuthenticated, isLoading } = useAuth0();
   const [accStart, setAccStart] = useState();
   const [accEnd, setAccEnd] = useState();
   const [date, setDate] = useState(new Date(now));
@@ -874,7 +874,7 @@ const MainAttendance = () => {
   const [showJump, setShowJump] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [subjectAdd, setSubjectAdd] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [attendanceState, setAttendanceState] = useState([]);
 
   // New state for the add subject form
@@ -911,21 +911,21 @@ const MainAttendance = () => {
   }, []);
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
+    if (!isLoading && isAuthenticated) {
       handleDayInit();
       handleAttendanceState();
     }
-  }, [isLoaded, isSignedIn]);
+  }, [isLoading, isAuthenticated]);
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
+    if (!isLoading && isAuthenticated) {
       handleDayInit();
     }
   }, [date]);
 
   const handlePrev = () => {
     if (new Date(date).getTime() > new Date(accStart).getTime()) {
-      setIsLoading(true);
+      setLoading(true);
       setDate((prev) => {
         return new Date(prev.valueOf() - 24 * 60 * 60 * 1000);
       });
@@ -944,7 +944,7 @@ const MainAttendance = () => {
 
   const handleForw = () => {
     if (new Date(date).getTime() < new Date(now).getTime()) {
-      setIsLoading(true);
+      setLoading(true);
       setDate((prev) => {
         return new Date(prev.valueOf() + 24 * 60 * 60 * 1000);
       });
@@ -968,11 +968,11 @@ const MainAttendance = () => {
 
   const handleAttendanceState = async () => {
     try {
-      if (isLoaded && isSignedIn) {
-        setIsLoading(true);
+      if (!isLoading && isAuthenticated) {
+        setLoading(true);
         const res = await axios.get(
           `${import.meta.env.VITE_API_URL}/attendance/statistics?email=${
-            user.primaryEmailAddress.emailAddress
+            user.email
           }`
         );
         if (res.data.data.success) {
@@ -983,7 +983,7 @@ const MainAttendance = () => {
       console.error(error);
       toast.error("Failed to update attendance state. Please try again.");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -993,13 +993,13 @@ const MainAttendance = () => {
     setShowDay(false);
 
     try {
-      if (isLoaded && isSignedIn) {
-        setIsLoading(true);
+      if (!isLoading && isAuthenticated) {
+        setLoading(true);
         const res = await axios.post(
           `${import.meta.env.VITE_API_URL}/attendance/init`,
           {
             user: {
-              email: user.primaryEmailAddress.emailAddress,
+              email: user.email,
               date: date,
             },
           }
@@ -1020,18 +1020,20 @@ const MainAttendance = () => {
       console.error(err);
       toast.error("Failed to load attendance data. Please try again.");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   const handleSubjectDelete = async () => {
     try {
-      if (isLoaded && isSignedIn && subject.custom) {
-        setIsLoading(true);
+      if (!isLoading && isAuthenticated && subject.custom) {
+        setLoading(true);
         const res = await axios.delete(
           `${import.meta.env.VITE_API_URL}/attendance/add?email=${
-            user.primaryEmailAddress.emailAddress
-          }&date=${date}&slotId=${subject.slotId}&courseId=${subject.courseId}`
+            user.email
+          }&date=${date.toDateString()}&slotId=${subject.slotId}&courseId=${
+            subject.courseId
+          }`
         );
 
         // Only update day with the new data from server and update the cache as well
@@ -1050,18 +1052,18 @@ const MainAttendance = () => {
       toast.error("Failed to delete subject. Please try again.");
       throw err;
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   const saveAttendanceState = async () => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/attendance/save`,
         {
           user: {
-            email: user.primaryEmailAddress.emailAddress,
+            email: user.email,
             date: date,
           },
           daySchedule: day,
@@ -1091,7 +1093,7 @@ const MainAttendance = () => {
       // Restore from cache on error
       setDay(JSON.parse(JSON.stringify(dayCache)));
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -1123,12 +1125,12 @@ const MainAttendance = () => {
     };
 
     try {
-      setIsLoading(true);
+      setLoading(true);
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/attendance/add`,
         {
           user: {
-            email: user.primaryEmailAddress.emailAddress,
+            email: user.email,
             date: date,
           },
           subject: newEvent,
@@ -1148,7 +1150,7 @@ const MainAttendance = () => {
       console.error("Error Adding Subject:", err);
       toast.error("Failed to add subject. Please try again.");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
   return (
@@ -1263,7 +1265,7 @@ const MainAttendance = () => {
         </AnimatePresence>
       </DateNavContainer>
 
-      {isLoading ? (
+      {loading ? (
         <LoadingSpinner animate={{ y: 0.1 }} exit={{ opacity: 0 }}>
           <div className="spinner" />
         </LoadingSpinner>

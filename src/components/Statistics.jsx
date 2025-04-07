@@ -22,8 +22,8 @@ import {
 } from "@mui/material";
 import styled from "styled-components";
 import axios from "axios";
-import { useUser } from "@clerk/clerk-react";
 import { toast } from "react-toastify";
+import { useAuth0 } from "@auth0/auth0-react";
 
 // Styled Components
 const DashboardContainer = styled.div`
@@ -263,7 +263,7 @@ const Statistics = () => {
   const theme = useTheme();
   const isSmallMobile = useMediaQuery("(max-width:480px)");
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const { user, isSignedIn, isLoaded } = useUser();
+  const { user, isAuthenticated, isLoading } = useAuth0();
   const [attendanceData, setAttendanceData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [expandedSubject, setExpandedSubject] = useState(null);
@@ -272,7 +272,7 @@ const Statistics = () => {
   // Fetch data
   useEffect(() => {
     const fetchData = async () => {
-      if (isLoaded && isSignedIn) {
+      if (!isLoading && isAuthenticated) {
         try {
           setLoading(true);
           const data = await handleGetStats();
@@ -299,13 +299,13 @@ const Statistics = () => {
     };
 
     fetchData();
-  }, [isLoaded, isSignedIn]);
+  }, [isLoading, isAuthenticated]);
 
   const handleGetStats = async () => {
     try {
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/attendance/statistics?email=${
-          user.primaryEmailAddress.emailAddress
+          user.email
         }`
       );
       if (res.data.success) {
@@ -324,11 +324,11 @@ const Statistics = () => {
   const handleMinAttendanceUpdate = async (courseId) => {
     try {
       setLoading(true); // Use the existing loading state
-      if (isLoaded && isSignedIn) {
+      if (!isLoading && isAuthenticated) {
         const res = await axios.post(
           `${import.meta.env.VITE_API_URL}/attendance/updatePercent`, // Fixed the backtick
           {
-            email: user.primaryEmailAddress.emailAddress,
+            email: user.email,
             courseId,
             percentage: customMinAttendance[courseId],
           }

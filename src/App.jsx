@@ -26,6 +26,7 @@ import Statistics from "./components/Statistics";
 import MainAttendance from "./components/MainAttendance";
 import Attendance from "./pages/Attendance";
 import PopupCard from "./components/AuthCard";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -207,6 +208,7 @@ function App() {
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "dark"
   );
+  const { isAuthenticated } = useAuth0();
   const [showWorkspace, setShowWorkspace] = useState(false);
   const [showTodoMenu, setShowTodoMenu] = useState(false);
   const [viewerFile, setViewerFile] = useState(null);
@@ -333,16 +335,11 @@ function App() {
                     path="/contribute"
                     element={
                       <>
-                        <SignedIn>
+                        {!isLoading && isAuthenticated && (
                           <Contributation
                             setDisableWorkSpace={setDisableWorkSpace}
                           />
-                        </SignedIn>
-                        <SignedOut>
-                          <RedirectToSignIn
-                            signInFallbackRedirectUrl={"/contribute"}
-                          />
-                        </SignedOut>
+                        )}
                       </>
                     }
                   />
@@ -350,16 +347,11 @@ function App() {
                     path="/attendance"
                     element={
                       <>
-                        <SignedIn>
+                        {!isLoading && isAuthenticated && (
                           <Attendance
                             setDisableWorkSpace={setDisableWorkSpace}
                           />
-                        </SignedIn>
-                        <SignedOut>
-                          <RedirectToSignIn
-                            signInFallbackRedirectUrl={"/attendance"}
-                          />
-                        </SignedOut>
+                        )}
                       </>
                     }
                   />
@@ -372,17 +364,29 @@ function App() {
                 </Routes>
               </div>
               <AnimatePresence mode="wait">
-                {showAuthCard && (
-                  <PopupCard
-                    onClose={() => setShowAuthCard(false)}
-                    title="Welcome Back"
-                    description="Sign in to your account or create a new one"
-                  >
-                    <p>
-                      Access your account to enjoy all the features we offer.
-                    </p>
-                  </PopupCard>
-                )}
+                {showAuthCard &&
+                  (!isAuthenticated ? (
+                    <PopupCard
+                      onClose={() => setShowAuthCard(false)}
+                      title="Welcome Back"
+                      description="Sign in to your account"
+                    >
+                      <p>
+                        Access your account to enjoy all the features we offer.
+                      </p>
+                    </PopupCard>
+                  ) : (
+                    <PopupCard
+                      onClose={() => setShowAuthCard(false)}
+                      title="Come Back Soon!"
+                      description="You can logout from the portal"
+                    >
+                      <p>
+                        Access to Attendance Management System and Resourse
+                        Contribution will be restricted
+                      </p>
+                    </PopupCard>
+                  ))}
                 {viewerFile && (
                   <FileViewer
                     key="file-viewer"

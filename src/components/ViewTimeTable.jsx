@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { useUser } from "@clerk/clerk-react";
 import { Calendar, ArrowRight } from "lucide-react";
 import { Clock, GraduationCap, User } from "lucide-react";
 import styled from "styled-components";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const TimetableContainer = styled.div`
   max-width: 1200px;
@@ -130,14 +130,14 @@ const LoadingSpinner = styled.div`
 function TimeTable() {
   const [timetable, setTimeTable] = useState();
   const [timeSlots, setTimeSlots] = useState([]);
-  const { user, isLoaded, isSignedIn } = useUser();
-  const [isLoading, setIsLoading] = useState(false);
+  const { user, isLoading, isAuthenticated } = useAuth0();
+  const [loading, setLoading] = useState(false);
   const [timeSlotMatrix, setTimeSlotMatrix] = useState([]);
   const days = ["Time", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
   useEffect(() => {
     getTimeTable();
-  }, [isLoaded, isSignedIn]);
+  }, [isLoading, isAuthenticated]);
 
   useEffect(() => {
     if (timetable && timeSlots) {
@@ -147,12 +147,10 @@ function TimeTable() {
 
   const getTimeTable = async () => {
     try {
-      if (isLoaded && isSignedIn) {
-        setIsLoading(true);
+      if (!isLoading && isAuthenticated) {
+        setLoading(true);
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/timetable?email=${
-            user.primaryEmailAddress.emailAddress
-          }`
+          `${import.meta.env.VITE_API_URL}/timetable?email=${user.email}`
         );
 
         if (res.data.timeTable) {
@@ -174,7 +172,7 @@ function TimeTable() {
       console.error("Error fetching timetable:", error);
       toast.error("Error fetching timetable !");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -208,12 +206,11 @@ function TimeTable() {
         }
       });
     });
-    console.log(matrix);
 
     setTimeSlotMatrix(matrix);
   };
 
-  return isLoading ? (
+  return loading ? (
     <LoadingSpinner>
       <div className="spinner" />
     </LoadingSpinner>

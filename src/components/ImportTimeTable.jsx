@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
-import { useUser } from "@clerk/clerk-react";
 import { toast } from "react-toastify";
+import { useAuth0 } from "@auth0/auth0-react";
 
 // Responsive breakpoints
 const breakpoints = {
@@ -474,7 +474,7 @@ const ImportTimeTable = ({
   const [attendancePercent, setAttendancePercent] = useState(85);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isValid, setIsValid] = useState(false);
-  const { user, isLoaded, isSignedIn } = useUser();
+  const { user, isAuthenticated, isLoading } = useAuth0();
   const [selectedDept, setSelectedDept] = useState(null);
 
   // Validate form
@@ -512,15 +512,15 @@ const ImportTimeTable = ({
     if (!isValid) return;
 
     try {
-      if (isLoaded && isSignedIn) {
+      if (!isLoading && isAuthenticated) {
         setIsSubmitting(true);
         const res = await axios.post(
           `${import.meta.env.VITE_API_URL}/attendance/initialize`,
           {
             user: {
-              fullName: user.fullName,
-              email: user.primaryEmailAddress.emailAddress,
-              imageUrl: user.imageUrl,
+              fullName: user.name,
+              email: user.email,
+              imageUrl: user.picture,
               branch: dept,
               section: sect,
               courseStart: new Date("2025-03-17"),

@@ -1,7 +1,8 @@
 import React from "react";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
-import { SignInButton, SignUpButton } from "@clerk/clerk-react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { X } from "lucide-react";
 
 // Styled components with improved design
 const Overlay = styled(motion.div)`
@@ -119,15 +120,13 @@ const Decoration = styled.div`
   }
 `;
 
-const CloseButton = styled.button`
+const CloseButton = styled(X)`
   position: absolute;
   top: 1.25rem;
   right: 1.25rem;
   background: ${(props) => props.theme.surface};
   border: none;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -207,6 +206,7 @@ const contentVariants = {
 
 // Main component
 const PopupCard = ({ onClose, title, description, children }) => {
+  const { loginWithRedirect, logout, isAuthenticated, isLoading } = useAuth0();
   return (
     <AnimatePresence>
       {
@@ -224,11 +224,11 @@ const PopupCard = ({ onClose, title, description, children }) => {
             exit="exit"
             onClick={(e) => e.stopPropagation()}
           >
-            <CloseButton onClick={onClose}>×</CloseButton>
-
+            <CloseButton onClick={() => onClose()} />
             <CardHeader as={motion.div} variants={contentVariants}>
               <Decoration className="accent-line" />
               <CardTitle>{title}</CardTitle>
+
               <CardDescription>{description}</CardDescription>
             </CardHeader>
 
@@ -236,12 +236,25 @@ const PopupCard = ({ onClose, title, description, children }) => {
               {children}
 
               <ButtonGroup as={motion.div} variants={contentVariants}>
-                <StyledClerkButton primary fullWidth>
-                  <SignInButton />
-                </StyledClerkButton>
-                <StyledClerkButton fullWidth>
-                  <SignUpButton />
-                </StyledClerkButton>
+                {!isLoading && !isAuthenticated ? (
+                  <StyledClerkButton primary fullWidth>
+                    {/* <SignInButton /> */}
+                    <button onClick={() => loginWithRedirect()}>Sign In</button>
+                  </StyledClerkButton>
+                ) : (
+                  <StyledClerkButton fullWidth>
+                    {/* <SignUpButton /> */}
+                    <button
+                      onClick={() =>
+                        logout({
+                          logoutParams: { returnTo: window.location.origin },
+                        })
+                      }
+                    >
+                      Log out
+                    </button>
+                  </StyledClerkButton>
+                )}
               </ButtonGroup>
             </CardContent>
           </Card>

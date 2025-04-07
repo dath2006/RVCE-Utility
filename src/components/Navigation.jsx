@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { Menu, Close, DarkMode, LightMode } from "@mui/icons-material";
-import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/clerk-react";
+import { useAuth0 } from "@auth0/auth0-react";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -121,6 +121,7 @@ const BetaTag = styled(motion.span)`
 
 const Title = styled.h1`
   color: ${(props) => props.theme.text};
+  font-weight: 400;
   @media (max-width: 500px) {
     font-size: 1.2rem;
   }
@@ -133,7 +134,7 @@ const Navigation = ({
   showAuthCard,
   setShowAuthCard,
 }) => {
-  const { isSignedIn, isLoaded } = useUser();
+  const { user, isAuthenticated, isLoading } = useAuth0();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(
     localStorage.getItem("theme") === "dark"
@@ -142,8 +143,8 @@ const Navigation = ({
 
   const dropdownRef = useRef(null);
 
-  // const letters = "Utility".split("");
-  // const reversedLetters = "Utility".split("").reverse();
+  const letters = "Utility".split("");
+  const reversedLetters = "Utility".split("").reverse();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -181,9 +182,10 @@ const Navigation = ({
             className="relative"
             onMouseEnter={() => setShowUtilityMenu(true)}
             onMouseLeave={() => setShowUtilityMenu(false)}
+            onClick={() => setShowUtilityMenu(!showUtilityMenu)}
             ref={dropdownRef}
           >
-            <button
+            {/* <button
               class="button"
               data-text="Awesome"
               initial={false}
@@ -193,55 +195,55 @@ const Navigation = ({
               <span aria-hidden="true" class="hover-text">
                 &nbsp;utility&nbsp;
               </span>
-            </button>
-            {/* <motion.div className="absolute inset-0 " />
-              <div className="relative h-6">
-                <div className="flex space-x-[0.2em]">
-                  {letters.map((letter, index) => (
-                    <motion.span
-                      key={index}
-                      animate={{
-                        y: showUtilityMenu ? 20 : 0,
-                        rotateX: showUtilityMenu ? 90 : 0,
-                        opacity: showUtilityMenu ? 0 : 1,
-                      }}
-                      transition={{
-                        duration: 0.3,
-                        delay: index * 0.05,
-                        type: "spring",
-                        stiffness: 100,
-                      }}
-                      className="inline-block"
-                      style={{ transformOrigin: "50% 50%" }}
-                    >
-                      {letter}
-                    </motion.span>
-                  ))}
-                </div>
-                <div className="flex space-x-[0.2em] absolute top-0 left-0 w-full">
-                  {reversedLetters.map((letter, index) => (
-                    <motion.span
-                      key={`reverse-${index}`}
-                      initial={{ y: -20, rotateX: -90, opacity: 0 }}
-                      animate={{
-                        y: showUtilityMenu ? 0 : -20,
-                        rotateX: showUtilityMenu ? 0 : -90,
-                        opacity: showUtilityMenu ? 1 : 0,
-                      }}
-                      transition={{
-                        duration: 0.3,
-                        delay: (letters.length - 1 - index) * 0.05,
-                        type: "spring",
-                        stiffness: 100,
-                      }}
-                      className="inline-block"
-                      style={{ transformOrigin: "50% 50%" }}
-                    >
-                      {letter}
-                    </motion.span>
-                  ))}
-                </div>
-              </div>  */}
+            </button> */}
+            <motion.div className="absolute inset-0 " />
+            <div className="relative h-6">
+              <div className="flex space-x-[0.2em]">
+                {letters.map((letter, index) => (
+                  <motion.span
+                    key={index}
+                    animate={{
+                      y: showUtilityMenu ? 20 : 0,
+                      rotateX: showUtilityMenu ? 90 : 0,
+                      opacity: showUtilityMenu ? 0 : 1,
+                    }}
+                    transition={{
+                      duration: 0.3,
+                      delay: index * 0.05,
+                      type: "spring",
+                      stiffness: 100,
+                    }}
+                    className="inline-block md:text-xl cursor-pointer "
+                    style={{ transformOrigin: "50% 50%" }}
+                  >
+                    {letter}
+                  </motion.span>
+                ))}
+              </div>
+              <div className="flex space-x-[0.2em] absolute top-0 left-0 w-full">
+                {reversedLetters.map((letter, index) => (
+                  <motion.span
+                    key={`reverse-${index}`}
+                    initial={{ y: -20, rotateX: -90, opacity: 0 }}
+                    animate={{
+                      y: showUtilityMenu ? 0 : -20,
+                      rotateX: showUtilityMenu ? 0 : -90,
+                      opacity: showUtilityMenu ? 1 : 0,
+                    }}
+                    transition={{
+                      duration: 0.3,
+                      delay: (letters.length - 1 - index) * 0.05,
+                      type: "spring",
+                      stiffness: 100,
+                    }}
+                    className="inline-block md:text-xl cursor-pointer"
+                    style={{ transformOrigin: "50% 50%" }}
+                  >
+                    {letter}
+                  </motion.span>
+                ))}
+              </div>
+            </div>
 
             <AnimatePresence>
               {showUtilityMenu && (
@@ -268,9 +270,9 @@ const Navigation = ({
           <NavLink to="/contributors">Contribute</NavLink>
           <NavLink to="/quizzes">Quizzes</NavLink>
           <NavLink
-            to={isSignedIn && isLoaded && "/attendance"}
+            to={isAuthenticated && !isLoading && "/attendance"}
             onClick={() => {
-              if (!isSignedIn) {
+              if (!isAuthenticated) {
                 setShowAuthCard(!showAuthCard);
               }
             }}
@@ -280,14 +282,21 @@ const Navigation = ({
         </NavLinks>
         <div className="flex gap-1 sm:gap-4">
           <div className="flex items-center gap-3">
-            <SignedIn>
-              <UserButton />
-            </SignedIn>
-            <SignedOut>
-              <button onClick={() => setShowAuthCard(!showAuthCard)}>
+            {isAuthenticated && !isLoading ? (
+              <img
+                className="min-h-5 min-w-5 max-h-7 max-w-7 rounded-full hover:shadow-[0_0_10px_2px_rgba(174,87,228,0.8)]"
+                src={user.picture}
+                alt={user.name}
+                onClick={() => setShowAuthCard(!showAuthCard)}
+              />
+            ) : (
+              <button
+                className="hover:shadow-[0_0_10px_2px_rgba(255,255,255,0.8)]"
+                onClick={() => setShowAuthCard(!showAuthCard)}
+              >
                 <AccountCircleIcon />
               </button>
-            </SignedOut>
+            )}
           </div>
           <IconButton onClick={handleThemeToggle}>
             {isDarkMode ? <LightMode /> : <DarkMode />}
