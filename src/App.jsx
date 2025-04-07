@@ -347,11 +347,9 @@ function App() {
                     path="/attendance"
                     element={
                       <>
-                        {!isLoading && isAuthenticated && (
-                          <Attendance
-                            setDisableWorkSpace={setDisableWorkSpace}
-                          />
-                        )}
+                        (
+                        <Attendance setDisableWorkSpace={setDisableWorkSpace} />
+                        )
                       </>
                     }
                   />

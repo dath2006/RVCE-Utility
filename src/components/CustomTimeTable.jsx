@@ -658,7 +658,8 @@ const TimetableCreator = ({
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [calendarMode, setCalendarMode] = useState("start");
   const [loading, setLoading] = useState(false);
-  const now = new Date().toLocaleDateString("en-CA");
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const now = new Date(new Date().getTime() + istOffset);
 
   const [mergeMode, setMergeMode] = useState(false);
   const [mergingSlots, setMergingSlots] = useState([]);
@@ -1525,7 +1526,7 @@ const TimetableCreator = ({
               <Calendar
                 minDate={
                   calendarMode === "end" && userData.courseStartDate
-                    ? new Date().toLocaleDateString("en-CA")
+                    ? new Date(new Date().getTime() + 5.5 * 60 * 60 * 1000)
                     : new Date("2020-01-01")
                 }
                 maxDate={
