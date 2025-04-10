@@ -24,7 +24,6 @@ const Overlay = styled(motion.div)`
 
   @media (max-width: 640px) {
     padding: 8px;
-    align-items: flex-end;
   }
 `;
 
@@ -42,7 +41,6 @@ const PopupContainer = styled(motion.div)`
     width: 100%;
     max-height: 90vh;
     padding: 16px;
-    border-radius: 16px 16px 0 0;
   }
 `;
 

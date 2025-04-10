@@ -9,6 +9,7 @@ import {
   RefreshCw,
   HelpCircle,
   Youtube,
+  InfoIcon,
 } from "lucide-react";
 import styled from "styled-components";
 
@@ -58,6 +59,7 @@ const ModalOverlay = styled(motion.div)`
   justify-content: center;
   z-index: 1000;
   padding: 1rem;
+  overflow-y: auto;
 `;
 
 const Modal = styled(motion.div)`
@@ -68,6 +70,9 @@ const Modal = styled(motion.div)`
   overflow: hidden;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.05);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
 `;
 
 const ModalHeader = styled.div`
@@ -85,6 +90,10 @@ const ModalTitle = styled.h3`
   display: flex;
   align-items: center;
   gap: 0.75rem;
+
+  @media (max-width: 480px) {
+    font-size: 1rem;
+  }
 `;
 
 const CloseButton = styled(motion.button)`
@@ -107,6 +116,11 @@ const CloseButton = styled(motion.button)`
 
 const ModalContent = styled.div`
   padding: 1.5rem;
+  overflow-y: auto;
+
+  @media (max-width: 480px) {
+    padding: 1rem;
+  }
 `;
 
 const VideoContainer = styled.div`
@@ -127,6 +141,49 @@ const VideoText = styled.p`
   color: #9ca3af;
   font-size: 0.9rem;
   line-height: 1.5;
+`;
+
+const NotesSection = styled.div`
+  margin-top: 2rem;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+`;
+
+const NotesSectionTitle = styled.h4`
+  font-size: 1rem;
+  color: #e5e7eb;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const NotesList = styled.ul`
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+`;
+
+const NotesItem = styled.li`
+  color: #9ca3af;
+  font-size: 0.9rem;
+  padding-left: 1.5rem;
+  position: relative;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+
+  &:before {
+    content: "•";
+    position: absolute;
+    left: 0.5rem;
+    color: #3b82f6;
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
 `;
 
 const LoadingSpinner = styled.div`
@@ -216,13 +273,10 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
           setActiveComponent(res.data.hasTimeTable ? "main" : "import");
           setShowHelpModal(res.data.hasTimeTable ? false : true);
           setHasTimeTable(res.data.hasTimeTable);
-        } else {
-          toast.error("Error checking time table !");
         }
       }
     } catch (error) {
       console.error("Error checking time table:", error);
-      toast.error("Error checking time table !");
     } finally {
       setLoading(false);
     }
@@ -394,7 +448,10 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
             {hasTimeTable && (
               <button
                 className="flex items-center space-x-2 w-full p-2 rounded-lg text-red-400  hover:bg-indigo-700"
-                onClick={resetTimeTable}
+                onClick={() => {
+                  resetTimeTable();
+                  isMobile && setSidebarOpen(false);
+                }}
               >
                 <RefreshCw size={20} />
                 <span>Reset TimeTable</span>
@@ -460,7 +517,7 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
                   <iframe
                     width="100%"
                     height="100%"
-                    src="https://www.youtube.com/embed/VZXFQxf087w?si=oPYg6twAnI11fbrK"
+                    src="https://www.youtube.com/embed/v71013_yw20?si=xB1EOVe00qWXolX-"
                     title="YouTube video player"
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
@@ -470,8 +527,34 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
                 <VideoText>
                   This short video demonstrates how to use the attendance
                   system.
-                  <br />
                 </VideoText>
+
+                <NotesSection>
+                  <NotesSectionTitle>
+                    <InfoIcon size={16} /> Points to Note
+                  </NotesSectionTitle>
+                  <NotesList>
+                    <NotesItem>
+                      This Attendance System is for your reference only, so that
+                      you can track it.
+                    </NotesItem>
+                    <NotesItem>
+                      Initially attendance of all classes are set to pending.
+                    </NotesItem>
+                    <NotesItem>
+                      Clear the pending attendance from the academic start date,
+                      so to get the clear statistics.
+                    </NotesItem>
+                    <NotesItem>
+                      Mark attendance as "ignore" if a class is cancelled, or
+                      its a holiday.
+                    </NotesItem>
+                    <NotesItem>
+                      Be careful while creating custom attendance, as it cannot
+                      be edited later.
+                    </NotesItem>
+                  </NotesList>
+                </NotesSection>
               </ModalContent>
             </Modal>
           </ModalOverlay>

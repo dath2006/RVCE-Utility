@@ -31,6 +31,10 @@ const DashboardContainer = styled.div`
   margin: 0 auto;
   padding: 20px;
   font-family: "Inter", sans-serif;
+
+  @media (max-width: 640px) {
+    padding: 12px;
+  }
 `;
 
 const OverallStatsCard = styled(motion.div)`
@@ -40,6 +44,12 @@ const OverallStatsCard = styled(motion.div)`
   color: white;
   margin-bottom: 24px;
   box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+
+  @media (max-width: 640px) {
+    padding: 16px;
+    border-radius: 12px;
+    /* Remove scale: 1.1 to prevent the card from being too large */
+  }
 `;
 
 const StatsGrid = styled.div`
@@ -68,6 +78,11 @@ const StatBox = styled.div`
     font-size: 28px;
     font-weight: 700;
     margin: 8px 0 4px;
+
+    @media (max-width: 640px) {
+      font-size: 20px;
+      margin: 4px 0 2px;
+    }
   }
 
   p {
@@ -76,6 +91,10 @@ const StatBox = styled.div`
     opacity: 0.8;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+
+    @media (max-width: 640px) {
+      font-size: 10px;
+    }
   }
 `;
 
@@ -83,12 +102,21 @@ const MainHeading = styled.h1`
   font-size: 24px;
   font-weight: 600;
   margin-bottom: 24px;
+
+  @media (max-width: 640px) {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
 `;
 
 const SubjectsList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
+
+  @media (max-width: 640px) {
+    gap: 16px; /* Reduced from 30px to 16px */
+  }
 `;
 
 const SubjectCard = styled(motion.div)`
@@ -96,6 +124,11 @@ const SubjectCard = styled(motion.div)`
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 640px) {
+    /* Remove scale: 1.06 to prevent the card from being too large */
+    border-radius: 8px;
+  }
 `;
 
 const SubjectHeader = styled.div`
@@ -105,6 +138,11 @@ const SubjectHeader = styled.div`
   align-items: center;
   cursor: pointer;
   border-bottom: ${(props) => (props.expanded ? "1px solid #e5e7eb" : "none")};
+
+  @media (max-width: 640px) {
+    padding: 12px 16px;
+    flex-wrap: wrap; /* Allow wrapping for smaller screens */
+  }
 `;
 
 const SubjectTitle = styled.h2`
@@ -112,12 +150,22 @@ const SubjectTitle = styled.h2`
   font-weight: 600;
   margin: 0;
   color: #111827;
+
+  @media (max-width: 640px) {
+    font-size: 14px;
+    flex: 1; /* Take available space */
+    min-width: 0; /* Allow text truncation if needed */
+  }
 `;
 
 const AttendanceIndicator = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
+
+  @media (max-width: 640px) {
+    gap: 6px;
+  }
 `;
 
 const PercentBadge = styled.span`
@@ -131,6 +179,12 @@ const PercentBadge = styled.span`
     return "#ef4444";
   }};
   color: white;
+
+  @media (max-width: 640px) {
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 8px;
+  }
 `;
 
 const WarningBadge = styled.span`
@@ -143,6 +197,12 @@ const WarningBadge = styled.span`
   background-color: ${(props) =>
     props.type === "warning" ? "#fef3c7" : "#fee2e2"};
   color: ${(props) => (props.type === "warning" ? "#d97706" : "#b91c1c")};
+
+  @media (max-width: 640px) {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 8px;
+  }
 `;
 
 const SubjectDetails = styled(motion.div)`
@@ -152,6 +212,10 @@ const SubjectDetails = styled(motion.div)`
 
 const DetailContent = styled.div`
   padding: 16px 20px;
+
+  @media (max-width: 640px) {
+    padding: 12px 16px;
+  }
 `;
 
 const StatsRow = styled.div`
@@ -162,6 +226,8 @@ const StatsRow = styled.div`
 
   @media (max-width: 500px) {
     grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
   }
 `;
 
@@ -176,6 +242,11 @@ const StatItem = styled.div`
     font-weight: 600;
     margin: 4px 0;
     color: #111827;
+
+    @media (max-width: 640px) {
+      font-size: 16px;
+      margin: 2px 0;
+    }
   }
 
   p {
@@ -184,6 +255,15 @@ const StatItem = styled.div`
     margin: 0;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+
+    @media (max-width: 640px) {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    padding: 8px;
+    border-radius: 6px;
   }
 `;
 
@@ -198,12 +278,23 @@ const WarningText = styled.div`
     props.type === "warning" ? "#fef3c7" : "#fee2e2"};
   color: ${(props) => (props.type === "warning" ? "#d97706" : "#b91c1c")};
   font-size: 14px;
+
+  @media (max-width: 640px) {
+    font-size: 12px;
+    padding: 8px;
+    gap: 6px;
+  }
 `;
 
 const MinAttendanceSetter = styled.div`
   margin-top: 20px;
   border-top: 1px solid #e5e7eb;
   padding-top: 16px;
+
+  @media (max-width: 640px) {
+    margin-top: 16px;
+    padding-top: 12px;
+  }
 `;
 
 const ButtonStyle = styled.button`
@@ -222,6 +313,12 @@ const ButtonStyle = styled.button`
 
   &:hover {
     background-color: #4338ca;
+  }
+
+  @media (max-width: 640px) {
+    padding: 6px 12px;
+    font-size: 12px;
+    gap: 4px;
   }
 `;
 

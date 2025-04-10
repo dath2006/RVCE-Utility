@@ -239,7 +239,13 @@ const PopupCard = ({ onClose, title, description, children }) => {
                 {!isLoading && !isAuthenticated ? (
                   <StyledClerkButton primary fullWidth>
                     {/* <SignInButton /> */}
-                    <button onClick={() => loginWithRedirect()}>Sign In</button>
+                    <button
+                      onClick={() => {
+                        loginWithRedirect();
+                      }}
+                    >
+                      Sign In
+                    </button>
                   </StyledClerkButton>
                 ) : (
                   <StyledClerkButton fullWidth>

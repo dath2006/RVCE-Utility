@@ -455,7 +455,7 @@ const Contributors = ({
     </LoadingSpinner>
   ) : (
     <div className="flex flex-col flex-wrap max-w-[100vw] mt-24 justify-center items-center gap-8">
-      <Container>
+      {/* <Container>
         <Title
           as={motion.h1}
           initial={{ y: -20, opacity: 0 }}
@@ -499,7 +499,7 @@ const Contributors = ({
             isOpen={showContribute}
           />
         </div>
-      )}
+      )} */}
       <Container>
         <Title
           as={motion.h1}

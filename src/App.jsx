@@ -208,14 +208,16 @@ function App() {
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "dark"
   );
-  const { isAuthenticated } = useAuth0();
+  const { isAuthenticated, user, logout, isLoading } = useAuth0();
   const [showWorkspace, setShowWorkspace] = useState(false);
   const [showTodoMenu, setShowTodoMenu] = useState(false);
   const [viewerFile, setViewerFile] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAuthCard, setShowAuthCard] = useState();
   const [disableWorkSpace, setDisableWorkSpace] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const mobileMenuRef = useRef(null);
 
   let isMobile = false;
 
@@ -225,6 +227,20 @@ function App() {
 
   useEffect(() => {
     localStorage.setItem("theme", "dark");
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target)
+      ) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const toggleTheme = () => {
@@ -245,8 +261,8 @@ function App() {
 
       <GlobalStyles />
       <LoadingScreen
-        isLoading={isLoading}
-        onLoadingComplete={() => setIsLoading(false)}
+        isLoading={loading}
+        onLoadingComplete={() => setLoading(false)}
         isMobile={isMobile}
       />
       <StyledToastContainer
@@ -263,7 +279,7 @@ function App() {
       />
       <div
         className={`fixed inset-0 transition-all duration-700 delay-500 ease-in-out ${
-          isLoading ? "opacity-0 scale-110" : "opacity-100 scale-100"
+          loading ? "opacity-0 scale-110" : "opacity-100 scale-100"
         }`}
         style={{
           backgroundImage: isMobile ? 'url("/BGM.webp")' : 'url("/BG.webp")',
@@ -280,7 +296,7 @@ function App() {
 
       <div
         className={`relative min-h-screen z-10 transition-all  duration-1000 ease-in-out ${
-          isLoading
+          loading
             ? "opacity-0 translate-z-[-50px]"
             : "opacity-100 translate-z-0"
         }`}
@@ -301,6 +317,9 @@ function App() {
                 setShowTodoMenu={setShowTodoMenu}
                 showAuthCard={showAuthCard}
                 setShowAuthCard={setShowAuthCard}
+                setIsMenuOpen={setIsMobileMenuOpen}
+                isMenuOpen={isMobileMenuOpen}
+                mobileMenuRef={mobileMenuRef}
               />
               <div className="flex-1 overflow-y-auto overflow-x-hidden">
                 <Routes>
@@ -331,7 +350,7 @@ function App() {
                       />
                     }
                   />
-                  <Route
+                  {/* <Route
                     path="/contribute"
                     element={
                       <>
@@ -342,7 +361,7 @@ function App() {
                         )}
                       </>
                     }
-                  />
+                  /> */}
                   <Route
                     path="/attendance"
                     element={
@@ -367,7 +386,7 @@ function App() {
                     <PopupCard
                       onClose={() => setShowAuthCard(false)}
                       title="Welcome Back"
-                      description="Sign in to your account"
+                      description="Sign in with your RVCE mail id only"
                     >
                       <p>
                         Access your account to enjoy all the features we offer.
@@ -376,7 +395,7 @@ function App() {
                   ) : (
                     <PopupCard
                       onClose={() => setShowAuthCard(false)}
-                      title="Come Back Soon!"
+                      title={`Come Back Soon ${user.name}`}
                       description="You can logout from the portal"
                     >
                       <p>

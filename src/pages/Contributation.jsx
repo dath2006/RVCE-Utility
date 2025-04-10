@@ -599,68 +599,68 @@ const Contributation = ({ setDisableWorkSpace }) => {
         return;
       }
 
-      const xhr = new XMLHttpRequest();
-      const formData = new FormData();
-      formData.append("file", fileItem.file);
-      formData.append("subject", subject);
-      formData.append("semester", semester);
-      formData.append("branch", branch);
-      formData.append(
-        "user",
-        JSON.stringify({
-          fullName: user.name,
-          email: user.email,
-          imageUrl: user.picture,
-        })
-      );
+      //   const xhr = new XMLHttpRequest();
+      //   const formData = new FormData();
+      //   formData.append("file", fileItem.file);
+      //   formData.append("subject", subject);
+      //   formData.append("semester", semester);
+      //   formData.append("branch", branch);
+      //   formData.append(
+      //     "user",
+      //     JSON.stringify({
+      //       fullName: user.name,
+      //       email: user.email,
+      //       imageUrl: user.picture,
+      //     })
+      //   );
 
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = Math.round(
-            (event.loaded / event.total) * 100
-          );
+      //   xhr.upload.onprogress = (event) => {
+      //     if (event.lengthComputable) {
+      //       const percentComplete = Math.round(
+      //         (event.loaded / event.total) * 100
+      //       );
 
-          // Update only this specific file's progress
-          setFiles((prevFiles) =>
-            prevFiles.map((f) =>
-              f.id === fileItem.id ? { ...f, progress: percentComplete } : f
-            )
-          );
-        }
-      };
+      //       // Update only this specific file's progress
+      //       setFiles((prevFiles) =>
+      //         prevFiles.map((f) =>
+      //           f.id === fileItem.id ? { ...f, progress: percentComplete } : f
+      //         )
+      //       );
+      //     }
+      //   };
 
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          setFiles((prevFiles) =>
-            prevFiles.map((f) =>
-              f.id === fileItem.id ? { ...f, uploaded: true, progress: 100 } : f
-            )
-          );
-          resolve(xhr.response);
-        } else {
-          setFiles((prevFiles) =>
-            prevFiles.map((f) =>
-              f.id === fileItem.id ? { ...f, uploaded: false } : f
-            )
-          );
-          setError(`Uploading Failed: ${xhr.statusText}`);
-          reject(`Upload failed with status ${xhr.status}`);
-        }
-      };
+      //   xhr.onload = () => {
+      //     if (xhr.status === 200) {
+      //       setFiles((prevFiles) =>
+      //         prevFiles.map((f) =>
+      //           f.id === fileItem.id ? { ...f, uploaded: true, progress: 100 } : f
+      //         )
+      //       );
+      //       resolve(xhr.response);
+      //     } else {
+      //       setFiles((prevFiles) =>
+      //         prevFiles.map((f) =>
+      //           f.id === fileItem.id ? { ...f, uploaded: false } : f
+      //         )
+      //       );
+      //       setError(`Uploading Failed: ${xhr.statusText}`);
+      //       reject(`Upload failed with status ${xhr.status}`);
+      //     }
+      //   };
 
-      xhr.onerror = () => {
-        setFiles((prevFiles) =>
-          prevFiles.map((f) =>
-            f.id === fileItem.id ? { ...f, uploaded: false } : f
-          )
-        );
-        setError(`Network error occurred during upload`);
-        reject("Network error");
-      };
+      //   xhr.onerror = () => {
+      //     setFiles((prevFiles) =>
+      //       prevFiles.map((f) =>
+      //         f.id === fileItem.id ? { ...f, uploaded: false } : f
+      //       )
+      //     );
+      //     setError(`Network error occurred during upload`);
+      //     reject("Network error");
+      //   };
 
-      // Replace with your actual upload URL
-      xhr.open("POST", `${import.meta.env.VITE_API_URL}/contribute`, true);
-      xhr.send(formData);
+      //   // Replace with your actual upload URL
+      //   xhr.open("POST", `${import.meta.env.VITE_API_URL}/contribute`, true);
+      //   xhr.send(formData);
     });
   };
 

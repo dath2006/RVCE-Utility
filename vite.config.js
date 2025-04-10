@@ -7,6 +7,10 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
+      },
       includeAssets: ["favicon.ico", "Logo.svg", "robots.txt"],
       manifest: {
         name: "RVCE Utility",

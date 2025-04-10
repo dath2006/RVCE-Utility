@@ -37,7 +37,7 @@ const Card = styled.div`
   gap: 1.5rem;
 
   @media (max-width: 768px) {
-    margin-top: 3.8rem;
+    margin-top: 2.5rem;
     padding: 1rem;
     width: 100%;
     min-height: calc(100vh - 7rem);
@@ -944,7 +944,10 @@ const MainAttendance = () => {
   }
 
   const handleForw = () => {
-    if (new Date(date).getTime() < new Date(now).getTime()) {
+    const currentDate = new Date(now).setHours(0, 0, 0, 0);
+    const selectedDate = new Date(date).setHours(0, 0, 0, 0);
+
+    if (selectedDate < currentDate) {
       setLoading(true);
       setDate((prev) => {
         return new Date(prev.valueOf() + 24 * 60 * 60 * 1000);
@@ -1186,7 +1189,8 @@ const MainAttendance = () => {
           <NavButton
             onClick={handleForw}
             disabled={
-              new Date(date)?.getTime() >= new Date(now).getTime() &&
+              new Date(date)?.setHours(0, 0, 0, 0) >=
+                new Date(now).setHours(0, 0, 0, 0) &&
               new Date(date)?.getTime() <= new Date(accEnd).getTime()
             }
           >

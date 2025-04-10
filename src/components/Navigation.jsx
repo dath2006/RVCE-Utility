@@ -133,9 +133,11 @@ const Navigation = ({
   setShowTodoMenu,
   showAuthCard,
   setShowAuthCard,
+  isMenuOpen,
+  setIsMenuOpen,
+  mobileMenuRef,
 }) => {
   const { user, isAuthenticated, isLoading } = useAuth0();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(
     localStorage.getItem("theme") === "dark"
   );
@@ -264,7 +266,11 @@ const Navigation = ({
           </BetaTag>
         </div>
 
-        <NavLinks isOpen={isMenuOpen} onClick={() => setIsMenuOpen(false)}>
+        <NavLinks
+          isOpen={isMenuOpen}
+          ref={mobileMenuRef}
+          onClick={() => setIsMenuOpen(false)}
+        >
           <NavLink to="/">Home</NavLink>
           <NavLink to="/resources">Resources</NavLink>
           <NavLink to="/contributors">Contribute</NavLink>
@@ -282,16 +288,23 @@ const Navigation = ({
         </NavLinks>
         <div className="flex gap-1 sm:gap-4">
           <div className="flex items-center gap-3">
-            {isAuthenticated && !isLoading ? (
-              <img
-                className="min-h-5 min-w-5 max-h-7 max-w-7 rounded-full hover:shadow-[0_0_10px_2px_rgba(174,87,228,0.8)]"
-                src={user.picture}
-                alt={user.name}
-                onClick={() => setShowAuthCard(!showAuthCard)}
-              />
+            {isAuthenticated && !isLoading && user ? (
+              user?.picture ? (
+                <img
+                  className="min-h-5 min-w-5 max-h-7 max-w-7 rounded-full hover:shadow-[0_0_10px_2px_rgba(174,87,228,0.8)] cursor-pointer"
+                  src={user.picture}
+                  alt={user.name || "User profile"}
+                  onClick={() => setShowAuthCard(!showAuthCard)}
+                />
+              ) : (
+                <AccountCircleIcon
+                  className="hover:shadow-[0_0_10px_2px_rgba(174,87,228,0.8)] rounded-full cursor-pointer"
+                  onClick={() => setShowAuthCard(!showAuthCard)}
+                />
+              )
             ) : (
               <button
-                className="hover:shadow-[0_0_10px_2px_rgba(255,255,255,0.8)]"
+                className="hover:shadow-[0_0_10px_2px_rgba(255,255,255,0.8)] rounded-full"
                 onClick={() => setShowAuthCard(!showAuthCard)}
               >
                 <AccountCircleIcon />

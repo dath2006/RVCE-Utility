@@ -32,6 +32,11 @@ const PageContainer = styled(motion.div)`
   @media (max-width: ${breakpoints.md}) {
     margin-top: 2.4rem;
   }
+
+  @media (max-width: ${breakpoints.xs}) {
+    margin-top: 1.5rem;
+    scale: 1.2;
+  }
 `;
 
 const ContentCard = styled(motion.div)`
