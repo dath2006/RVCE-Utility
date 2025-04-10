@@ -859,7 +859,7 @@ const staggerItem = {
 const MainAttendance = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const istOffset = 5.5 * 60 * 60 * 1000;
-  const now = new Date(new Date().getTime() + istOffset);
+  const now = new Date(new Date().getTime());
   const { user, isAuthenticated, isLoading } = useAuth0();
   const [accStart, setAccStart] = useState();
   const [accEnd, setAccEnd] = useState();
@@ -1220,7 +1220,7 @@ const MainAttendance = () => {
             >
               <Calendar
                 minDate={new Date(accStart)}
-                maxDate={new Date(new Date().getTime() + 5.5 * 60 * 60 * 1000)}
+                maxDate={new Date(new Date().getTime())}
                 value={date}
                 onChange={(value) => {
                   setDate(value);
