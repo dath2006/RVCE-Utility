@@ -1223,7 +1223,7 @@ const MainAttendance = () => {
                 maxDate={new Date(new Date().getTime())}
                 value={date}
                 onChange={(value) => {
-                  setDate(value);
+                  setDate(new Date(new Date(value).getTime() + istOffset));
                   setShowCalendar(false);
                 }}
               />
