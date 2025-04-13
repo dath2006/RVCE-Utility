@@ -20,14 +20,9 @@ import FloatingDrawer from "./components/FloatingDrawer";
 import Contributation from "./pages/Contributation";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-import { RedirectToSignIn, SignedIn, SignedOut } from "@clerk/clerk-react";
-import Statistics from "./components/Statistics";
-import MainAttendance from "./components/MainAttendance";
 import Attendance from "./pages/Attendance";
 import PopupCard from "./components/AuthCard";
 import { useAuth0 } from "@auth0/auth0-react";
-import MainContribution from "./pages/MainContribution";
 
 const AppContainer = styled.div`
   min-height: 100vh;
