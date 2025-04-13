@@ -1284,10 +1284,12 @@ const MainAttendance = () => {
                   const courseWithPending = attendanceState.find(
                     (course) => course.pending > 0
                   );
+
                   if (courseWithPending) {
                     const firstPendingSlot = day.find(
                       (slot) => slot.courseId === courseWithPending.courseId
                     );
+
                     if (firstPendingSlot) {
                       handleSubjectSelect(firstPendingSlot.slotId);
                     }
@@ -1904,6 +1906,14 @@ const MainAttendance = () => {
                         onChange={(e) => {
                           if (!(e.target.value > 100)) {
                             setDescription(e.target.value);
+                            setDay((prev) => {
+                              return prev.map((item) => {
+                                return {
+                                  ...item,
+                                  description: e.target.value,
+                                };
+                              });
+                            });
                           } else {
                             toast.info("Reason exceeded 100 characters");
                           }
@@ -2389,6 +2399,14 @@ const MainAttendance = () => {
                           onChange={(e) => {
                             if (!(e.target.value > 100)) {
                               setDescription(e.target.value);
+                              setDay((prev) => {
+                                return prev.map((item) => {
+                                  return {
+                                    ...item,
+                                    description: e.target.value,
+                                  };
+                                });
+                              });
                             } else {
                               toast.info("Reason exceeded 100 characters");
                             }

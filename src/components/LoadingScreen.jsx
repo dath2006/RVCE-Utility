@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const LoadingScreen = ({ isLoading, onLoadingComplete, isMobile }) => {
+const LoadingScreen = ({ isLoading, onLoadingComplete, screenSize }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       onLoadingComplete();
@@ -14,7 +14,7 @@ const LoadingScreen = ({ isLoading, onLoadingComplete, isMobile }) => {
     <AnimatePresence>
       {isLoading && (
         <motion.div
-          initial={{ scale: isMobile ? 1 : 1.4, z: 0 }}
+          initial={{ scale: screenSize < 700 ? 1 : 1.4, z: 0 }}
           exit={{
             scale: 1.1,
             opacity: 0,
@@ -26,7 +26,8 @@ const LoadingScreen = ({ isLoading, onLoadingComplete, isMobile }) => {
           }}
           className="fixed inset-0 z-50 overflow-hidden"
           style={{
-            backgroundImage: isMobile ? 'url("/BGM.webp")' : 'url("/BG.webp")',
+            backgroundImage:
+              screenSize < 700 ? 'url("/BGM.webp")' : 'url("/BG.webp")',
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",

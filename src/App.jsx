@@ -27,6 +27,7 @@ import MainAttendance from "./components/MainAttendance";
 import Attendance from "./pages/Attendance";
 import PopupCard from "./components/AuthCard";
 import { useAuth0 } from "@auth0/auth0-react";
+import MainContribution from "./pages/MainContribution";
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -218,6 +219,7 @@ function App() {
   const [disableWorkSpace, setDisableWorkSpace] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef(null);
+  const screenSize = window.screen.width;
 
   let isMobile = false;
 
@@ -263,7 +265,7 @@ function App() {
       <LoadingScreen
         isLoading={loading}
         onLoadingComplete={() => setLoading(false)}
-        isMobile={isMobile}
+        screenSize={screenSize}
       />
       <StyledToastContainer
         position="top-right"
@@ -282,7 +284,8 @@ function App() {
           loading ? "opacity-0 scale-110" : "opacity-100 scale-100"
         }`}
         style={{
-          backgroundImage: isMobile ? 'url("/BGM.webp")' : 'url("/BG.webp")',
+          backgroundImage:
+            screenSize < 700 ? 'url("/BGM.webp")' : 'url("/BG.webp")',
           backgroundBlendMode: "overlay",
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -355,7 +358,10 @@ function App() {
                     element={
                       <>
                         {!isLoading && isAuthenticated && (
-                          <Contributation
+                          // <Contributation
+                          //   setDisableWorkSpace={setDisableWorkSpace}
+                          // />
+                          <MainContribution
                             setDisableWorkSpace={setDisableWorkSpace}
                           />
                         )}
