@@ -886,6 +886,7 @@ const MainAttendance = () => {
 
   const jumpMenuRef = useRef(null);
   const calendarRef = useRef(null);
+  const initCalledRef = useRef(false);
 
   // Add useEffect for handling outside clicks
   useEffect(() => {
@@ -912,17 +913,11 @@ const MainAttendance = () => {
   }, []);
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    if (!isLoading && isAuthenticated && date) {
       handleDayInit();
       handleAttendanceState();
     }
-  }, [isLoading, isAuthenticated]);
-
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      handleDayInit();
-    }
-  }, [date]);
+  }, [isLoading, isAuthenticated, date]);
 
   const handlePrev = () => {
     if (new Date(date).getTime() > new Date(accStart).getTime()) {
@@ -992,6 +987,9 @@ const MainAttendance = () => {
   };
 
   const handleDayInit = async () => {
+    if (initCalledRef.current) return; // skip if already running
+    initCalledRef.current = true;
+
     setSubject(null);
     setSubjectAdd(false);
     setShowDay(false);
@@ -1025,6 +1023,7 @@ const MainAttendance = () => {
       toast.error("Failed to load attendance data. Please try again.");
     } finally {
       setLoading(false);
+      initCalledRef.current = false;
     }
   };
 
