@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Menu,
   X,
@@ -11,205 +11,10 @@ import {
   Youtube,
   InfoIcon,
 } from "lucide-react";
-import styled from "styled-components";
-
 import { motion, AnimatePresence } from "framer-motion";
-
-const SideBar = styled(motion.div)`
-  position: fixed;
-  backdrop-filter: blur(21px) saturate(180%);
-  -webkit-backdrop-filter: blur(21px) saturate(180%);
-  background-color: ${(props) => props.theme.glassbgc};
-`;
-
-const HelpButton = styled(motion.button)`
-  position: absolute;
-  top: 5rem;
-  right: 2rem;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 100;
-
-  @media (max-width: 768px) {
-    top: 4.8rem;
-    right: 1rem;
-    width: 36px;
-    height: 36px;
-  }
-`;
-
-const ModalOverlay = styled(motion.div)`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(5px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-  overflow-y: auto;
-`;
-
-const Modal = styled(motion.div)`
-  background: #1f2937;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 600px;
-  overflow: hidden;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-`;
-
-const ModalHeader = styled.div`
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-`;
-
-const ModalTitle = styled.h3`
-  font-size: 1.2rem;
-  color: #e5e7eb;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-
-  @media (max-width: 480px) {
-    font-size: 1rem;
-  }
-`;
-
-const CloseButton = styled(motion.button)`
-  background: transparent;
-  border: none;
-  color: #9ca3af;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: #e5e7eb;
-  }
-`;
-
-const ModalContent = styled.div`
-  padding: 1.5rem;
-  overflow-y: auto;
-
-  @media (max-width: 480px) {
-    padding: 1rem;
-  }
-`;
-
-const VideoContainer = styled.div`
-  width: 100%;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #111827;
-  aspect-ratio: 16/9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-`;
-
-const VideoText = styled.p`
-  text-align: center;
-  margin-top: 1.5rem;
-  color: #9ca3af;
-  font-size: 0.9rem;
-  line-height: 1.5;
-`;
-
-const NotesSection = styled.div`
-  margin-top: 2rem;
-  padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-`;
-
-const NotesSectionTitle = styled.h4`
-  font-size: 1rem;
-  color: #e5e7eb;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-const NotesList = styled.ul`
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-`;
-
-const NotesItem = styled.li`
-  color: #9ca3af;
-  font-size: 0.9rem;
-  padding-left: 1.5rem;
-  position: relative;
-  margin-bottom: 0.75rem;
-  line-height: 1.4;
-
-  &:before {
-    content: "•";
-    position: absolute;
-    left: 0.5rem;
-    color: #3b82f6;
-  }
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-`;
-
-const LoadingSpinner = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 400px;
-
-  .spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #3b82f6;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-`;
+import axios from "axios";
+import { useAuth0 } from "@auth0/auth0-react";
+import styled from "styled-components";
 
 // Import your components
 import ImportTimeTable from "../components/ImportTimeTable";
@@ -217,26 +22,32 @@ import CustomTimeTable from "../components/CustomTimeTable";
 import MainAttendance from "../components/MainAttendance";
 import Statistics from "../components/Statistics";
 import ViewTimeTable from "../components/ViewTimeTable";
-import axios from "axios";
-import { toast } from "react-toastify";
-import { useAuth0 } from "@auth0/auth0-react";
+
+const SideBar = styled(motion.div)`
+  backdrop-filter: blur(21px) saturate(180%);
+  -webkit-backdrop-filter: blur(21px) saturate(180%);
+  background-color: ${(props) => props.theme.glassbgc};
+  width: 16rem; /* w-64 = 64 * 0.25rem = 16rem = 256px */
+  flex-shrink: 0;
+  z-index: 10;
+  overflow-y: auto;
+`;
 
 const AttendanceSystem = ({ setDisableWorkSpace }) => {
-  // States for managing components and navigation
   const { user, isAuthenticated, isLoading } = useAuth0();
   const [hasTimeTable, setHasTimeTable] = useState(false);
   const [activeComponent, setActiveComponent] = useState("import");
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Create a ref for the main content area
+  const contentRef = useRef(null);
 
   useEffect(() => {
-    const setShow = () => {
-      setDisableWorkSpace(true);
-    };
-    setShow();
-  }, []);
+    setDisableWorkSpace(true);
+  }, [setDisableWorkSpace]);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -244,45 +55,40 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
     }
   }, [isLoading, isAuthenticated]);
 
-  // Handle responsiveness
+  // Improved responsive handler
   useEffect(() => {
     const checkScreenSize = () => {
-      if (window.innerWidth < 768) {
-        setIsMobile(true);
-        setSidebarOpen(false);
-      } else {
-        setIsMobile(false);
-        setSidebarOpen(true);
-      }
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      setSidebarOpen(!mobile);
     };
 
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
-
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
   const handleHasTimeTable = async () => {
-    try {
-      if (!isLoading && isAuthenticated) {
+    if (!isLoading && isAuthenticated) {
+      try {
         setLoading(true);
         const res = await axios.get(
           `${import.meta.env.VITE_API_URL}/timetable/check?email=${user.email}`
         );
         if (res.data.success) {
-          setActiveComponent(res.data.hasTimeTable ? "main" : "import");
-          setShowHelpModal(res.data.hasTimeTable ? false : true);
-          setHasTimeTable(res.data.hasTimeTable);
+          const hasTable = res.data.hasTimeTable;
+          setActiveComponent(hasTable ? "main" : "import");
+          setShowHelpModal(!hasTable);
+          setHasTimeTable(hasTable);
         }
+      } catch (error) {
+        console.error("Error checking time table:", error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error checking time table:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Navigate to component
   const navigateTo = (componentName) => {
     setActiveComponent(componentName);
     if (isMobile) {
@@ -290,230 +96,279 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
     }
   };
 
-  // Handle import time table component's create button
   const handleCreateTimeTable = () => {
     setActiveComponent("custom");
   };
 
-  // Reset time table
   const resetTimeTable = () => {
     setActiveComponent("import");
   };
 
   // Render the active component
   const renderComponent = () => {
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <div className="w-12 h-12 border-4 border-gray-300 border-t-indigo-600 rounded-full animate-spin"></div>
+        </div>
+      );
+    }
+
     switch (activeComponent) {
       case "import":
         return (
-          activeComponent === "import" && (
-            <ImportTimeTable
-              setActiveComponent={setActiveComponent}
-              setHasTimeTable={setHasTimeTable}
-              onCreateClick={handleCreateTimeTable}
-            />
-          )
+          <ImportTimeTable
+            setActiveComponent={setActiveComponent}
+            setHasTimeTable={setHasTimeTable}
+            onCreateClick={handleCreateTimeTable}
+          />
         );
       case "custom":
         return (
-          activeComponent === "custom" && (
-            <CustomTimeTable
-              setActiveComponent={setActiveComponent}
-              setHasTimeTable={setHasTimeTable}
-              setShowHelpModal={setShowHelpModal}
-            />
-          )
+          <CustomTimeTable
+            setActiveComponent={setActiveComponent}
+            setHasTimeTable={setHasTimeTable}
+            setShowHelpModal={setShowHelpModal}
+          />
         );
       case "main":
-        return activeComponent === "main" && <MainAttendance />;
+        return <MainAttendance />;
       case "statistics":
-        return activeComponent === "statistics" && <Statistics />;
+        return <Statistics />;
       case "view":
-        return activeComponent === "view" && <ViewTimeTable />;
+        return <ViewTimeTable />;
       default:
         return <ImportTimeTable onCreateClick={handleCreateTimeTable} />;
     }
   };
 
   return (
-    <div className={`flex h-screen w-full ${!isMobile && " pt-20"}`}>
-      {" "}
-      {/* 75px (pt-20) space for top navbar */}
-      {/* Sidebar Toggle Button for Mobile */}
-      <HelpButton
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => setShowHelpModal(true)}
-      >
-        <HelpCircle size={20} />
-      </HelpButton>
-      <button
-        className={`fixed z-20  top-20 left-4 p-2 bg-indigo-600 text-white rounded-full shadow-lg md:hidden ${
-          sidebarOpen ? "hidden" : "block"
-        }`}
-        onClick={() => setSidebarOpen(true)}
-      >
-        <Menu size={24} />
-      </button>
-      {/* Sidebar / Navigation */}
-      <SideBar
-        className={`fixed z-10  bottom-0 left-0 w-64 shadow-lg transition-transform duration-300 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0  ${isMobile ? " top-[3.7rem]" : "top-[4.6rem]"} `}
-      >
-        {/* Close button for mobile */}
-        {isMobile && (
-          <div className="flex justify-end p-2">
-            <button
-              className="text-gray-400 hover:text-white"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <X size={24} />
-            </button>
-          </div>
+    <div className="flex flex-col h-full w-full pt-[73px]">
+      {/* Main Layout Container */}
+      <div className="flex h-full overflow-hidden">
+        {/* Sidebar - Hidden on mobile, visible on desktop */}
+        {!isMobile && !loading && (
+          <SideBar>
+            <div className="p-4">
+              <h2 className="text-xl font-bold mb-6 ">Attendance System</h2>
+              <nav className="space-y-4">
+                {!hasTimeTable && (
+                  <button
+                    className={`flex items-center space-x-2 w-full p-2 rounded-lg ${
+                      activeComponent === "import" ||
+                      activeComponent === "custom"
+                        ? "bg-indigo-700 "
+                        : " hover:text-white hover:bg-indigo-700"
+                    }`}
+                    onClick={() => navigateTo("import")}
+                  >
+                    <FilePlus size={20} />
+                    <span>Import TimeTable</span>
+                  </button>
+                )}
+
+                {hasTimeTable && (
+                  <>
+                    <button
+                      className={`flex items-center space-x-2 w-full p-2 rounded-lg ${
+                        activeComponent === "main"
+                          ? "bg-indigo-700 text-white"
+                          : "hover:text-white hover:bg-indigo-700"
+                      }`}
+                      onClick={() => navigateTo("main")}
+                    >
+                      <Calendar size={20} />
+                      <span>Attendance</span>
+                    </button>
+
+                    <button
+                      className={`flex items-center space-x-2 w-full p-2 rounded-lg ${
+                        activeComponent === "statistics"
+                          ? "bg-indigo-700 text-white"
+                          : "hover:text-white hover:bg-indigo-700"
+                      }`}
+                      onClick={() => navigateTo("statistics")}
+                    >
+                      <BarChart2 size={20} />
+                      <span>Statistics</span>
+                    </button>
+
+                    <button
+                      className={`flex items-center space-x-2 w-full p-2 rounded-lg ${
+                        activeComponent === "view"
+                          ? "bg-indigo-700 text-white"
+                          : " hover:text-white hover:bg-indigo-700"
+                      }`}
+                      onClick={() => navigateTo("view")}
+                    >
+                      <Eye size={20} />
+                      <span>View TimeTable</span>
+                    </button>
+
+                    <button
+                      className="flex items-center space-x-2 w-full p-2 rounded-lg text-red-400 hover:bg-indigo-700 hover:text-red-300"
+                      onClick={resetTimeTable}
+                    >
+                      <RefreshCw size={20} />
+                      <span>Reset TimeTable</span>
+                    </button>
+                  </>
+                )}
+              </nav>
+            </div>
+          </SideBar>
         )}
 
-        {/* Sidebar Content */}
-        <div className="p-4">
-          <h2 className="text-xl font-bold mb-6">Attendance System</h2>
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-h-0 relative">
+          {/* Help Button - Only on desktop */}
+          {!isMobile && (
+            <button
+              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center hover:bg-indigo-200 transition-colors z-10"
+              onClick={() => setShowHelpModal(true)}
+            >
+              <HelpCircle size={20} />
+            </button>
+          )}
 
-          <nav className="space-y-4">
-            {!hasTimeTable && (
+          {/* Special view mode handling */}
+          {activeComponent === "view" ? (
+            <div className="w-full h-full" style={{ position: "relative" }}>
+              <div className="absolute inset-0 overflow-x-auto">
+                <ViewTimeTable />
+              </div>
+            </div>
+          ) : activeComponent === "custom" ? (
+            <div className="w-full h-full" style={{ position: "relative" }}>
+              <div className="absolute inset-0 overflow-x-auto">
+                <CustomTimeTable
+                  setActiveComponent={setActiveComponent}
+                  setHasTimeTable={setHasTimeTable}
+                  setShowHelpModal={setShowHelpModal}
+                />
+              </div>
+            </div>
+          ) : (
+            <div
+              className={`flex-1 p-4 overflow-auto ${isMobile ? "pb-16" : ""}`}
+            >
+              {renderComponent()}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom Tab Bar - Only on mobile */}
+      {isMobile && !loading && (
+        <div className="fixed bottom-0 left-0 right-0 h-16 bg-gray-800 flex justify-around items-center border-t border-gray-700 z-20">
+          {!hasTimeTable ? (
+            <>
               <button
-                className={`flex items-center space-x-2 w-full p-2 rounded-lg ${
+                className={`flex flex-col items-center justify-center h-full w-1/2 ${
                   activeComponent === "import" || activeComponent === "custom"
-                    ? "bg-indigo-700 text-white"
-                    : " "
+                    ? "text-indigo-500"
+                    : "text-gray-400"
                 }`}
-                onClick={() => {
-                  navigateTo("import");
-                  isMobile && setSidebarOpen(false);
-                }}
+                onClick={() => navigateTo("import")}
               >
                 <FilePlus size={20} />
-                <span>Import TimeTable</span>
+                <span className="text-xs mt-1">Import</span>
               </button>
-            )}
-
-            {hasTimeTable && (
               <button
-                className={`flex items-center space-x-2 w-full p-2 rounded-lg ${
+                className="flex flex-col items-center justify-center h-full w-1/2 text-gray-400"
+                onClick={() => setShowHelpModal(true)}
+              >
+                <HelpCircle size={20} />
+                <span className="text-xs mt-1">Help</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className={`flex flex-col items-center justify-center h-full w-1/5 ${
                   activeComponent === "main"
-                    ? "bg-indigo-700 text-white"
-                    : " hover:text-white hover:bg-indigo-700"
+                    ? "text-indigo-500"
+                    : "text-gray-400"
                 }`}
-                onClick={() => {
-                  navigateTo("main");
-                  isMobile && setSidebarOpen(false);
-                }}
+                onClick={() => navigateTo("main")}
               >
-                <Calendar size={20} />
-                <span>Attendance</span>
+                <Calendar size={18} />
+                <span className="text-xs mt-1">Attendance</span>
               </button>
-            )}
-
-            {hasTimeTable && (
               <button
-                className={`flex items-center space-x-2 w-full p-2 rounded-lg ${
+                className={`flex flex-col items-center justify-center h-full w-1/5 ${
                   activeComponent === "statistics"
-                    ? "bg-indigo-700 text-white"
-                    : "  hover:text-white hover:bg-indigo-700"
+                    ? "text-indigo-500"
+                    : "text-gray-400"
                 }`}
-                onClick={() => {
-                  navigateTo("statistics");
-                  isMobile && setSidebarOpen(false);
-                }}
+                onClick={() => navigateTo("statistics")}
               >
-                <BarChart2 size={20} />
-                <span>Statistics</span>
+                <BarChart2 size={18} />
+                <span className="text-xs mt-1">Stats</span>
               </button>
-            )}
-
-            {hasTimeTable && (
               <button
-                className={`flex items-center space-x-2 w-full p-2 rounded-lg ${
+                className={`flex flex-col items-center justify-center h-full w-1/5 ${
                   activeComponent === "view"
-                    ? "bg-indigo-700 text-white"
-                    : " hover:text-white hover:bg-indigo-700"
+                    ? "text-indigo-500"
+                    : "text-gray-400"
                 }`}
-                onClick={() => {
-                  navigateTo("view");
-                  isMobile && setSidebarOpen(false);
-                }}
+                onClick={() => navigateTo("view")}
               >
-                <Eye size={20} />
-                <span>View TimeTable</span>
+                <Eye size={18} />
+                <span className="text-xs mt-1">View</span>
               </button>
-            )}
-
-            {hasTimeTable && (
               <button
-                className="flex items-center space-x-2 w-full p-2 rounded-lg text-red-400  hover:bg-indigo-700"
-                onClick={() => {
-                  resetTimeTable();
-                  isMobile && setSidebarOpen(false);
-                }}
+                className="flex flex-col items-center justify-center h-full w-1/5 text-red-400"
+                onClick={resetTimeTable}
               >
-                <RefreshCw size={20} />
-                <span>Reset TimeTable</span>
+                <RefreshCw size={18} />
+                <span className="text-xs mt-1">Reset</span>
               </button>
-            )}
-          </nav>
+              <button
+                className="flex flex-col items-center justify-center h-full w-1/5 text-gray-400"
+                onClick={() => setShowHelpModal(true)}
+              >
+                <HelpCircle size={18} />
+                <span className="text-xs mt-1">Help</span>
+              </button>
+            </>
+          )}
         </div>
-      </SideBar>
-      {/* Main Content Area */}
-      <div
-        className={`flex-1  h-full p-6 overflow-auto transition-all duration-300 ${
-          sidebarOpen && !isMobile ? "ml-64" : "ml-0"
-        }`}
-      >
-        {loading ? (
-          <LoadingSpinner>
-            <div className="spinner" />
-          </LoadingSpinner>
-        ) : (
-          <div className="h-full ">{renderComponent()}</div>
-        )}
-      </div>
-      {/* Overlay for mobile when sidebar is open */}
-      {isMobile && sidebarOpen && (
-        <div
-          className={" inset-0 bg-opacity-50 z-0"}
-          onClick={() => setSidebarOpen(false)}
-        />
       )}
+
+      {/* Help Modal */}
       <AnimatePresence>
         {showHelpModal && (
-          <ModalOverlay
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto"
             onClick={(e) => {
               if (e.target === e.currentTarget) {
                 setShowHelpModal(false);
               }
             }}
           >
-            <Modal
+            <motion.div
+              className="bg-gray-800 rounded-xl w-full max-w-md overflow-hidden shadow-2xl border border-gray-700"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: "spring", damping: 20 }}
             >
-              <ModalHeader>
-                <ModalTitle>
+              <div className="p-4 flex items-center justify-between border-b border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-100 flex items-center gap-2">
                   <Youtube size={20} color="#ef4444" /> How to use attendance
                   system
-                </ModalTitle>
-                <CloseButton
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                </h3>
+                <button
+                  className="p-1 rounded-lg hover:bg-gray-700 text-gray-400 hover:text-gray-100"
                   onClick={() => setShowHelpModal(false)}
                 >
-                  <X size={18} />
-                </CloseButton>
-              </ModalHeader>
-              <ModalContent>
-                <VideoContainer>
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-4 overflow-y-auto max-h-[70vh]">
+                <div className="aspect-video rounded-lg overflow-hidden bg-gray-900">
                   <iframe
                     width="100%"
                     height="100%"
@@ -523,41 +378,37 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                     allowFullScreen
                   ></iframe>
-                </VideoContainer>
-                <VideoText>
+                </div>
+                <p className="text-gray-400 text-sm mt-4 text-center">
                   This short video demonstrates how to use the attendance
                   system.
-                </VideoText>
+                </p>
 
-                <NotesSection>
-                  <NotesSectionTitle>
+                <div className="mt-6 p-4 bg-gray-700/20 rounded-lg border border-gray-700">
+                  <h4 className="font-medium text-gray-200 flex items-center gap-2 mb-3">
                     <InfoIcon size={16} /> Points to Note
-                  </NotesSectionTitle>
-                  <NotesList>
-                    <NotesItem>
-                      This Attendance System is for your reference only, so that
-                      you can track it.
-                    </NotesItem>
-                    <NotesItem>
-                      Initially attendance of all classes are set to pending.
-                    </NotesItem>
-                    <NotesItem>
-                      Clear the pending attendance from the academic start date,
-                      so to get the clear statistics.
-                    </NotesItem>
-                    <NotesItem>
-                      Mark attendance as "ignore" if a class is cancelled, or
-                      its a holiday.
-                    </NotesItem>
-                    <NotesItem>
-                      Be careful while creating custom attendance, as it cannot
-                      be edited later.
-                    </NotesItem>
-                  </NotesList>
-                </NotesSection>
-              </ModalContent>
-            </Modal>
-          </ModalOverlay>
+                  </h4>
+                  <ul className="space-y-2">
+                    {[
+                      "This Attendance System is for your reference only, so that you can track it.",
+                      "Initially attendance of all classes are set to pending.",
+                      "Clear the pending attendance from the academic start date, so to get the clear statistics.",
+                      'Mark attendance as "ignore" if a class is cancelled, or its a holiday.',
+                      "Be careful while creating custom attendance, as it cannot be edited later.",
+                    ].map((item, index) => (
+                      <li
+                        key={index}
+                        className="text-gray-400 text-sm pl-5 relative"
+                      >
+                        <span className="absolute left-0 text-blue-500">•</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

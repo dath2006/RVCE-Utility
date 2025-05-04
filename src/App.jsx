@@ -223,7 +223,7 @@ function App() {
   }
 
   useEffect(() => {
-    localStorage.setItem("theme", "dark");
+    localStorage.getItem("theme") || localStorage.setItem("theme", "dark");
   }, []);
 
   useEffect(() => {
@@ -366,11 +366,7 @@ function App() {
                   <Route
                     path="/attendance"
                     element={
-                      <>
-                        (
-                        <Attendance setDisableWorkSpace={setDisableWorkSpace} />
-                        )
-                      </>
+                      <Attendance setDisableWorkSpace={setDisableWorkSpace} />
                     }
                   />
                   <Route

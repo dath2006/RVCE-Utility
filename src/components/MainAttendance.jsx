@@ -24,24 +24,24 @@ import { useAuth0 } from "@auth0/auth0-react";
 
 const Card = styled.div`
   display: flex;
-  color: ${(props) => props.theme.text};
-  background: ${(props) => props.theme.cardTheme};
+  // color: ${(props) => props.theme.text};
+  // background: ${(props) => props.theme.cardTheme};
   flex-direction: column;
   padding: 2rem;
   align-items: center;
   width: 95%;
-  min-height: calc(100vh - 8rem);
-  max-width: 1200px;
-  border-radius: 16px;
-  overflow: hidden;
+  // min-height: calc(100vh - 8rem);
+  // max-width: 1200px;
+  // margin-top: 1.9rem;
+  // border-radius: 16px;
+  // overflow: hidden;
   gap: 1.5rem;
 
   @media (max-width: 768px) {
-    margin-top: 2.5rem;
     padding: 1rem;
-    width: 100%;
-    min-height: calc(100vh - 7rem);
-    gap: 1.25rem;
+    // width: 100%;
+    // min-height: calc(100vh - 7rem);
+    // gap: 1.25rem;
   }
 `;
 
@@ -1016,19 +1016,14 @@ const MainAttendance = () => {
           // Deep cloning the data to prevent reference issues
           setDayCache(JSON.parse(JSON.stringify(initialData)));
           setDay(JSON.parse(JSON.stringify(initialData)));
-
-          setLoading(false);
-        } else {
-          setLoading(false);
         }
-      } else {
-        setLoading(false);
       }
     } catch (err) {
       console.error(err);
       toast.error("Failed to load attendance data. Please try again.");
       setLoading(false);
     } finally {
+      setLoading(false);
       initCalledRef.current = false;
     }
   };

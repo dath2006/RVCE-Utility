@@ -8,18 +8,12 @@ import { toast } from "react-toastify";
 import { useAuth0 } from "@auth0/auth0-react";
 
 const TimetableContainer = styled.div`
-  max-width: 1200px;
   padding: 1rem;
   border-radius: 10px;
   color: ${(props) => props.theme.text};
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  width: 100%;
-  scale: 0.9;
-
-  @media (max-width: 768px) {
-    margin-top: 3rem;
-  }
+  min-width: 900px;
+  width: max-content;
+  margin: 0 auto;
 `;
 
 const Grid = styled.div`
@@ -28,8 +22,8 @@ const Grid = styled.div`
   gap: 1px;
   background: ${(props) => props.theme.background};
   border-radius: 8px;
-  overflow: hidden;
-  min-width: 800px; // Reduced from 900px to allow better fit on smaller screens
+  overflow: visible;
+  width: 100%;
 
   @media (max-width: 1024px) {
     grid-template-columns: 100px repeat(5, minmax(120px, 1fr));
@@ -45,6 +39,11 @@ const HeaderCell = styled.div`
   position: sticky;
   top: 0;
   z-index: 10;
+  &:first-child {
+    left: 0;
+    z-index: 20;
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+  }
 `;
 
 const TimeCell = styled.div`
@@ -60,6 +59,8 @@ const TimeCell = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: ${(props) => props.theme.cardTheme};
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
 `;
 
 const EmptyCell = styled.div`
@@ -215,16 +216,14 @@ function TimeTable() {
       <div className="spinner" />
     </LoadingSpinner>
   ) : (
-    <TimetableContainer className={"w-full "}>
-      <div className="flex items-center gap-3 mb-6 px-2">
+    <TimetableContainer>
+      <div className="flex items-center gap-3 mb-2 px-2">
         <Calendar className="w-6 h-6 md:w-8 md:h-8 text-blue-600" />
-        <h1 className="text-xl md:text-2xl font-bold ">
-          Interactive Timetable
-        </h1>
+        <h1 className="text-xl md:text-2xl font-bold">Interactive Timetable</h1>
       </div>
 
       <ScrollIndicator>
-        <div className="flex items-center justify-center gap-2 text-gray-600">
+        <div className="flex items-center gap-2 text-gray-600">
           <ArrowRight size={16} />
           <span>Scroll horizontally to view full timetable</span>
         </div>

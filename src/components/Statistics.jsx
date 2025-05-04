@@ -27,13 +27,10 @@ import { useAuth0 } from "@auth0/auth0-react";
 
 // Styled Components
 const DashboardContainer = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
   padding: 20px;
   font-family: "Inter", sans-serif;
-
   @media (max-width: 640px) {
-    padding: 12px;
+    padding: 1rem;
   }
 `;
 
@@ -674,7 +671,8 @@ const Statistics = () => {
                         {/* Custom Min Attendance Setter */}
                         <MinAttendanceSetter>
                           <h4 className="text-sm font-medium mb-2 text-gray-700">
-                            Set Custom Minimum Attendance
+                            Set Custom Minimum Attendance (
+                            {customMinAttendance[subject.courseId]}%)
                           </h4>
                           <Box
                             sx={{

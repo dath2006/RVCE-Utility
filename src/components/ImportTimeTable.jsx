@@ -19,24 +19,10 @@ const PageContainer = styled(motion.div)`
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 6rem);
-  background: ${(props) => props.theme.background || "#f5f7fa"};
+  min-height: calc(100vh - 10rem);
+  // background: ${(props) => props.theme.background || "#f5f7fa"};
   padding: 1rem;
   border-radius: 2rem;
-  transform: scale(0.9);
-
-  @media (min-width: ${breakpoints.md}) {
-    padding: 2rem;
-  }
-
-  @media (max-width: ${breakpoints.md}) {
-    margin-top: 2.4rem;
-  }
-
-  @media (max-width: ${breakpoints.xs}) {
-    margin-top: 1.5rem;
-    scale: 1.2;
-  }
 `;
 
 const ContentCard = styled(motion.div)`
@@ -551,12 +537,7 @@ const ImportTimeTable = ({
   };
 
   return (
-    <PageContainer
-      className={"w-full h-full p-4 "}
-      initial="initial"
-      animate="animate"
-      variants={pageVariants}
-    >
+    <PageContainer initial="initial" animate="animate" variants={pageVariants}>
       <ContentCard variants={cardVariants}>
         <CardHeader>
           <CardTitle>Class Schedule Manager</CardTitle>

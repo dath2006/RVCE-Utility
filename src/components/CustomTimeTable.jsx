@@ -45,24 +45,23 @@ const Card = styled(motion.div)`
   background-color: ${(props) => props.theme.cardTheme};
   border-radius: 16px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-  padding: 1rem;
+  padding: 1.25rem;
+  padding-bottom: 0.5rem;
   border: 1px solid ${(props) => props.theme.border};
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
+  width: 95%;
+  max-width: 1000px;
+  margin: 0 auto;
   transition: all 0.3s ease;
-  max-height: calc(100vh - 120px);
+  height: calc(100vh - 170px);
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
 
   @media (min-width: 768px) {
-    padding: 2rem;
-  }
-  @media (max-width: 768px) {
-    margin-top: 3rem;
-    padding: 2rem;
+    padding: 1.75rem;
+    height: calc(100vh - 120px);
   }
 `;
-
 const StepText = styled.span`
   font-size: ${(props) => (props.vertical ? "0.9rem" : "0.75rem")};
   color: ${(props) =>
@@ -76,7 +75,7 @@ const StepText = styled.span`
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 `;
 
 const Label = styled.label`
@@ -132,7 +131,7 @@ const ButtonGroup = styled.div`
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-  margin-top: 2rem;
+  margin-top: 1rem;
 `;
 
 const StyledButton = styled(motion.button)`
@@ -609,6 +608,29 @@ const LoadingSpinner = styled.div`
   }
 `;
 
+const GridOverflow = styled.div`
+  overflow-x: auto;
+  white-space: nowrap;
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #888 #eee;
+
+  /* Chrome, Safari, Edge */
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: #eee;
+  }
+`;
+
 // Animation variants
 const cardVariants = {
   initial: { opacity: 0, y: 20 },
@@ -670,7 +692,7 @@ const TimetableCreator = ({
     branch: "",
     courseStartDate: null,
     courseEndDate: null,
-    minAttendance: "75",
+    minAttendance: "85",
   });
 
   // Step 2: Course Information
@@ -1199,7 +1221,7 @@ const TimetableCreator = ({
               </div>
             </FormGroup>
 
-            <ButtonGroup>
+            <ButtonGroup className={"mb-10"}>
               <PrimaryButton
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -1319,7 +1341,6 @@ const TimetableCreator = ({
             exit="exit"
             variants={cardVariants}
           >
-            <SectionTitle>Create Your Timetable</SectionTitle>
             <SectionDescription>
               Assign courses to time slots by clicking on an empty cell
             </SectionDescription>
@@ -1369,80 +1390,89 @@ const TimetableCreator = ({
                 Assign Course to Merged Slots
               </PrimaryButton>
             )}
-            <TimetableGrid>
-              <TimeCell isHeader={true}></TimeCell>
-              {daysOfWeek.map((day) => (
-                <DayCell key={day}>{day}</DayCell>
-              ))}
-
-              {timeSlots
-                .filter((slot) => !slot.isBreak) // Filter out break slots
-                .map((slot) => (
-                  <React.Fragment key={slot.slotId}>
-                    <TimeCell>{slot.display}</TimeCell>
-
-                    {daysOfWeek.map((day) => {
-                      const event = getCourseForSlot(day, slot.slotId);
-                      const course = event
-                        ? courses.find((c) => c.name === event.courseId)
-                        : null;
-
-                      return event && course ? (
-                        <CourseCell
-                          key={`${day}-${slot.slotId}`}
-                          onClick={() => removeCourseFromSlot(day, slot.slotId)}
-                          style={{
-                            gridRow: event.mergedSlots
-                              ? `span ${event.mergedSlots.length}`
-                              : "auto",
-                            opacity:
-                              event.mergedSlots &&
-                              event.mergedSlots[0] !== slot.slotId
-                                ? 0
-                                : 1,
-                            display:
-                              event.mergedSlots &&
-                              event.mergedSlots[0] !== slot.slotId
-                                ? "none"
-                                : "flex",
-                          }}
-                        >
-                          <CourseName>{course.name}</CourseName>
-                          <CourseInfo>{course.instructor || "TBD"}</CourseInfo>
-                          {event.mergedSlots && (
-                            <CourseInfo>
-                              Merged: {event.mergedSlots.length} slots
-                            </CourseInfo>
-                          )}
-                        </CourseCell>
-                      ) : (
-                        <EmptySlot
-                          key={`${day}-${slot.slotId}`}
-                          onClick={() =>
-                            mergeMode
-                              ? handleSlotMerge(day, slot.slotId)
-                              : openSlotAssignment(day, slot.slotId)
-                          }
-                          style={{
-                            backgroundColor: isSlotHighlighted(day, slot.slotId)
-                              ? currentTheme.primary + "30"
-                              : "transparent",
-                            border: isSlotHighlighted(day, slot.slotId)
-                              ? `2px dashed ${currentTheme.primary}`
-                              : "none",
-                          }}
-                        >
-                          {mergeMode
-                            ? isSlotHighlighted(day, slot.slotId)
-                              ? "Selected"
-                              : "Select"
-                            : "+ Add"}
-                        </EmptySlot>
-                      );
-                    })}
-                  </React.Fragment>
+            <GridOverflow>
+              <TimetableGrid>
+                <TimeCell isHeader={true}></TimeCell>
+                {daysOfWeek.map((day) => (
+                  <DayCell key={day}>{day}</DayCell>
                 ))}
-            </TimetableGrid>
+
+                {timeSlots
+                  .filter((slot) => !slot.isBreak) // Filter out break slots
+                  .map((slot) => (
+                    <React.Fragment key={slot.slotId}>
+                      <TimeCell>{slot.display}</TimeCell>
+
+                      {daysOfWeek.map((day) => {
+                        const event = getCourseForSlot(day, slot.slotId);
+                        const course = event
+                          ? courses.find((c) => c.name === event.courseId)
+                          : null;
+
+                        return event && course ? (
+                          <CourseCell
+                            key={`${day}-${slot.slotId}`}
+                            onClick={() =>
+                              removeCourseFromSlot(day, slot.slotId)
+                            }
+                            style={{
+                              gridRow: event.mergedSlots
+                                ? `span ${event.mergedSlots.length}`
+                                : "auto",
+                              opacity:
+                                event.mergedSlots &&
+                                event.mergedSlots[0] !== slot.slotId
+                                  ? 0
+                                  : 1,
+                              display:
+                                event.mergedSlots &&
+                                event.mergedSlots[0] !== slot.slotId
+                                  ? "none"
+                                  : "flex",
+                            }}
+                          >
+                            <CourseName>{course.name}</CourseName>
+                            <CourseInfo>
+                              {course.instructor || "TBD"}
+                            </CourseInfo>
+                            {event.mergedSlots && (
+                              <CourseInfo>
+                                Merged: {event.mergedSlots.length} slots
+                              </CourseInfo>
+                            )}
+                          </CourseCell>
+                        ) : (
+                          <EmptySlot
+                            key={`${day}-${slot.slotId}`}
+                            onClick={() =>
+                              mergeMode
+                                ? handleSlotMerge(day, slot.slotId)
+                                : openSlotAssignment(day, slot.slotId)
+                            }
+                            style={{
+                              backgroundColor: isSlotHighlighted(
+                                day,
+                                slot.slotId
+                              )
+                                ? currentTheme.primary + "30"
+                                : "transparent",
+                              border: isSlotHighlighted(day, slot.slotId)
+                                ? `2px dashed ${currentTheme.primary}`
+                                : "none",
+                            }}
+                          >
+                            {mergeMode
+                              ? isSlotHighlighted(day, slot.slotId)
+                                ? "Selected"
+                                : "Select"
+                              : "+ Add"}
+                          </EmptySlot>
+                        );
+                      })}
+                    </React.Fragment>
+                  ))}
+              </TimetableGrid>
+            </GridOverflow>
 
             <ButtonGroup>
               <SecondaryButton
@@ -1475,7 +1505,7 @@ const TimetableCreator = ({
       <div className="spinner" />
     </LoadingSpinner>
   ) : (
-    <>
+    <div className="flex flex-col gap-2 mt-1">
       <StepIndicator>
         {[1, 2, 3].map((step) => (
           <StepLabel key={step}>
@@ -1789,7 +1819,7 @@ const TimetableCreator = ({
           </ModalContainer>
         )}
       </AnimatePresence>
-    </>
+    </div>
   );
 };
 
