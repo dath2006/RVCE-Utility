@@ -29,6 +29,7 @@ const Card = styled.div`
   flex-direction: column;
   padding: 2rem;
   align-items: center;
+  justify-content: center;
   width: 95%;
   // min-height: calc(100vh - 8rem);
   // max-width: 1200px;
@@ -39,6 +40,7 @@ const Card = styled.div`
 
   @media (max-width: 768px) {
     padding: 1rem;
+    margin: 0 auto;
     // width: 100%;
     // min-height: calc(100vh - 7rem);
     // gap: 1.25rem;
