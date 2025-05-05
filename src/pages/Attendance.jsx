@@ -33,6 +33,21 @@ const SideBar = styled(motion.div)`
   overflow-y: auto;
 `;
 
+const BottomBar = styled(motion.div)`
+  backdrop-filter: blur(21px) saturate(180%);
+  -webkit-backdrop-filter: blur(21px) saturate(180%);
+  background-color: ${(props) => props.theme.glassbgc};
+  position: fixed;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  z-index: 20;
+  display: flex;
+  height: 4rem;
+  align-items: center;
+  justify-content: space-around;
+`;
+
 const AttendanceSystem = ({ setDisableWorkSpace }) => {
   const { user, isAuthenticated, isLoading } = useAuth0();
   const [hasTimeTable, setHasTimeTable] = useState(false);
@@ -260,7 +275,7 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
 
       {/* Bottom Tab Bar - Only on mobile */}
       {isMobile && !loading && (
-        <div className="fixed bottom-0 left-0 right-0 h-16 bg-gray-800 flex justify-around items-center border-t border-gray-700 z-20">
+        <BottomBar>
           {!hasTimeTable ? (
             <>
               <button
@@ -333,7 +348,7 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
               </button>
             </>
           )}
-        </div>
+        </BottomBar>
       )}
 
       {/* Help Modal */}
