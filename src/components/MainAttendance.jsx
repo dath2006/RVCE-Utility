@@ -915,10 +915,29 @@ const MainAttendance = () => {
   }, []);
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated && date) {
-      handleDayInit();
-      handleAttendanceState();
-    }
+    let isMounted = true;
+
+    const initData = async () => {
+      if (isLoading || !isAuthenticated || !date) return;
+
+      setLoading(true);
+      try {
+        await handleDayInit();
+        if (isMounted) {
+          await handleAttendanceState();
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    initData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [isLoading, isAuthenticated, date]);
 
   const handlePrev = () => {
@@ -970,7 +989,6 @@ const MainAttendance = () => {
   const handleAttendanceState = async () => {
     try {
       if (!isLoading && isAuthenticated) {
-        setLoading(true);
         const res = await axios.get(
           `${import.meta.env.VITE_API_URL}/attendance/statistics?email=${
             user.email
@@ -978,24 +996,21 @@ const MainAttendance = () => {
         );
         if (res.data.data.success) {
           setAttendanceState(res.data.data.attendanceState);
+          return true;
         }
       }
+      return false;
     } catch (error) {
       console.error(error);
       toast.error("Failed to update attendance state. Please try again.");
-    } finally {
-      setLoading(false);
+      return false;
     }
   };
 
   const handleDayInit = async () => {
-    if (initCalledRef.current) return; // skip if already running
-    initCalledRef.current = true;
-
     setSubject(null);
     setSubjectAdd(false);
     setShowDay(false);
-    setLoading(true); // Set loading at the beginning
 
     try {
       if (!isLoading && isAuthenticated) {
@@ -1020,13 +1035,11 @@ const MainAttendance = () => {
           setDay(JSON.parse(JSON.stringify(initialData)));
         }
       }
+      return true;
     } catch (err) {
       console.error(err);
       toast.error("Failed to load attendance data. Please try again.");
-      setLoading(false);
-    } finally {
-      setLoading(false);
-      initCalledRef.current = false;
+      return false;
     }
   };
 
@@ -1279,6 +1292,7 @@ const MainAttendance = () => {
       ) : (
         <>
           {attendanceState &&
+            attendanceState.length > 0 &&
             attendanceState.some((course) => course.pending > 0) && (
               <WarningButton
                 onClick={() => {
@@ -1310,134 +1324,135 @@ const MainAttendance = () => {
                 animate="visible"
               >
                 <ClassesGrid>
-                  {day.length > 0 && attendanceState
-                    ? day.map((ele) => {
-                        // Find course data from attendanceState
-                        const courseData = attendanceState.find(
-                          (course) => course.courseId === ele.courseId
-                        );
-                        const hasPending = courseData && courseData.pending > 0;
-                        const attendancePercent = courseData
-                          ? courseData.attendancePercentage
-                          : 0;
-                        const minAttendance = courseData
-                          ? courseData.minAttendance
-                          : 85;
+                  {day && day.length > 0 ? (
+                    day.map((ele) => {
+                      // Find course data from attendanceState
+                      const courseData = attendanceState.find(
+                        (course) => course.courseId === ele.courseId
+                      );
+                      const hasPending = courseData && courseData.pending > 0;
+                      const attendancePercent = courseData
+                        ? courseData.attendancePercentage
+                        : 0;
+                      const minAttendance = courseData
+                        ? courseData.minAttendance
+                        : 85;
 
-                        return (
-                          <ClassCard
-                            key={ele.slotId}
-                            attendance={ele.attendance}
-                            selected={subject && subject.slotId === ele.slotId}
-                            onClick={() => handleSubjectSelect(ele.slotId)}
-                            variants={staggerItem}
-                            whileHover={{ y: -5 }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            {courseData && (
-                              <AttendanceTag
-                                percentage={attendancePercent}
-                                minAttendance={minAttendance}
-                              >
-                                {attendancePercent}%
-                              </AttendanceTag>
-                            )}
-
-                            {hasPending && (
-                              <WarningBadge>
-                                <AlertTriangle size={12} />
-                              </WarningBadge>
-                            )}
-
-                            <TimeDisplay>
-                              <Clock size={12} />
-                              {!ele.custom
-                                ? (() => {
-                                    const slot = timeSlots.find(
-                                      (el) => el.slotId === ele.slotId
-                                    );
-                                    const start = slot.start;
-                                    const end =
-                                      ele.duration === 1
-                                        ? slot.end
-                                        : slot.end + 60;
-                                    return `${formatMinutesFromMidnight(
-                                      start
-                                    )} - ${formatMinutesFromMidnight(end)}`;
-                                  })()
-                                : ele.display}
-                            </TimeDisplay>
-                            <CourseDisplay>{ele.courseId}</CourseDisplay>
-                            {ele.attendance === "present" && (
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                style={{
-                                  color: "#16a34a",
-                                  marginTop: "6px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "4px",
-                                  fontSize: "0.75rem",
-                                  fontWeight: "500",
-                                }}
-                              >
-                                <Check size={12} />
-                                Present
-                              </motion.div>
-                            )}
-                            {ele.attendance === "absent" && (
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                style={{
-                                  color: "#dc2626",
-                                  marginTop: "6px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "4px",
-                                  fontSize: "0.75rem",
-                                  fontWeight: "500",
-                                }}
-                              >
-                                <X size={12} />
-                                Absent
-                              </motion.div>
-                            )}
-                            {ele.attendance === "ignore" && (
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                style={{
-                                  color: "#64748b",
-                                  marginTop: "6px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "4px",
-                                  fontSize: "0.75rem",
-                                  fontWeight: "500",
-                                }}
-                              >
-                                <AlertTriangle size={12} />
-                                Ignored
-                              </motion.div>
-                            )}
-                          </ClassCard>
-                        );
-                      })
-                    : !loading && ( // Only show this message when not loading
-                        <motion.div
+                      return (
+                        <ClassCard
+                          key={ele.slotId}
+                          attendance={ele.attendance}
+                          selected={subject && subject.slotId === ele.slotId}
+                          onClick={() => handleSubjectSelect(ele.slotId)}
                           variants={staggerItem}
-                          style={{
-                            gridColumn: "1 / -1",
-                            textAlign: "center",
-                            padding: "2rem",
-                            color: "#64748b",
-                          }}
+                          whileHover={{ y: -5 }}
+                          whileTap={{ scale: 0.98 }}
                         >
-                          No classes scheduled for this day.
-                        </motion.div>
-                      )}
+                          {courseData && (
+                            <AttendanceTag
+                              percentage={attendancePercent}
+                              minAttendance={minAttendance}
+                            >
+                              {attendancePercent}%
+                            </AttendanceTag>
+                          )}
+
+                          {hasPending && (
+                            <WarningBadge>
+                              <AlertTriangle size={12} />
+                            </WarningBadge>
+                          )}
+
+                          <TimeDisplay>
+                            <Clock size={12} />
+                            {!ele.custom
+                              ? (() => {
+                                  const slot = timeSlots.find(
+                                    (el) => el.slotId === ele.slotId
+                                  );
+                                  const start = slot.start;
+                                  const end =
+                                    ele.duration === 1
+                                      ? slot.end
+                                      : slot.end + 60;
+                                  return `${formatMinutesFromMidnight(
+                                    start
+                                  )} - ${formatMinutesFromMidnight(end)}`;
+                                })()
+                              : ele.display}
+                          </TimeDisplay>
+                          <CourseDisplay>{ele.courseId}</CourseDisplay>
+                          {ele.attendance === "present" && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              style={{
+                                color: "#16a34a",
+                                marginTop: "6px",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                fontSize: "0.75rem",
+                                fontWeight: "500",
+                              }}
+                            >
+                              <Check size={12} />
+                              Present
+                            </motion.div>
+                          )}
+                          {ele.attendance === "absent" && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              style={{
+                                color: "#dc2626",
+                                marginTop: "6px",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                fontSize: "0.75rem",
+                                fontWeight: "500",
+                              }}
+                            >
+                              <X size={12} />
+                              Absent
+                            </motion.div>
+                          )}
+                          {ele.attendance === "ignore" && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              style={{
+                                color: "#64748b",
+                                marginTop: "6px",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                fontSize: "0.75rem",
+                                fontWeight: "500",
+                              }}
+                            >
+                              <AlertTriangle size={12} />
+                              Ignored
+                            </motion.div>
+                          )}
+                        </ClassCard>
+                      );
+                    })
+                  ) : (
+                    // Only show this message when not loading
+                    <motion.div
+                      variants={staggerItem}
+                      style={{
+                        gridColumn: "1 / -1",
+                        textAlign: "center",
+                        padding: "2rem",
+                        color: "#64748b",
+                      }}
+                    >
+                      No classes scheduled for this day.
+                    </motion.div>
+                  )}
                 </ClassesGrid>
               </motion.div>
 
