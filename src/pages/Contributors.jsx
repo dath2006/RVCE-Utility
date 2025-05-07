@@ -11,6 +11,7 @@ import AllInclusiveIcon from "@mui/icons-material/AllInclusive";
 import CircularProgress from "@mui/material/CircularProgress";
 import { toast } from "react-toastify";
 import { useAuth0 } from "@auth0/auth0-react";
+import WaveLoader from "../components/Loading";
 
 const Container = styled.div`
   padding: 2rem;
@@ -324,24 +325,6 @@ const LoadingSpinner = styled(motion.div)`
   justify-content: center;
   align-items: center;
   min-height: 400px;
-
-  .spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #3b82f6;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
 `;
 
 const BadgeSVG = ({ rank }) => {
@@ -450,8 +433,12 @@ const Contributors = ({
   };
 
   return loading ? (
-    <LoadingSpinner animate={{ y: 0.1 }} exit={{ opacity: 0 }}>
-      <div className="spinner" />
+    <LoadingSpinner>
+      <WaveLoader
+        size="7em"
+        primaryColor="hsl(220,90%,50%)"
+        secondaryColor="hsl(300,90%,50%)"
+      />
     </LoadingSpinner>
   ) : (
     <div className="flex flex-col flex-wrap max-w-[100vw] mt-24 justify-center items-center gap-8">

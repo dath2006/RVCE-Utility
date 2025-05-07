@@ -24,6 +24,7 @@ import styled from "styled-components";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useAuth0 } from "@auth0/auth0-react";
+import WaveLoader from "./Loading";
 
 // Styled Components
 const DashboardContainer = styled.div`
@@ -328,28 +329,17 @@ const LoadingContainer = styled.div`
   gap: 1rem;
 `;
 
-const LoadingSpinner = styled.div`
-  width: 50px;
-  height: 50px;
-  border: 4px solid #e2e8f0;
-  border-top: 4px solid #4f46e5;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-`;
-
 const LoadingText = styled.p`
   color: #6b7280;
   font-size: 0.875rem;
   font-weight: 500;
+`;
+
+const LoadingSpinner = styled(motion.div)`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
 `;
 
 // Main Component
@@ -457,10 +447,13 @@ const Statistics = () => {
   };
 
   return loading ? (
-    <LoadingContainer>
-      <LoadingSpinner />
-      <LoadingText>Loading attendance statistics...</LoadingText>
-    </LoadingContainer>
+    <LoadingSpinner>
+      <WaveLoader
+        size="7em"
+        primaryColor="hsl(220,90%,50%)"
+        secondaryColor="hsl(300,90%,50%)"
+      />
+    </LoadingSpinner>
   ) : attendanceData ? (
     <DashboardContainer>
       <MainHeading>Attendance Dashboard</MainHeading>

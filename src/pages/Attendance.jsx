@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import styled from "styled-components";
+import WaveLoader from "../components/Loading";
 
 // Import your components
 import ImportTimeTable from "../components/ImportTimeTable";
@@ -46,6 +47,13 @@ const BottomBar = styled(motion.div)`
   height: 4rem;
   align-items: center;
   justify-content: space-around;
+`;
+
+const LoadingSpinner = styled(motion.div)`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
 `;
 
 const AttendanceSystem = ({ setDisableWorkSpace }) => {
@@ -123,9 +131,13 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
   const renderComponent = () => {
     if (loading) {
       return (
-        <div className="flex items-center justify-center h-full">
-          <div className="w-12 h-12 border-4 border-gray-300 border-t-indigo-600 rounded-full animate-spin"></div>
-        </div>
+        <LoadingSpinner>
+          <WaveLoader
+            size="7em"
+            primaryColor="hsl(220,90%,50%)"
+            secondaryColor="hsl(300,90%,50%)"
+          />
+        </LoadingSpinner>
       );
     }
 

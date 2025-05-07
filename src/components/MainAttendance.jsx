@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import styled from "styled-components";
 import Calendar from "react-calendar";
 import timeSlots from "../data/timeSlots.json";
+import WaveLoader from "./Loading";
+import { useSwipeable } from "react-swipeable";
 
 import {
   ChevronLeft,
@@ -36,14 +38,14 @@ const Card = styled.div`
   // margin-top: 1.9rem;
   // border-radius: 16px;
   // overflow: hidden;
-  gap: 1.5rem;
+  gap: 1.4rem;
 
   @media (max-width: 768px) {
     padding: 1rem;
     margin: 0 auto;
     // width: 100%;
     // min-height: calc(100vh - 7rem);
-    // gap: 1.25rem;
+    gap: 0.5rem;
   }
 `;
 
@@ -739,24 +741,6 @@ const LoadingSpinner = styled(motion.div)`
   justify-content: center;
   align-items: center;
   min-height: 400px;
-
-  .spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #3b82f6;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
 `;
 
 const MobilePopup = styled(motion.div)`
@@ -1172,6 +1156,14 @@ const MainAttendance = () => {
       setLoading(false);
     }
   };
+
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => handleForw(),
+    onSwipedRight: () => handlePrev(),
+    preventDefaultTouchmoveEvent: true,
+    trackTouch: true,
+  });
+
   return (
     <Card
       onClick={() => {
@@ -1286,8 +1278,12 @@ const MainAttendance = () => {
       </DateNavContainer>
 
       {loading ? (
-        <LoadingSpinner animate={{ y: 0.1 }} exit={{ opacity: 0 }}>
-          <div className="spinner" />
+        <LoadingSpinner>
+          <WaveLoader
+            size="7em"
+            primaryColor="hsl(220,90%,50%)"
+            secondaryColor="hsl(300,90%,50%)"
+          />
         </LoadingSpinner>
       ) : (
         <>
@@ -1319,6 +1315,7 @@ const MainAttendance = () => {
           <ContentContainer>
             <ScheduleContainer>
               <motion.div
+                {...swipeHandlers}
                 variants={staggerContainer}
                 initial="hidden"
                 animate="visible"
