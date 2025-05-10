@@ -219,6 +219,7 @@ const newsItems = [
     title: "Resourse Contribution is Open !",
     date: "April 06, 2025",
     content: "Contibute college resources to the portal.",
+    url: "https://docs.google.com/forms/d/e/1FAIpQLSdkXHB8g1byUNuY6Qrj3Hzkhnz2BM2Z9n_QnKMmHJvBpw3ygQ/viewform?usp=header",
   },
   {
     title: "Code Contribution is Open !",
