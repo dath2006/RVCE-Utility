@@ -1,6 +1,12 @@
 {
   "name": "RVCE Utility",
-
+  "redirects": [
+    {
+      "source": "https://www.rvce-utility.vercel.app/:path*",
+      "destination": "https://rvce-utility.vercel.app/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/sitemap.xml",

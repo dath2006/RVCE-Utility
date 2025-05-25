@@ -18,11 +18,13 @@ import CustomCursor from "./components/CustomCursor";
 import LoadingScreen from "./components/LoadingScreen";
 import FloatingDrawer from "./components/FloatingDrawer";
 import Contributation from "./pages/Contributation";
+import MainContribution from "./pages/MainContribution";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Attendance from "./pages/Attendance";
 import PopupCard from "./components/AuthCard";
 import { useAuth0 } from "@auth0/auth0-react";
+import { Helmet } from "react-helmet";
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -255,6 +257,9 @@ function App() {
   return (
     <ThemeProvider theme={theme === "light" ? lightTheme : darkTheme}>
       {/* <CustomCursor /> */}
+      <Helmet>
+        <link rel="canonical" href={window.location.href} />
+      </Helmet>
 
       <GlobalStyles />
       <LoadingScreen
