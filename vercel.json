@@ -2,7 +2,13 @@
   "name": "RVCE Utility",
   "redirects": [
     {
-      "source": "https://www.rvce-utility.vercel.app/:path*",
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.rvce-utility.vercel.app"
+        }
+      ],
       "destination": "https://rvce-utility.vercel.app/:path*",
       "permanent": true
     }
