@@ -159,7 +159,7 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
           />
         );
       case "main":
-        return <MainAttendance />;
+        return <MainAttendance setActiveComponent={setActiveComponent} />;
       case "statistics":
         return <Statistics />;
       case "view":

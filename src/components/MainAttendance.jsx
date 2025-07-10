@@ -21,6 +21,7 @@ import {
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useAuth0 } from "@auth0/auth0-react";
+import SemesterCompletionCard from "./SemesterCompletionCard";
 
 // Styled Components
 
@@ -842,7 +843,7 @@ const staggerItem = {
   },
 };
 
-const MainAttendance = () => {
+const MainAttendance = ({ setActiveComponent }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const istOffset = 5.5 * 60 * 60 * 1000;
   const now = new Date(new Date().getTime());
@@ -863,7 +864,7 @@ const MainAttendance = () => {
   const [subjectAdd, setSubjectAdd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [attendanceState, setAttendanceState] = useState([]);
-
+  const [overallAttendance, setOverallAttendance] = useState({});
   // New state for the add subject form
   const [newSubject, setNewSubject] = useState();
 
@@ -874,6 +875,7 @@ const MainAttendance = () => {
   const calendarRef = useRef(null);
   const initCalledRef = useRef(false);
 
+  const [semEnd, setSemEnd] = useState(false);
   // Add useEffect for handling outside clicks
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -925,10 +927,19 @@ const MainAttendance = () => {
   }, [isLoading, isAuthenticated, date]);
 
   const handlePrev = () => {
-    if (new Date(date).getTime() > new Date(accStart).getTime()) {
+    // Compare only the date part (year, month, day) in IST
+    const selectedDate = new Date(date);
+    const accStartDate = new Date(accStart);
+
+    selectedDate.setHours(0, 0, 0, 0);
+    accStartDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate.getTime() > accStartDate.getTime()) {
       setLoading(true);
       setDate((prev) => {
-        return new Date(prev.valueOf() - 24 * 60 * 60 * 1000);
+        const newDate = new Date(prev.valueOf() - 24 * 60 * 60 * 1000);
+        newDate.setHours(0, 0, 0, 0);
+        return newDate;
       });
     }
   };
@@ -944,13 +955,19 @@ const MainAttendance = () => {
   }
 
   const handleForw = () => {
-    const currentDate = new Date(now).setHours(0, 0, 0, 0);
-    const selectedDate = new Date(date).setHours(0, 0, 0, 0);
+    // Compare only the date part (year, month, day) in IST
+    const selectedDate = new Date(date);
+    const nowDate = new Date(now);
 
-    if (selectedDate < currentDate) {
+    selectedDate.setHours(0, 0, 0, 0);
+    nowDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate.getTime() < nowDate.getTime()) {
       setLoading(true);
       setDate((prev) => {
-        return new Date(prev.valueOf() + 24 * 60 * 60 * 1000);
+        const newDate = new Date(prev.valueOf() + 24 * 60 * 60 * 1000);
+        newDate.setHours(0, 0, 0, 0);
+        return newDate;
       });
     }
   };
@@ -980,6 +997,7 @@ const MainAttendance = () => {
         );
         if (res.data.data.success) {
           setAttendanceState(res.data.data.attendanceState);
+          setOverallAttendance(res.data.data.overallAttendanceState);
           return true;
         }
       }
@@ -1008,6 +1026,14 @@ const MainAttendance = () => {
           }
         );
         if (res.data.response.success) {
+          const selectedDate = new Date(date);
+          selectedDate.setHours(0, 0, 0, 0);
+          const accEndDate = new Date(res.data.response.accEnd);
+          accEndDate.setHours(0, 0, 0, 0);
+          if (selectedDate > accEndDate) {
+            setSemEnd(true);
+            return false;
+          }
           setCourses([...res.data.response.courses]);
           setAccStart(new Date(res.data.response.accStart));
           setAccEnd(new Date(res.data.response.accEnd));
@@ -1181,102 +1207,6 @@ const MainAttendance = () => {
       }}
     >
       <Title>Attendance Manager</Title>
-
-      <DateNavContainer>
-        <DateDisplay>
-          <NavButton
-            onClick={handlePrev}
-            disabled={
-              new Date(date)?.getTime() <= new Date(accStart)?.getTime()
-            }
-          >
-            <ChevronLeft size={20} />
-          </NavButton>
-          <span>{d.format(date, "ddd, MMM DD YYYY")}</span>
-          <NavButton
-            onClick={handleForw}
-            disabled={
-              new Date(date)?.setHours(0, 0, 0, 0) >=
-                new Date(now).setHours(0, 0, 0, 0) &&
-              new Date(date)?.getTime() <= new Date(accEnd).getTime()
-            }
-          >
-            <ChevronRight size={20} />
-          </NavButton>
-        </DateDisplay>
-
-        <JumpButton
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowJump(!showJump);
-            setShowCalendar(false);
-          }}
-        >
-          <CalendarIcon size={18} />
-          Jump To
-        </JumpButton>
-
-        <AnimatePresence>
-          {showCalendar && (
-            <CalendarOverlay
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              variants={overlayVariants}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Calendar
-                minDate={new Date(accStart)}
-                maxDate={new Date(new Date().getTime())}
-                value={date}
-                onChange={(value) => {
-                  setDate(new Date(new Date(value).getTime() + istOffset));
-                  setShowCalendar(false);
-                }}
-              />
-            </CalendarOverlay>
-          )}
-
-          {showJump && (
-            <JumpMenu
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              variants={overlayVariants}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <JumpMenuItem
-                onClick={() => {
-                  setShowCalendar(true);
-                  setShowJump(false);
-                }}
-              >
-                <CalendarIcon size={16} />
-                Select on Calendar
-              </JumpMenuItem>
-              <JumpMenuItem
-                onClick={() => {
-                  setDate(new Date(now));
-                  setShowJump(false);
-                }}
-              >
-                <Clock size={16} />
-                Today
-              </JumpMenuItem>
-              <JumpMenuItem
-                onClick={() => {
-                  setDate(new Date(accStart));
-                  setShowJump(false);
-                }}
-              >
-                <CalendarIcon size={16} />
-                Academic Start
-              </JumpMenuItem>
-            </JumpMenu>
-          )}
-        </AnimatePresence>
-      </DateNavContainer>
-
       {loading ? (
         <LoadingSpinner>
           <WaveLoader
@@ -1285,822 +1215,651 @@ const MainAttendance = () => {
             secondaryColor="hsl(300,90%,50%)"
           />
         </LoadingSpinner>
+      ) : semEnd ? (
+        // Just replace your existing div with:
+        <SemesterCompletionCard
+          overallAttendance={overallAttendance}
+          setActiveComponent={setActiveComponent}
+        />
       ) : (
         <>
-          {attendanceState &&
-            attendanceState.length > 0 &&
-            attendanceState.some((course) => course.pending > 0) && (
-              <WarningButton
-                onClick={() => {
-                  // Navigate to the first course with pending attendance
-                  const courseWithPending = attendanceState.find(
-                    (course) => course.pending > 0
-                  );
-
-                  if (courseWithPending) {
-                    const firstPendingSlot = day.find(
-                      (slot) => slot.courseId === courseWithPending.courseId
-                    );
-
-                    if (firstPendingSlot) {
-                      handleSubjectSelect(firstPendingSlot.slotId);
-                    }
-                  }
-                }}
+          <DateNavContainer>
+            <DateDisplay>
+              <NavButton
+                onClick={handlePrev}
+                disabled={
+                  new Date(date)?.getTime() <= new Date(accStart)?.getTime()
+                }
               >
-                <AlertTriangle size={16} />
-                You have pending attendance to mark
-              </WarningButton>
-            )}
-          <ContentContainer>
-            <ScheduleContainer>
-              <motion.div
-                {...swipeHandlers}
-                variants={staggerContainer}
-                initial="hidden"
-                animate="visible"
+                <ChevronLeft size={20} />
+              </NavButton>
+              <span>{d.format(date, "ddd, MMM DD YYYY")}</span>
+              <NavButton
+                onClick={handleForw}
+                disabled={
+                  new Date(date)?.setHours(0, 0, 0, 0) >=
+                    new Date(now).setHours(0, 0, 0, 0) &&
+                  new Date(date)?.getTime() <= new Date(accEnd).getTime()
+                }
               >
-                <ClassesGrid>
-                  {day && day.length > 0 ? (
-                    day.map((ele) => {
-                      // Find course data from attendanceState
-                      const courseData = attendanceState.find(
-                        (course) => course.courseId === ele.courseId
-                      );
-                      const hasPending = courseData && courseData.pending > 0;
-                      const attendancePercent = courseData
-                        ? courseData.attendancePercentage
-                        : 0;
-                      const minAttendance = courseData
-                        ? courseData.minAttendance
-                        : 85;
+                <ChevronRight size={20} />
+              </NavButton>
+            </DateDisplay>
 
-                      return (
-                        <ClassCard
-                          key={ele.slotId}
-                          attendance={ele.attendance}
-                          selected={subject && subject.slotId === ele.slotId}
-                          onClick={() => handleSubjectSelect(ele.slotId)}
-                          variants={staggerItem}
-                          whileHover={{ y: -5 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          {courseData && (
-                            <AttendanceTag
-                              percentage={attendancePercent}
-                              minAttendance={minAttendance}
-                            >
-                              {attendancePercent}%
-                            </AttendanceTag>
-                          )}
+            <JumpButton
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowJump(!showJump);
+                setShowCalendar(false);
+              }}
+            >
+              <CalendarIcon size={18} />
+              Jump To
+            </JumpButton>
 
-                          {hasPending && (
-                            <WarningBadge>
-                              <AlertTriangle size={12} />
-                            </WarningBadge>
-                          )}
-
-                          <TimeDisplay>
-                            <Clock size={12} />
-                            {!ele.custom
-                              ? (() => {
-                                  const slot = timeSlots.find(
-                                    (el) => el.slotId === ele.slotId
-                                  );
-                                  const start = slot.start;
-                                  const end =
-                                    ele.duration === 1
-                                      ? slot.end
-                                      : slot.end + 60;
-                                  return `${formatMinutesFromMidnight(
-                                    start
-                                  )} - ${formatMinutesFromMidnight(end)}`;
-                                })()
-                              : ele.display}
-                          </TimeDisplay>
-                          <CourseDisplay>{ele.courseId}</CourseDisplay>
-                          {ele.attendance === "present" && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              style={{
-                                color: "#16a34a",
-                                marginTop: "6px",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "4px",
-                                fontSize: "0.75rem",
-                                fontWeight: "500",
-                              }}
-                            >
-                              <Check size={12} />
-                              Present
-                            </motion.div>
-                          )}
-                          {ele.attendance === "absent" && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              style={{
-                                color: "#dc2626",
-                                marginTop: "6px",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "4px",
-                                fontSize: "0.75rem",
-                                fontWeight: "500",
-                              }}
-                            >
-                              <X size={12} />
-                              Absent
-                            </motion.div>
-                          )}
-                          {ele.attendance === "ignore" && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              style={{
-                                color: "#64748b",
-                                marginTop: "6px",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "4px",
-                                fontSize: "0.75rem",
-                                fontWeight: "500",
-                              }}
-                            >
-                              <AlertTriangle size={12} />
-                              Ignored
-                            </motion.div>
-                          )}
-                        </ClassCard>
-                      );
-                    })
-                  ) : (
-                    // Only show this message when not loading
-                    <motion.div
-                      variants={staggerItem}
-                      style={{
-                        gridColumn: "1 / -1",
-                        textAlign: "center",
-                        padding: "2rem",
-                        color: "#64748b",
-                      }}
-                    >
-                      No classes scheduled for this day.
-                    </motion.div>
-                  )}
-                </ClassesGrid>
-              </motion.div>
-
-              <ActionBar>
-                <ActionButton
-                  variant="primary"
-                  className={day.length == 0 && " opacity-45"}
-                  style={{
-                    cursor: day.length == 0 && "not-allowed",
-                  }}
-                  disabled={day.length == 0}
-                  onClick={() => {
-                    setShowDay(true);
-                    setSubject(null);
-                    setSubjectAdd(false);
-                  }}
+            <AnimatePresence>
+              {showCalendar && (
+                <CalendarOverlay
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  variants={overlayVariants}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  Select Entire Day
-                </ActionButton>
+                  <Calendar
+                    minDate={new Date(accStart)}
+                    maxDate={new Date(new Date().getTime())}
+                    value={date}
+                    onChange={(value) => {
+                      setDate(new Date(new Date(value).getTime() + istOffset));
+                      setShowCalendar(false);
+                    }}
+                  />
+                </CalendarOverlay>
+              )}
 
-                <ActionButton
-                  onClick={() => {
-                    setSubject(null);
-                    setShowDay(false);
-                    setSubjectAdd(true);
-                    setNewSubject({
-                      courseId: courses[0]?.name,
-                      startTime: "09:00",
-                      endTime: "10:00",
-                      attendance: "pending",
-                    });
-                  }}
+              {showJump && (
+                <JumpMenu
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  variants={overlayVariants}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <PlusCircle size={18} />
-                  Add Class
-                </ActionButton>
-              </ActionBar>
-            </ScheduleContainer>
+                  <JumpMenuItem
+                    onClick={() => {
+                      setShowCalendar(true);
+                      setShowJump(false);
+                    }}
+                  >
+                    <CalendarIcon size={16} />
+                    Select on Calendar
+                  </JumpMenuItem>
+                  <JumpMenuItem
+                    onClick={() => {
+                      setDate(new Date(now));
+                      setShowJump(false);
+                    }}
+                  >
+                    <Clock size={16} />
+                    Today
+                  </JumpMenuItem>
+                  <JumpMenuItem
+                    onClick={() => {
+                      setDate(new Date(accStart));
+                      setShowJump(false);
+                    }}
+                  >
+                    <CalendarIcon size={16} />
+                    Academic Start
+                  </JumpMenuItem>
+                </JumpMenu>
+              )}
+            </AnimatePresence>
+          </DateNavContainer>
 
-            <AnimatePresence mode="wait">
-              {subjectAdd && !isMobile && (
-                <>
-                  <DetailPanel
-                    onClick={(e) => e.stopPropagation()}
-                    key="add-subject"
+          {loading ? (
+            <LoadingSpinner>
+              <WaveLoader
+                size="7em"
+                primaryColor="hsl(220,90%,50%)"
+                secondaryColor="hsl(300,90%,50%)"
+              />
+            </LoadingSpinner>
+          ) : (
+            <>
+              {attendanceState &&
+                attendanceState.length > 0 &&
+                attendanceState.some((course) => course.pending > 0) && (
+                  <WarningButton
+                    onClick={() => {
+                      // Navigate to the first course with pending attendance
+                      const courseWithPending = attendanceState.find(
+                        (course) => course.pending > 0
+                      );
+
+                      if (courseWithPending) {
+                        const firstPendingSlot = day.find(
+                          (slot) => slot.courseId === courseWithPending.courseId
+                        );
+
+                        if (firstPendingSlot) {
+                          handleSubjectSelect(firstPendingSlot.slotId);
+                        }
+                      }
+                    }}
+                  >
+                    <AlertTriangle size={16} />
+                    You have pending attendance to mark
+                  </WarningButton>
+                )}
+              <ContentContainer>
+                <ScheduleContainer>
+                  <motion.div
+                    {...swipeHandlers}
+                    variants={staggerContainer}
                     initial="hidden"
                     animate="visible"
-                    exit="exit"
-                    variants={panelVariants}
                   >
-                    <DetailHeader>
-                      <DetailTitle>Add Custom Class</DetailTitle>
-                      <CloseButton onClick={() => setSubjectAdd(false)}>
-                        <X size={20} />
-                      </CloseButton>
-                    </DetailHeader>
+                    <ClassesGrid>
+                      {day && day.length > 0 ? (
+                        day.map((ele) => {
+                          // Find course data from attendanceState
+                          const courseData = attendanceState.find(
+                            (course) => course.courseId === ele.courseId
+                          );
+                          const hasPending =
+                            courseData && courseData.pending > 0;
+                          const attendancePercent = courseData
+                            ? courseData.attendancePercentage
+                            : 0;
+                          const minAttendance = courseData
+                            ? courseData.minAttendance
+                            : 85;
 
-                    <FormGroup>
-                      <Label>Course</Label>
-                      <Select
-                        value={newSubject.courseId}
-                        onChange={(e) =>
-                          setNewSubject({
-                            ...newSubject,
-                            courseId: e.target.value,
-                          })
-                        }
-                      >
-                        {courses.map((course) => (
-                          <option key={course.name} value={course.name}>
-                            {course.name} - {course.fullName}
-                          </option>
-                        ))}
-                      </Select>
-                    </FormGroup>
+                          return (
+                            <ClassCard
+                              key={ele.slotId}
+                              attendance={ele.attendance}
+                              selected={
+                                subject && subject.slotId === ele.slotId
+                              }
+                              onClick={() => handleSubjectSelect(ele.slotId)}
+                              variants={staggerItem}
+                              whileHover={{ y: -5 }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              {courseData && (
+                                <AttendanceTag
+                                  percentage={attendancePercent}
+                                  minAttendance={minAttendance}
+                                >
+                                  {attendancePercent}%
+                                </AttendanceTag>
+                              )}
 
-                    <FormGroup>
-                      <Label>Time Range</Label>
-                      <TimeRangeContainer>
-                        <TimeInput
-                          type="time"
-                          value={newSubject.startTime}
-                          onChange={(e) =>
-                            setNewSubject({
-                              ...newSubject,
-                              startTime: e.target.value,
-                            })
-                          }
-                        />
-                        <span>to</span>
-                        <TimeInput
-                          type="time"
-                          value={newSubject.endTime}
-                          onChange={(e) =>
-                            setNewSubject({
-                              ...newSubject,
-                              endTime: e.target.value,
-                            })
-                          }
-                        />
-                      </TimeRangeContainer>
-                    </FormGroup>
+                              {hasPending && (
+                                <WarningBadge>
+                                  <AlertTriangle size={12} />
+                                </WarningBadge>
+                              )}
 
-                    <ButtonGroup>
-                      <Button onClick={() => setSubjectAdd(false)}>
-                        Cancel
-                      </Button>
-                      <Button variant="primary" onClick={addCustomSubject}>
-                        Add Class
-                      </Button>
-                    </ButtonGroup>
-                  </DetailPanel>
-                </>
-              )}
+                              <TimeDisplay>
+                                <Clock size={12} />
+                                {!ele.custom
+                                  ? (() => {
+                                      const slot = timeSlots.find(
+                                        (el) => el.slotId === ele.slotId
+                                      );
+                                      const start = slot.start;
+                                      const end =
+                                        ele.duration === 1
+                                          ? slot.end
+                                          : slot.end + 60;
+                                      return `${formatMinutesFromMidnight(
+                                        start
+                                      )} - ${formatMinutesFromMidnight(end)}`;
+                                    })()
+                                  : ele.display}
+                              </TimeDisplay>
+                              <CourseDisplay>{ele.courseId}</CourseDisplay>
+                              {ele.attendance === "present" && (
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  style={{
+                                    color: "#16a34a",
+                                    marginTop: "6px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                    fontSize: "0.75rem",
+                                    fontWeight: "500",
+                                  }}
+                                >
+                                  <Check size={12} />
+                                  Present
+                                </motion.div>
+                              )}
+                              {ele.attendance === "absent" && (
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  style={{
+                                    color: "#dc2626",
+                                    marginTop: "6px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                    fontSize: "0.75rem",
+                                    fontWeight: "500",
+                                  }}
+                                >
+                                  <X size={12} />
+                                  Absent
+                                </motion.div>
+                              )}
+                              {ele.attendance === "ignore" && (
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  style={{
+                                    color: "#64748b",
+                                    marginTop: "6px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                    fontSize: "0.75rem",
+                                    fontWeight: "500",
+                                  }}
+                                >
+                                  <AlertTriangle size={12} />
+                                  Ignored
+                                </motion.div>
+                              )}
+                            </ClassCard>
+                          );
+                        })
+                      ) : (
+                        // Only show this message when not loading
+                        <motion.div
+                          variants={staggerItem}
+                          style={{
+                            gridColumn: "1 / -1",
+                            textAlign: "center",
+                            padding: "2rem",
+                            color: "#64748b",
+                          }}
+                        >
+                          No classes scheduled for this day.
+                        </motion.div>
+                      )}
+                    </ClassesGrid>
+                  </motion.div>
 
-              {subject && !isMobile && (
-                <DetailPanel
-                  onClick={(e) => e.stopPropagation()}
-                  key="edit-subject"
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  variants={panelVariants}
-                >
-                  <DetailHeader>
-                    <DetailTitle>Edit Attendance</DetailTitle>
-                    <CloseButton
-                      onClick={() => {
-                        setDay(JSON.parse(JSON.stringify(dayCache)));
-                        setSubject(null);
-                      }}
-                    >
-                      <X size={20} />
-                    </CloseButton>
-                  </DetailHeader>
-
-                  <FormGroup>
-                    <Label>Course</Label>
-                    <Select
-                      value={subject.courseId}
-                      onChange={(e) => {
-                        setSubject((prev) => ({
-                          ...prev,
-                          courseId: e.target.value,
-                        }));
-
-                        setDay((prev) => {
-                          prev.forEach((ele) => {
-                            if (ele.slotId === subject.slotId) {
-                              ele.courseId = e.target.value;
-                            }
-                          });
-                          return [...prev];
-                        });
-                      }}
-                    >
-                      {courses.map((course) => (
-                        <option key={course.name} value={course.name}>
-                          {course.name} - {course.fullName}
-                        </option>
-                      ))}
-                    </Select>
-                  </FormGroup>
-
-                  <div style={{ display: "flex", gap: "1rem" }}>
-                    <FormGroup style={{ flex: 1 }}>
-                      <Label>Time</Label>
-                      <div
-                        style={{
-                          padding: "0.75rem",
-                          backgroundColor: `${
-                            localStorage.getItem("theme") === "dark"
-                              ? ""
-                              : "#f8fafc"
-                          }`,
-                          border: "1px solid #e2e8f0",
-                          borderRadius: "8px",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.5rem",
-                        }}
-                      >
-                        <Clock size={16} />
-                        {subject.display}
-                      </div>
-                    </FormGroup>
-                  </div>
-
-                  <IgnoreContainer>
-                    <Checkbox
-                      type="checkbox"
-                      checked={subject.attendance === "ignore"}
-                      onChange={(e) => {
-                        setDay((prev) => {
-                          return prev.map((item) => {
-                            if (item.slotId === subject.slotId) {
-                              return {
-                                ...item,
-                                attendance: e.target.checked
-                                  ? "ignore"
-                                  : "pending",
-                              };
-                            }
-                            return item;
-                          });
-                        });
-
-                        setSubject((prev) => ({
-                          ...prev,
-                          attendance: e.target.checked ? "ignore" : "pending",
-                        }));
-                      }}
-                    />
-                    <span>Ignore this class (holiday, cancelled, etc.)</span>
-                  </IgnoreContainer>
-                  {subject.custom && (
-                    <IgnoreContainer
-                      onClick={() => {
-                        handleSubjectDelete();
-                      }}
-                      style={{ cursor: "pointer", color: "#ef4444" }}
-                    >
-                      <Trash2 size={16} />
-                      <span>Delete this class</span>
-                    </IgnoreContainer>
-                  )}
-                  <AttendanceOptionsContainer>
-                    <Label>Attendance Status</Label>
-                    <AttendanceOption>
-                      <OptionButton
-                        status="present"
-                        disabled={subject.attendance === "ignore"}
-                        onClick={() => {
-                          if (subject.attendance !== "ignore") {
-                            setDay((prev) => {
-                              return prev.map((item) => {
-                                if (item.slotId === subject.slotId) {
-                                  return {
-                                    ...item,
-                                    attendance: "present",
-                                  };
-                                }
-                                return item;
-                              });
-                            });
-
-                            setSubject((prev) => ({
-                              ...prev,
-                              attendance: "present",
-                            }));
-                          }
-                        }}
-                      >
-                        <Check size={16} />
-                        Present
-                      </OptionButton>
-
-                      <OptionButton
-                        status="absent"
-                        disabled={subject.attendance === "ignore"}
-                        onClick={() => {
-                          if (subject.attendance !== "ignore") {
-                            setDay((prev) => {
-                              return prev.map((item) => {
-                                if (item.slotId === subject.slotId) {
-                                  return {
-                                    ...item,
-                                    attendance: "absent",
-                                  };
-                                }
-                                return item;
-                              });
-                            });
-
-                            setSubject((prev) => ({
-                              ...prev,
-                              attendance: "absent",
-                            }));
-                          }
-                        }}
-                      >
-                        <X size={16} />
-                        Absent
-                      </OptionButton>
-                    </AttendanceOption>
-                  </AttendanceOptionsContainer>
-
-                  {(subject.attendance === "ignore" ||
-                    subject.attendance === "absent") && (
-                    <FormGroup>
-                      <Label>Reason</Label>
-                      <TextArea
-                        value={description}
-                        onChange={(e) => {
-                          if (!(e.target.value.length > 100)) {
-                            setDescription(e.target.value);
-                            setDay((prev) => {
-                              return prev.map((item) => {
-                                if (item.slotId === subject.slotId) {
-                                  return {
-                                    ...item,
-                                    description: e.target.value,
-                                  };
-                                }
-                                return item;
-                              });
-                            });
-                          } else {
-                            toast.info("Reason exceeded 100 characters");
-                          }
-                        }}
-                        placeholder="Add reason for this class..."
-                      />
-                    </FormGroup>
-                  )}
-
-                  <ButtonGroup>
-                    <Button
-                      onClick={() => {
-                        // Restore the original data from dayCache
-                        setDay(JSON.parse(JSON.stringify(dayCache)));
-                        setSubject(null);
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
+                  <ActionBar>
+                    <ActionButton
                       variant="primary"
-                      onClick={() => {
-                        saveAttendanceState();
-                        setSubject(null);
-                      }}
-                    >
-                      Save
-                    </Button>
-                  </ButtonGroup>
-                </DetailPanel>
-              )}
-
-              {showDay && !isMobile && (
-                <DetailPanel
-                  onClick={(e) => e.stopPropagation()}
-                  key="edit-day"
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  variants={panelVariants}
-                >
-                  <DetailHeader>
-                    <DetailTitle>Entire Day Attendance</DetailTitle>
-                    <CloseButton
-                      onClick={() => {
-                        setDay(JSON.parse(JSON.stringify(dayCache)));
-                        setShowDay(false);
-                      }}
-                    >
-                      <X size={20} />
-                    </CloseButton>
-                  </DetailHeader>
-
-                  <FormGroup>
-                    <Label>Date</Label>
-                    <div
+                      className={day.length == 0 && " opacity-45"}
                       style={{
-                        padding: "0.75rem",
-                        backgroundColor: `${
-                          localStorage.getItem("theme") === "dark"
-                            ? ""
-                            : "#f8fafc"
-                        }`,
-                        border: "1px solid #e2e8f0",
-                        borderRadius: "8px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
+                        cursor: day.length == 0 && "not-allowed",
+                      }}
+                      disabled={day.length == 0}
+                      onClick={() => {
+                        setShowDay(true);
+                        setSubject(null);
+                        setSubjectAdd(false);
                       }}
                     >
-                      <CalendarIcon size={16} />
-                      {d.format(date, "dddd, MMMM DD, YYYY")}
-                    </div>
-                  </FormGroup>
+                      Select Entire Day
+                    </ActionButton>
 
-                  <AttendanceOptionsContainer>
-                    <Label>Set All Classes</Label>
-                    <IgnoreContainer>
-                      <Checkbox
-                        checked={day.every(
-                          (ele) => ele.attendance === "ignore"
-                        )}
-                        type="checkbox"
-                        onClick={(e) => {
-                          if (e.target.checked) {
-                            setDay((prev) => {
-                              return prev.map((e) => ({
-                                ...e,
-                                attendance: "ignore",
-                              }));
-                            });
-                          } else {
-                            setDay((prev) => {
-                              return prev.map((e) => ({
-                                ...e,
-                                attendance: "pending",
-                              }));
-                            });
-                          }
-                        }}
-                      />
-                      <span>Ignore this day (holiday, cancelled, etc.)</span>
-                    </IgnoreContainer>
-                    <AttendanceOption>
-                      <OptionButton
-                        status="present"
-                        checked={day.every(
-                          (ele) => ele.attendance === "present"
-                        )}
-                        onClick={() => {
-                          setDay((prev) => {
-                            return prev.map((item) => {
-                              if (item.attendance !== "ignore") {
-                                return {
-                                  ...item,
-                                  attendance: "present",
-                                };
-                              }
-                              return item;
-                            });
-                          });
-                        }}
+                    <ActionButton
+                      onClick={() => {
+                        setSubject(null);
+                        setShowDay(false);
+                        setSubjectAdd(true);
+                        setNewSubject({
+                          courseId: courses[0]?.name,
+                          startTime: "09:00",
+                          endTime: "10:00",
+                          attendance: "pending",
+                        });
+                      }}
+                    >
+                      <PlusCircle size={18} />
+                      Add Class
+                    </ActionButton>
+                  </ActionBar>
+                </ScheduleContainer>
+
+                <AnimatePresence mode="wait">
+                  {subjectAdd && !isMobile && (
+                    <>
+                      <DetailPanel
+                        onClick={(e) => e.stopPropagation()}
+                        key="add-subject"
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        variants={panelVariants}
                       >
-                        <Check size={16} />
-                        All Present
-                      </OptionButton>
+                        <DetailHeader>
+                          <DetailTitle>Add Custom Class</DetailTitle>
+                          <CloseButton onClick={() => setSubjectAdd(false)}>
+                            <X size={20} />
+                          </CloseButton>
+                        </DetailHeader>
 
-                      <OptionButton
-                        status="absent"
-                        checked={day.every(
-                          (ele) => ele.attendance === "absent"
-                        )}
-                        onClick={() => {
-                          setDay((prev) => {
-                            return prev.map((item) => {
-                              if (item.attendance !== "ignore") {
-                                return {
-                                  ...item,
-                                  attendance: "absent",
-                                };
+                        <FormGroup>
+                          <Label>Course</Label>
+                          <Select
+                            value={newSubject.courseId}
+                            onChange={(e) =>
+                              setNewSubject({
+                                ...newSubject,
+                                courseId: e.target.value,
+                              })
+                            }
+                          >
+                            {courses.map((course) => (
+                              <option key={course.name} value={course.name}>
+                                {course.name} - {course.fullName}
+                              </option>
+                            ))}
+                          </Select>
+                        </FormGroup>
+
+                        <FormGroup>
+                          <Label>Time Range</Label>
+                          <TimeRangeContainer>
+                            <TimeInput
+                              type="time"
+                              value={newSubject.startTime}
+                              onChange={(e) =>
+                                setNewSubject({
+                                  ...newSubject,
+                                  startTime: e.target.value,
+                                })
                               }
-                              return item;
-                            });
-                          });
-                        }}
-                      >
-                        <X size={16} />
-                        All Absent
-                      </OptionButton>
-                    </AttendanceOption>
-                  </AttendanceOptionsContainer>
+                            />
+                            <span>to</span>
+                            <TimeInput
+                              type="time"
+                              value={newSubject.endTime}
+                              onChange={(e) =>
+                                setNewSubject({
+                                  ...newSubject,
+                                  endTime: e.target.value,
+                                })
+                              }
+                            />
+                          </TimeRangeContainer>
+                        </FormGroup>
 
-                  {(day.filter((ele) => ele.attendance === "absent").length ===
-                    day.length ||
-                    day.filter((ele) => ele.attendance === "ignore").length ===
-                      day.length) && (
-                    <FormGroup>
-                      <Label>Reason</Label>
-                      <TextArea
-                        value={description}
-                        onChange={(e) => {
-                          if (!(e.target.value > 100)) {
-                            setDescription(e.target.value);
-                            setDay((prev) => {
-                              return prev.map((item) => {
-                                return {
-                                  ...item,
-                                  description: e.target.value,
-                                };
-                              });
-                            });
-                          } else {
-                            toast.info("Reason exceeded 100 characters");
-                          }
-                        }}
-                        placeholder="Add reason for this day..."
-                      />
-                    </FormGroup>
+                        <ButtonGroup>
+                          <Button onClick={() => setSubjectAdd(false)}>
+                            Cancel
+                          </Button>
+                          <Button variant="primary" onClick={addCustomSubject}>
+                            Add Class
+                          </Button>
+                        </ButtonGroup>
+                      </DetailPanel>
+                    </>
                   )}
 
-                  <ButtonGroup>
-                    <Button
-                      onClick={() => {
-                        // Restore the original data from dayCache
-                        setDay(JSON.parse(JSON.stringify(dayCache)));
-                        setShowDay(false);
-                      }}
+                  {subject && !isMobile && (
+                    <DetailPanel
+                      onClick={(e) => e.stopPropagation()}
+                      key="edit-subject"
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      variants={panelVariants}
                     >
-                      Cancel
-                    </Button>
-                    <Button
-                      variant="primary"
-                      onClick={() => {
-                        saveAttendanceState();
-                        setShowDay(false);
-                      }}
-                    >
-                      Save Day
-                    </Button>
-                  </ButtonGroup>
-                </DetailPanel>
-              )}
-              {subjectAdd && isMobile && (
-                <MobilePopup
-                  onClick={(e) => e.stopPropagation()}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <MobilePopupContent
-                    initial={{ y: "100%" }}
-                    animate={{ y: 0 }}
-                    exit={{ y: "100%" }}
-                    transition={{
-                      type: "spring",
-                      damping: 25,
-                      stiffness: 300,
-                    }}
-                  >
-                    <MobilePopupHeader>
-                      <PopupTitle>Add Custom Class</PopupTitle>
-                      <CloseButton onClick={() => setSubjectAdd(false)}>
-                        <X size={20} />
-                      </CloseButton>
-                    </MobilePopupHeader>
+                      <DetailHeader>
+                        <DetailTitle>Edit Attendance</DetailTitle>
+                        <CloseButton
+                          onClick={() => {
+                            setDay(JSON.parse(JSON.stringify(dayCache)));
+                            setSubject(null);
+                          }}
+                        >
+                          <X size={20} />
+                        </CloseButton>
+                      </DetailHeader>
 
-                    <FormGroup>
-                      <Label>Course</Label>
-                      <Select
-                        value={newSubject.courseId}
-                        onChange={(e) =>
-                          setNewSubject({
-                            ...newSubject,
-                            courseId: e.target.value,
-                          })
-                        }
-                      >
-                        {courses.map((course) => (
-                          <option key={course.name} value={course.name}>
-                            {course.name} - {course.fullName}
-                          </option>
-                        ))}
-                      </Select>
-                    </FormGroup>
+                      <FormGroup>
+                        <Label>Course</Label>
+                        <Select
+                          value={subject.courseId}
+                          onChange={(e) => {
+                            setSubject((prev) => ({
+                              ...prev,
+                              courseId: e.target.value,
+                            }));
 
-                    <FormGroup>
-                      <Label>Time Range</Label>
-                      <TimeRangeContainer>
-                        <TimeInput
-                          type="time"
-                          value={newSubject.startTime}
-                          onChange={(e) =>
-                            setNewSubject({
-                              ...newSubject,
-                              startTime: e.target.value,
-                            })
-                          }
-                        />
-                        <span>to</span>
-                        <TimeInput
-                          type="time"
-                          value={newSubject.endTime}
-                          onChange={(e) =>
-                            setNewSubject({
-                              ...newSubject,
-                              endTime: e.target.value,
-                            })
-                          }
-                        />
-                      </TimeRangeContainer>
-                    </FormGroup>
-
-                    <ButtonGroup>
-                      <Button onClick={() => setSubjectAdd(false)}>
-                        Cancel
-                      </Button>
-                      <Button variant="primary" onClick={addCustomSubject}>
-                        Add Class
-                      </Button>
-                    </ButtonGroup>
-                  </MobilePopupContent>
-                </MobilePopup>
-              )}
-
-              {subject && isMobile && (
-                <MobilePopup
-                  onClick={(e) => e.stopPropagation()}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <MobilePopupContent
-                    initial={{ y: "100%" }}
-                    animate={{ y: 0 }}
-                    exit={{ y: "100%" }}
-                    transition={{
-                      type: "spring",
-                      damping: 25,
-                      stiffness: 300,
-                    }}
-                  >
-                    <MobilePopupHeader>
-                      <PopupTitle>Edit Attendance</PopupTitle>
-                      <CloseButton
-                        onClick={() => {
-                          setDay(JSON.parse(JSON.stringify(dayCache)));
-                          setSubject(null);
-                        }}
-                      >
-                        <X size={20} />
-                      </CloseButton>
-                    </MobilePopupHeader>
-
-                    <FormGroup>
-                      <Label>Course</Label>
-                      <Select
-                        value={subject.courseId}
-                        onChange={(e) => {
-                          setSubject((prev) => ({
-                            ...prev,
-                            courseId: e.target.value,
-                          }));
-
-                          setDay((prev) => {
-                            prev.forEach((ele) => {
-                              if (ele.slotId === subject.slotId) {
-                                ele.courseId = e.target.value;
-                              }
+                            setDay((prev) => {
+                              prev.forEach((ele) => {
+                                if (ele.slotId === subject.slotId) {
+                                  ele.courseId = e.target.value;
+                                }
+                              });
+                              return [...prev];
                             });
-                            return [...prev];
-                          });
-                        }}
-                      >
-                        {courses.map((course) => (
-                          <option key={course.name} value={course.name}>
-                            {course.name} - {course.fullName}
-                          </option>
-                        ))}
-                      </Select>
-                    </FormGroup>
+                          }}
+                        >
+                          {courses.map((course) => (
+                            <option key={course.name} value={course.name}>
+                              {course.name} - {course.fullName}
+                            </option>
+                          ))}
+                        </Select>
+                      </FormGroup>
 
-                    <div style={{ display: "flex", gap: "1rem" }}>
-                      <FormGroup style={{ flex: 1 }}>
-                        <Label>Time</Label>
+                      <div style={{ display: "flex", gap: "1rem" }}>
+                        <FormGroup style={{ flex: 1 }}>
+                          <Label>Time</Label>
+                          <div
+                            style={{
+                              padding: "0.75rem",
+                              backgroundColor: `${
+                                localStorage.getItem("theme") === "dark"
+                                  ? ""
+                                  : "#f8fafc"
+                              }`,
+                              border: "1px solid #e2e8f0",
+                              borderRadius: "8px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.5rem",
+                            }}
+                          >
+                            <Clock size={16} />
+                            {subject.display}
+                          </div>
+                        </FormGroup>
+                      </div>
+
+                      <IgnoreContainer>
+                        <Checkbox
+                          type="checkbox"
+                          checked={subject.attendance === "ignore"}
+                          onChange={(e) => {
+                            setDay((prev) => {
+                              return prev.map((item) => {
+                                if (item.slotId === subject.slotId) {
+                                  return {
+                                    ...item,
+                                    attendance: e.target.checked
+                                      ? "ignore"
+                                      : "pending",
+                                  };
+                                }
+                                return item;
+                              });
+                            });
+
+                            setSubject((prev) => ({
+                              ...prev,
+                              attendance: e.target.checked
+                                ? "ignore"
+                                : "pending",
+                            }));
+                          }}
+                        />
+                        <span>
+                          Ignore this class (holiday, cancelled, etc.)
+                        </span>
+                      </IgnoreContainer>
+                      {subject.custom && (
+                        <IgnoreContainer
+                          onClick={() => {
+                            handleSubjectDelete();
+                          }}
+                          style={{ cursor: "pointer", color: "#ef4444" }}
+                        >
+                          <Trash2 size={16} />
+                          <span>Delete this class</span>
+                        </IgnoreContainer>
+                      )}
+                      <AttendanceOptionsContainer>
+                        <Label>Attendance Status</Label>
+                        <AttendanceOption>
+                          <OptionButton
+                            status="present"
+                            disabled={subject.attendance === "ignore"}
+                            onClick={() => {
+                              if (subject.attendance !== "ignore") {
+                                setDay((prev) => {
+                                  return prev.map((item) => {
+                                    if (item.slotId === subject.slotId) {
+                                      return {
+                                        ...item,
+                                        attendance: "present",
+                                      };
+                                    }
+                                    return item;
+                                  });
+                                });
+
+                                setSubject((prev) => ({
+                                  ...prev,
+                                  attendance: "present",
+                                }));
+                              }
+                            }}
+                          >
+                            <Check size={16} />
+                            Present
+                          </OptionButton>
+
+                          <OptionButton
+                            status="absent"
+                            disabled={subject.attendance === "ignore"}
+                            onClick={() => {
+                              if (subject.attendance !== "ignore") {
+                                setDay((prev) => {
+                                  return prev.map((item) => {
+                                    if (item.slotId === subject.slotId) {
+                                      return {
+                                        ...item,
+                                        attendance: "absent",
+                                      };
+                                    }
+                                    return item;
+                                  });
+                                });
+
+                                setSubject((prev) => ({
+                                  ...prev,
+                                  attendance: "absent",
+                                }));
+                              }
+                            }}
+                          >
+                            <X size={16} />
+                            Absent
+                          </OptionButton>
+                        </AttendanceOption>
+                      </AttendanceOptionsContainer>
+
+                      {(subject.attendance === "ignore" ||
+                        subject.attendance === "absent") && (
+                        <FormGroup>
+                          <Label>Reason</Label>
+                          <TextArea
+                            value={description}
+                            onChange={(e) => {
+                              if (!(e.target.value.length > 100)) {
+                                setDescription(e.target.value);
+                                setDay((prev) => {
+                                  return prev.map((item) => {
+                                    if (item.slotId === subject.slotId) {
+                                      return {
+                                        ...item,
+                                        description: e.target.value,
+                                      };
+                                    }
+                                    return item;
+                                  });
+                                });
+                              } else {
+                                toast.info("Reason exceeded 100 characters");
+                              }
+                            }}
+                            placeholder="Add reason for this class..."
+                          />
+                        </FormGroup>
+                      )}
+
+                      <ButtonGroup>
+                        <Button
+                          onClick={() => {
+                            // Restore the original data from dayCache
+                            setDay(JSON.parse(JSON.stringify(dayCache)));
+                            setSubject(null);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="primary"
+                          onClick={() => {
+                            saveAttendanceState();
+                            setSubject(null);
+                          }}
+                        >
+                          Save
+                        </Button>
+                      </ButtonGroup>
+                    </DetailPanel>
+                  )}
+
+                  {showDay && !isMobile && (
+                    <DetailPanel
+                      onClick={(e) => e.stopPropagation()}
+                      key="edit-day"
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      variants={panelVariants}
+                    >
+                      <DetailHeader>
+                        <DetailTitle>Entire Day Attendance</DetailTitle>
+                        <CloseButton
+                          onClick={() => {
+                            setDay(JSON.parse(JSON.stringify(dayCache)));
+                            setShowDay(false);
+                          }}
+                        >
+                          <X size={20} />
+                        </CloseButton>
+                      </DetailHeader>
+
+                      <FormGroup>
+                        <Label>Date</Label>
                         <div
                           style={{
                             padding: "0.75rem",
@@ -2116,61 +1875,51 @@ const MainAttendance = () => {
                             gap: "0.5rem",
                           }}
                         >
-                          <Clock size={16} />
-                          {subject.display}
+                          <CalendarIcon size={16} />
+                          {d.format(date, "dddd, MMMM DD, YYYY")}
                         </div>
                       </FormGroup>
-                    </div>
 
-                    <IgnoreContainer>
-                      <Checkbox
-                        type="checkbox"
-                        checked={subject.attendance === "ignore"}
-                        onChange={(e) => {
-                          setDay((prev) => {
-                            return prev.map((item) => {
-                              if (item.slotId === subject.slotId) {
-                                return {
-                                  ...item,
-                                  attendance: e.target.checked
-                                    ? "ignore"
-                                    : "pending",
-                                };
+                      <AttendanceOptionsContainer>
+                        <Label>Set All Classes</Label>
+                        <IgnoreContainer>
+                          <Checkbox
+                            checked={day.every(
+                              (ele) => ele.attendance === "ignore"
+                            )}
+                            type="checkbox"
+                            onClick={(e) => {
+                              if (e.target.checked) {
+                                setDay((prev) => {
+                                  return prev.map((e) => ({
+                                    ...e,
+                                    attendance: "ignore",
+                                  }));
+                                });
+                              } else {
+                                setDay((prev) => {
+                                  return prev.map((e) => ({
+                                    ...e,
+                                    attendance: "pending",
+                                  }));
+                                });
                               }
-                              return item;
-                            });
-                          });
-
-                          setSubject((prev) => ({
-                            ...prev,
-                            attendance: e.target.checked ? "ignore" : "pending",
-                          }));
-                        }}
-                      />
-                      <span>Ignore this class (holiday, cancelled, etc.)</span>
-                    </IgnoreContainer>
-                    {subject.custom && (
-                      <IgnoreContainer
-                        onClick={() => {
-                          handleSubjectDelete();
-                        }}
-                        style={{ cursor: "pointer", color: "#ef4444" }}
-                      >
-                        <Trash2 size={16} />
-                        <span>Delete this class</span>
-                      </IgnoreContainer>
-                    )}
-                    <AttendanceOptionsContainer>
-                      <Label>Attendance Status</Label>
-                      <AttendanceOption className={"mb-10"}>
-                        <OptionButton
-                          status="present"
-                          disabled={subject.attendance === "ignore"}
-                          onClick={() => {
-                            if (subject.attendance !== "ignore") {
+                            }}
+                          />
+                          <span>
+                            Ignore this day (holiday, cancelled, etc.)
+                          </span>
+                        </IgnoreContainer>
+                        <AttendanceOption>
+                          <OptionButton
+                            status="present"
+                            checked={day.every(
+                              (ele) => ele.attendance === "present"
+                            )}
+                            onClick={() => {
                               setDay((prev) => {
                                 return prev.map((item) => {
-                                  if (item.slotId === subject.slotId) {
+                                  if (item.attendance !== "ignore") {
                                     return {
                                       ...item,
                                       attendance: "present",
@@ -2179,26 +1928,21 @@ const MainAttendance = () => {
                                   return item;
                                 });
                               });
+                            }}
+                          >
+                            <Check size={16} />
+                            All Present
+                          </OptionButton>
 
-                              setSubject((prev) => ({
-                                ...prev,
-                                attendance: "present",
-                              }));
-                            }
-                          }}
-                        >
-                          <Check size={16} />
-                          Present
-                        </OptionButton>
-
-                        <OptionButton
-                          status="absent"
-                          disabled={subject.attendance === "ignore"}
-                          onClick={() => {
-                            if (subject.attendance !== "ignore") {
+                          <OptionButton
+                            status="absent"
+                            checked={day.every(
+                              (ele) => ele.attendance === "absent"
+                            )}
+                            onClick={() => {
                               setDay((prev) => {
                                 return prev.map((item) => {
-                                  if (item.slotId === subject.slotId) {
+                                  if (item.attendance !== "ignore") {
                                     return {
                                       ...item,
                                       attendance: "absent",
@@ -2207,255 +1951,569 @@ const MainAttendance = () => {
                                   return item;
                                 });
                               });
+                            }}
+                          >
+                            <X size={16} />
+                            All Absent
+                          </OptionButton>
+                        </AttendanceOption>
+                      </AttendanceOptionsContainer>
 
-                              setSubject((prev) => ({
-                                ...prev,
-                                attendance: "absent",
-                              }));
-                            }
+                      {(day.filter((ele) => ele.attendance === "absent")
+                        .length === day.length ||
+                        day.filter((ele) => ele.attendance === "ignore")
+                          .length === day.length) && (
+                        <FormGroup>
+                          <Label>Reason</Label>
+                          <TextArea
+                            value={description}
+                            onChange={(e) => {
+                              if (!(e.target.value > 100)) {
+                                setDescription(e.target.value);
+                                setDay((prev) => {
+                                  return prev.map((item) => {
+                                    return {
+                                      ...item,
+                                      description: e.target.value,
+                                    };
+                                  });
+                                });
+                              } else {
+                                toast.info("Reason exceeded 100 characters");
+                              }
+                            }}
+                            placeholder="Add reason for this day..."
+                          />
+                        </FormGroup>
+                      )}
+
+                      <ButtonGroup>
+                        <Button
+                          onClick={() => {
+                            // Restore the original data from dayCache
+                            setDay(JSON.parse(JSON.stringify(dayCache)));
+                            setShowDay(false);
                           }}
                         >
-                          <X size={16} />
-                          Absent
-                        </OptionButton>
-                      </AttendanceOption>
-                    </AttendanceOptionsContainer>
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="primary"
+                          onClick={() => {
+                            saveAttendanceState();
+                            setShowDay(false);
+                          }}
+                        >
+                          Save Day
+                        </Button>
+                      </ButtonGroup>
+                    </DetailPanel>
+                  )}
+                  {subjectAdd && isMobile && (
+                    <MobilePopup
+                      onClick={(e) => e.stopPropagation()}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      <MobilePopupContent
+                        initial={{ y: "100%" }}
+                        animate={{ y: 0 }}
+                        exit={{ y: "100%" }}
+                        transition={{
+                          type: "spring",
+                          damping: 25,
+                          stiffness: 300,
+                        }}
+                      >
+                        <MobilePopupHeader>
+                          <PopupTitle>Add Custom Class</PopupTitle>
+                          <CloseButton onClick={() => setSubjectAdd(false)}>
+                            <X size={20} />
+                          </CloseButton>
+                        </MobilePopupHeader>
 
-                    {(subject.attendance === "ignore" ||
-                      subject.attendance === "absent") && (
-                      <FormGroup className={"mb-10"}>
-                        <Label>Reason</Label>
-                        <TextArea
-                          value={description}
-                          onChange={(e) => {
-                            if (!(e.target.value > 100)) {
-                              setDescription(e.target.value);
+                        <FormGroup>
+                          <Label>Course</Label>
+                          <Select
+                            value={newSubject.courseId}
+                            onChange={(e) =>
+                              setNewSubject({
+                                ...newSubject,
+                                courseId: e.target.value,
+                              })
+                            }
+                          >
+                            {courses.map((course) => (
+                              <option key={course.name} value={course.name}>
+                                {course.name} - {course.fullName}
+                              </option>
+                            ))}
+                          </Select>
+                        </FormGroup>
+
+                        <FormGroup>
+                          <Label>Time Range</Label>
+                          <TimeRangeContainer>
+                            <TimeInput
+                              type="time"
+                              value={newSubject.startTime}
+                              onChange={(e) =>
+                                setNewSubject({
+                                  ...newSubject,
+                                  startTime: e.target.value,
+                                })
+                              }
+                            />
+                            <span>to</span>
+                            <TimeInput
+                              type="time"
+                              value={newSubject.endTime}
+                              onChange={(e) =>
+                                setNewSubject({
+                                  ...newSubject,
+                                  endTime: e.target.value,
+                                })
+                              }
+                            />
+                          </TimeRangeContainer>
+                        </FormGroup>
+
+                        <ButtonGroup>
+                          <Button onClick={() => setSubjectAdd(false)}>
+                            Cancel
+                          </Button>
+                          <Button variant="primary" onClick={addCustomSubject}>
+                            Add Class
+                          </Button>
+                        </ButtonGroup>
+                      </MobilePopupContent>
+                    </MobilePopup>
+                  )}
+
+                  {subject && isMobile && (
+                    <MobilePopup
+                      onClick={(e) => e.stopPropagation()}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      <MobilePopupContent
+                        initial={{ y: "100%" }}
+                        animate={{ y: 0 }}
+                        exit={{ y: "100%" }}
+                        transition={{
+                          type: "spring",
+                          damping: 25,
+                          stiffness: 300,
+                        }}
+                      >
+                        <MobilePopupHeader>
+                          <PopupTitle>Edit Attendance</PopupTitle>
+                          <CloseButton
+                            onClick={() => {
+                              setDay(JSON.parse(JSON.stringify(dayCache)));
+                              setSubject(null);
+                            }}
+                          >
+                            <X size={20} />
+                          </CloseButton>
+                        </MobilePopupHeader>
+
+                        <FormGroup>
+                          <Label>Course</Label>
+                          <Select
+                            value={subject.courseId}
+                            onChange={(e) => {
+                              setSubject((prev) => ({
+                                ...prev,
+                                courseId: e.target.value,
+                              }));
+
+                              setDay((prev) => {
+                                prev.forEach((ele) => {
+                                  if (ele.slotId === subject.slotId) {
+                                    ele.courseId = e.target.value;
+                                  }
+                                });
+                                return [...prev];
+                              });
+                            }}
+                          >
+                            {courses.map((course) => (
+                              <option key={course.name} value={course.name}>
+                                {course.name} - {course.fullName}
+                              </option>
+                            ))}
+                          </Select>
+                        </FormGroup>
+
+                        <div style={{ display: "flex", gap: "1rem" }}>
+                          <FormGroup style={{ flex: 1 }}>
+                            <Label>Time</Label>
+                            <div
+                              style={{
+                                padding: "0.75rem",
+                                backgroundColor: `${
+                                  localStorage.getItem("theme") === "dark"
+                                    ? ""
+                                    : "#f8fafc"
+                                }`,
+                                border: "1px solid #e2e8f0",
+                                borderRadius: "8px",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.5rem",
+                              }}
+                            >
+                              <Clock size={16} />
+                              {subject.display}
+                            </div>
+                          </FormGroup>
+                        </div>
+
+                        <IgnoreContainer>
+                          <Checkbox
+                            type="checkbox"
+                            checked={subject.attendance === "ignore"}
+                            onChange={(e) => {
                               setDay((prev) => {
                                 return prev.map((item) => {
                                   if (item.slotId === subject.slotId) {
                                     return {
                                       ...item,
-                                      description: e.target.value,
+                                      attendance: e.target.checked
+                                        ? "ignore"
+                                        : "pending",
                                     };
                                   }
                                   return item;
                                 });
                               });
-                            } else {
-                              toast.info("Reason exceeded 100 characters");
-                            }
-                          }}
-                          placeholder="Add reason for this class..."
-                        />
-                      </FormGroup>
-                    )}
 
-                    <ButtonGroup>
-                      <Button
-                        onClick={() => {
-                          // Restore the original data from dayCache
-                          setDay(JSON.parse(JSON.stringify(dayCache)));
-                          setSubject(null);
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        variant="primary"
-                        onClick={() => {
-                          saveAttendanceState();
-                          setSubject(null);
-                        }}
-                      >
-                        Save
-                      </Button>
-                    </ButtonGroup>
-                  </MobilePopupContent>
-                </MobilePopup>
-              )}
+                              setSubject((prev) => ({
+                                ...prev,
+                                attendance: e.target.checked
+                                  ? "ignore"
+                                  : "pending",
+                              }));
+                            }}
+                          />
+                          <span>
+                            Ignore this class (holiday, cancelled, etc.)
+                          </span>
+                        </IgnoreContainer>
+                        {subject.custom && (
+                          <IgnoreContainer
+                            onClick={() => {
+                              handleSubjectDelete();
+                            }}
+                            style={{ cursor: "pointer", color: "#ef4444" }}
+                          >
+                            <Trash2 size={16} />
+                            <span>Delete this class</span>
+                          </IgnoreContainer>
+                        )}
+                        <AttendanceOptionsContainer>
+                          <Label>Attendance Status</Label>
+                          <AttendanceOption className={"mb-10"}>
+                            <OptionButton
+                              status="present"
+                              disabled={subject.attendance === "ignore"}
+                              onClick={() => {
+                                if (subject.attendance !== "ignore") {
+                                  setDay((prev) => {
+                                    return prev.map((item) => {
+                                      if (item.slotId === subject.slotId) {
+                                        return {
+                                          ...item,
+                                          attendance: "present",
+                                        };
+                                      }
+                                      return item;
+                                    });
+                                  });
 
-              {showDay && isMobile && (
-                <MobilePopup
-                  onClick={(e) => e.stopPropagation()}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <MobilePopupContent
-                    initial={{ y: "100%" }}
-                    animate={{ y: 0 }}
-                    exit={{ y: "100%" }}
-                    transition={{
-                      type: "spring",
-                      damping: 25,
-                      stiffness: 300,
-                    }}
-                  >
-                    <MobilePopupHeader>
-                      <PopupTitle>Entire Day Attendance</PopupTitle>
-                      <CloseButton
-                        onClick={() => {
-                          setDay(JSON.parse(JSON.stringify(dayCache)));
-                          setShowDay(false);
-                        }}
-                      >
-                        <X size={20} />
-                      </CloseButton>
-                    </MobilePopupHeader>
-
-                    <FormGroup>
-                      <Label>Date</Label>
-                      <div
-                        style={{
-                          padding: "0.75rem",
-                          backgroundColor: `${
-                            localStorage.getItem("theme") === "dark"
-                              ? ""
-                              : "#f8fafc"
-                          }`,
-                          border: "1px solid #e2e8f0",
-                          borderRadius: "8px",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.5rem",
-                        }}
-                      >
-                        <CalendarIcon size={16} />
-                        {d.format(date, "dddd, MMMM DD, YYYY")}
-                      </div>
-                    </FormGroup>
-
-                    <AttendanceOptionsContainer>
-                      <Label>Set All Classes</Label>
-                      <IgnoreContainer>
-                        <Checkbox
-                          checked={day.every(
-                            (ele) => ele.attendance === "ignore"
-                          )}
-                          type="checkbox"
-                          onClick={(e) => {
-                            if (e.target.checked) {
-                              setDay((prev) => {
-                                return prev.map((e) => ({
-                                  ...e,
-                                  attendance: "ignore",
-                                }));
-                              });
-                            } else {
-                              setDay((prev) => {
-                                return prev.map((e) => ({
-                                  ...e,
-                                  attendance: "pending",
-                                }));
-                              });
-                            }
-                          }}
-                        />
-                        <span>Ignore this day (holiday, cancelled, etc.)</span>
-                      </IgnoreContainer>
-                      <AttendanceOption className={"mb-10"}>
-                        <OptionButton
-                          status="present"
-                          checked={day.every(
-                            (ele) => ele.attendance === "present"
-                          )}
-                          onClick={() => {
-                            setDay((prev) => {
-                              return prev.map((item) => {
-                                if (item.attendance !== "ignore") {
-                                  return {
-                                    ...item,
+                                  setSubject((prev) => ({
+                                    ...prev,
                                     attendance: "present",
-                                  };
+                                  }));
                                 }
-                                return item;
-                              });
-                            });
-                          }}
-                        >
-                          <Check size={16} />
-                          All Present
-                        </OptionButton>
+                              }}
+                            >
+                              <Check size={16} />
+                              Present
+                            </OptionButton>
 
-                        <OptionButton
-                          status="absent"
-                          checked={day.every(
-                            (ele) => ele.attendance === "absent"
-                          )}
-                          onClick={() => {
-                            setDay((prev) => {
-                              return prev.map((item) => {
-                                if (item.attendance !== "ignore") {
-                                  return {
-                                    ...item,
+                            <OptionButton
+                              status="absent"
+                              disabled={subject.attendance === "ignore"}
+                              onClick={() => {
+                                if (subject.attendance !== "ignore") {
+                                  setDay((prev) => {
+                                    return prev.map((item) => {
+                                      if (item.slotId === subject.slotId) {
+                                        return {
+                                          ...item,
+                                          attendance: "absent",
+                                        };
+                                      }
+                                      return item;
+                                    });
+                                  });
+
+                                  setSubject((prev) => ({
+                                    ...prev,
                                     attendance: "absent",
-                                  };
+                                  }));
                                 }
-                                return item;
-                              });
-                            });
-                          }}
-                        >
-                          <X size={16} />
-                          All Absent
-                        </OptionButton>
-                      </AttendanceOption>
-                    </AttendanceOptionsContainer>
+                              }}
+                            >
+                              <X size={16} />
+                              Absent
+                            </OptionButton>
+                          </AttendanceOption>
+                        </AttendanceOptionsContainer>
 
-                    {(day.filter((ele) => ele.attendance === "absent")
-                      .length === day.length ||
-                      day.filter((ele) => ele.attendance === "ignore")
-                        .length === day.length) && (
-                      <FormGroup className={"mb-10"}>
-                        <Label>Reason</Label>
-                        <TextArea
-                          value={description}
-                          onChange={(e) => {
-                            if (!(e.target.value > 100)) {
-                              setDescription(e.target.value);
-                              setDay((prev) => {
-                                return prev.map((item) => {
-                                  return {
-                                    ...item,
-                                    description: e.target.value,
-                                  };
+                        {(subject.attendance === "ignore" ||
+                          subject.attendance === "absent") && (
+                          <FormGroup className={"mb-10"}>
+                            <Label>Reason</Label>
+                            <TextArea
+                              value={description}
+                              onChange={(e) => {
+                                if (!(e.target.value > 100)) {
+                                  setDescription(e.target.value);
+                                  setDay((prev) => {
+                                    return prev.map((item) => {
+                                      if (item.slotId === subject.slotId) {
+                                        return {
+                                          ...item,
+                                          description: e.target.value,
+                                        };
+                                      }
+                                      return item;
+                                    });
+                                  });
+                                } else {
+                                  toast.info("Reason exceeded 100 characters");
+                                }
+                              }}
+                              placeholder="Add reason for this class..."
+                            />
+                          </FormGroup>
+                        )}
+
+                        <ButtonGroup>
+                          <Button
+                            onClick={() => {
+                              // Restore the original data from dayCache
+                              setDay(JSON.parse(JSON.stringify(dayCache)));
+                              setSubject(null);
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            variant="primary"
+                            onClick={() => {
+                              saveAttendanceState();
+                              setSubject(null);
+                            }}
+                          >
+                            Save
+                          </Button>
+                        </ButtonGroup>
+                      </MobilePopupContent>
+                    </MobilePopup>
+                  )}
+
+                  {showDay && isMobile && (
+                    <MobilePopup
+                      onClick={(e) => e.stopPropagation()}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      <MobilePopupContent
+                        initial={{ y: "100%" }}
+                        animate={{ y: 0 }}
+                        exit={{ y: "100%" }}
+                        transition={{
+                          type: "spring",
+                          damping: 25,
+                          stiffness: 300,
+                        }}
+                      >
+                        <MobilePopupHeader>
+                          <PopupTitle>Entire Day Attendance</PopupTitle>
+                          <CloseButton
+                            onClick={() => {
+                              setDay(JSON.parse(JSON.stringify(dayCache)));
+                              setShowDay(false);
+                            }}
+                          >
+                            <X size={20} />
+                          </CloseButton>
+                        </MobilePopupHeader>
+
+                        <FormGroup>
+                          <Label>Date</Label>
+                          <div
+                            style={{
+                              padding: "0.75rem",
+                              backgroundColor: `${
+                                localStorage.getItem("theme") === "dark"
+                                  ? ""
+                                  : "#f8fafc"
+                              }`,
+                              border: "1px solid #e2e8f0",
+                              borderRadius: "8px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.5rem",
+                            }}
+                          >
+                            <CalendarIcon size={16} />
+                            {d.format(date, "dddd, MMMM DD, YYYY")}
+                          </div>
+                        </FormGroup>
+
+                        <AttendanceOptionsContainer>
+                          <Label>Set All Classes</Label>
+                          <IgnoreContainer>
+                            <Checkbox
+                              checked={day.every(
+                                (ele) => ele.attendance === "ignore"
+                              )}
+                              type="checkbox"
+                              onClick={(e) => {
+                                if (e.target.checked) {
+                                  setDay((prev) => {
+                                    return prev.map((e) => ({
+                                      ...e,
+                                      attendance: "ignore",
+                                    }));
+                                  });
+                                } else {
+                                  setDay((prev) => {
+                                    return prev.map((e) => ({
+                                      ...e,
+                                      attendance: "pending",
+                                    }));
+                                  });
+                                }
+                              }}
+                            />
+                            <span>
+                              Ignore this day (holiday, cancelled, etc.)
+                            </span>
+                          </IgnoreContainer>
+                          <AttendanceOption className={"mb-10"}>
+                            <OptionButton
+                              status="present"
+                              checked={day.every(
+                                (ele) => ele.attendance === "present"
+                              )}
+                              onClick={() => {
+                                setDay((prev) => {
+                                  return prev.map((item) => {
+                                    if (item.attendance !== "ignore") {
+                                      return {
+                                        ...item,
+                                        attendance: "present",
+                                      };
+                                    }
+                                    return item;
+                                  });
                                 });
-                              });
-                            } else {
-                              toast.info("Reason exceeded 100 characters");
-                            }
-                          }}
-                          placeholder="Add reason for this day..."
-                          maxLength={100}
-                        />
-                      </FormGroup>
-                    )}
+                              }}
+                            >
+                              <Check size={16} />
+                              All Present
+                            </OptionButton>
 
-                    <ButtonGroup>
-                      <Button
-                        onClick={() => {
-                          // Restore the original data from dayCache
-                          setDay(JSON.parse(JSON.stringify(dayCache)));
-                          setShowDay(false);
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        variant="primary"
-                        onClick={() => {
-                          saveAttendanceState();
-                          setShowDay(false);
-                        }}
-                      >
-                        Save Day
-                      </Button>
-                    </ButtonGroup>
-                  </MobilePopupContent>
-                </MobilePopup>
-              )}
-            </AnimatePresence>
-          </ContentContainer>
+                            <OptionButton
+                              status="absent"
+                              checked={day.every(
+                                (ele) => ele.attendance === "absent"
+                              )}
+                              onClick={() => {
+                                setDay((prev) => {
+                                  return prev.map((item) => {
+                                    if (item.attendance !== "ignore") {
+                                      return {
+                                        ...item,
+                                        attendance: "absent",
+                                      };
+                                    }
+                                    return item;
+                                  });
+                                });
+                              }}
+                            >
+                              <X size={16} />
+                              All Absent
+                            </OptionButton>
+                          </AttendanceOption>
+                        </AttendanceOptionsContainer>
+
+                        {(day.filter((ele) => ele.attendance === "absent")
+                          .length === day.length ||
+                          day.filter((ele) => ele.attendance === "ignore")
+                            .length === day.length) && (
+                          <FormGroup className={"mb-10"}>
+                            <Label>Reason</Label>
+                            <TextArea
+                              value={description}
+                              onChange={(e) => {
+                                if (!(e.target.value > 100)) {
+                                  setDescription(e.target.value);
+                                  setDay((prev) => {
+                                    return prev.map((item) => {
+                                      return {
+                                        ...item,
+                                        description: e.target.value,
+                                      };
+                                    });
+                                  });
+                                } else {
+                                  toast.info("Reason exceeded 100 characters");
+                                }
+                              }}
+                              placeholder="Add reason for this day..."
+                              maxLength={100}
+                            />
+                          </FormGroup>
+                        )}
+
+                        <ButtonGroup>
+                          <Button
+                            onClick={() => {
+                              // Restore the original data from dayCache
+                              setDay(JSON.parse(JSON.stringify(dayCache)));
+                              setShowDay(false);
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            variant="primary"
+                            onClick={() => {
+                              saveAttendanceState();
+                              setShowDay(false);
+                            }}
+                          >
+                            Save Day
+                          </Button>
+                        </ButtonGroup>
+                      </MobilePopupContent>
+                    </MobilePopup>
+                  )}
+                </AnimatePresence>
+              </ContentContainer>
+            </>
+          )}
         </>
       )}
     </Card>
