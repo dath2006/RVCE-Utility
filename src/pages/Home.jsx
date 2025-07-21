@@ -30,7 +30,7 @@ const Home = ({ showAuthCard, setShowAuthCard, setDisableWorkSpace }) => {
       />
       <footer className="bg-gray-100 mt-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-gray-600 pb-20">
+          <div className="text-center text-gray-600 pb-5">
             <p>
               &copy; {new Date().getFullYear()} ಆರ್.ವಿ Utility. All rights
               reserved.

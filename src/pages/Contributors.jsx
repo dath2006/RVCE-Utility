@@ -782,11 +782,12 @@ const Contributors = ({
             whilehover={{ scale: 1.05 }}
             whiletap={{ scale: 0.95 }}
             onClick={() => {
-              if (!isAuthenticated && !isLoading) {
-                setShowAuthCard(!showAuthCard);
-              } else {
-                navigate("/contribute", { state: { userRank } });
-              }
+              // if (!isAuthenticated && !isLoading) {
+              //   setShowAuthCard(!showAuthCard);
+              // } else {
+              //   navigate("/contribute", { state: { userRank } });
+              // }
+              alert("Contributing will start soon!");
             }}
           >
             <FaHandshake />
