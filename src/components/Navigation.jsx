@@ -172,7 +172,7 @@ const BottomBar = styled(motion.div)`
   -webkit-backdrop-filter: blur(21px) saturate(180%);
   background-color: ${(props) => props.theme.glassbgc};
   position: fixed;
-  bottom: 12px;
+  bottom: 1.9rem;
   left: 16px;
   right: 16px;
   z-index: 70;
