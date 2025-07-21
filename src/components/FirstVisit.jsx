@@ -102,11 +102,11 @@ const FirstVisit = () => {
           <motion.button
             className="px-6 py-3 md:px-8 md:py-4 text-base md:text-lg font-medium rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl transform transition-all duration-300 ease-in-out"
             variants={itemVariants}
-            whileHover={{
+            whilehover={{
               scale: 1.05,
               boxShadow: "0 0 20px rgba(120, 120, 255, 0.5)",
             }}
-            whileTap={{ scale: 0.98 }}
+            whiletap={{ scale: 0.98 }}
             onClick={handleFeaturesComplete}
           >
             Get Started

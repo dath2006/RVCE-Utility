@@ -13,7 +13,7 @@ const Container = styled.div`
 const Crumb = styled.button`
   background: none;
   border: none;
-  color: ${(props) => (props.isLast ? props.theme.primary : props.theme.text)};
+  color: ${(props) => (props.islast ? props.theme.primary : props.theme.text)};
   cursor: pointer;
   font-size: 1rem;
   padding: 0.25rem 0.5rem;
@@ -36,7 +36,7 @@ const BreadCrumbs = ({ path, onNavigate }) => {
         <React.Fragment key={index}>
           <NavigateNext />
           <Crumb
-            isLast={index === path.length - 1}
+            islast={index === path.length - 1}
             onClick={() => handleClick(index)}
           >
             {item}

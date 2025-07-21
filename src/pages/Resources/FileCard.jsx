@@ -26,7 +26,7 @@ const Content = styled.div`
   gap: 1rem;
   transition: filter 0.3s ease;
   ${(props) =>
-    props.isBlurred &&
+    props.isblurred &&
     `
     filter: blur(2px);
     opacity: 0.7;
@@ -94,13 +94,13 @@ const FileCard = ({
 
   return (
     <Card
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+      whilehover={{ scale: 1.02 }}
+      whiletap={{ scale: 0.98 }}
       onClick={handleClick}
       onMouseEnter={() => !isFolder && setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
-      <Content isBlurred={showActions}>
+      <Content isblurred={showActions}>
         {isFolder ? <Folder /> : <Description />}
         <span>{item.name}</span>
       </Content>
@@ -121,8 +121,8 @@ const FileCard = ({
             exit={{ opacity: 0 }}
           >
             <IconButton
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+              whilehover={{ scale: 1.1 }}
+              whiletap={{ scale: 0.9 }}
               onClick={(e) => {
                 e.stopPropagation();
                 onAddToWorkspace(item);
@@ -131,8 +131,8 @@ const FileCard = ({
               <Add />
             </IconButton>
             <IconButton
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+              whilehover={{ scale: 1.1 }}
+              whiletap={{ scale: 0.9 }}
               onClick={(e) => {
                 e.stopPropagation();
                 onView(item);
@@ -141,8 +141,8 @@ const FileCard = ({
               <Visibility />
             </IconButton>
             <IconButton
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+              whilehover={{ scale: 1.1 }}
+              whiletap={{ scale: 0.9 }}
               onClick={(e) => {
                 e.stopPropagation();
                 onDownload(item);

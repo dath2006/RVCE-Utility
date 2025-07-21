@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
-import jsonData from "../data/folderHierarchy.json";
+// import jsonData from "../data/folderHierarchy.json";
 import { TbHelpSquareRoundedFilled } from "react-icons/tb";
 import Help from "./Help";
 import searchFiles from "../hooks/searchFiles";
 import { Close, ArrowForward, ArrowBack } from "@mui/icons-material";
+import axios from "axios";
+import WaveLoader from "./Loading";
 
 const Overlay = styled(motion.div)`
   position: fixed;
@@ -231,6 +233,15 @@ const CloseButton = styled.button`
   }
 `;
 
+const LoadingSpinner = styled(motion.div)`
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  z-index: 99;
+`;
+
 const SelectionPopup = ({ onClose, onSubmit }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [selection, setSelection] = useState({
@@ -247,9 +258,21 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
   const [etcCourses, setEtcCourses] = useState([]);
   const [kannadaCourses, setKannadaCourses] = useState([]);
   const [showHelp, setShowHelp] = useState([false, "hi"]);
+  const [jsonData, setJsonData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const firstYear = jsonData.find((item) => item.name === "1 Year");
+    getFiles();
+    // handleSelect();
+  }, []);
+
+  const handleSelect = (data) => {
+    if (!data || data.length === 0) {
+      console.info("No folder data available");
+      return;
+    }
+    const firstYear = data.find((item) => item.name === "1 Year");
+
     if (firstYear) {
       const cCycle = firstYear.children.find(
         (item) => item.name === "C - Cycle"
@@ -282,10 +305,24 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
         );
       }
     }
-  }, []);
+  };
+
+  async function getFiles() {
+    setLoading(true);
+    try {
+      const res = await axios.get(import.meta.env.VITE_FILES_URL);
+      const data = res.data;
+      handleSelect(data);
+      setJsonData(data);
+    } catch (error) {
+      console.error("Error fetching files:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const getContent = (text) => {
-    const results = searchFiles(`_which ${text} to choose.txt`);
+    const results = searchFiles(`_which ${text} to choose.txt`, jsonData);
     return results ? results[0].Content : "No help content available.";
   };
 
@@ -302,8 +339,8 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
                 return { ...prev, year: "1 Year" };
               })
             }
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whilehover={{ scale: 1.02 }}
+            whiletap={{ scale: 0.98 }}
           >
             1 Year
           </Card>
@@ -325,8 +362,8 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
                 return { ...prev, cycle: "C - Cycle" };
               })
             }
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whilehover={{ scale: 1.02 }}
+            whiletap={{ scale: 0.98 }}
           >
             C - Cycle
           </Card>
@@ -337,8 +374,8 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
                 return { ...prev, cycle: "P - Cycle" };
               })
             }
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whilehover={{ scale: 1.02 }}
+            whiletap={{ scale: 0.98 }}
           >
             P - Cycle
           </Card>
@@ -531,7 +568,15 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
     }
   };
 
-  return (
+  return loading ? (
+    <LoadingSpinner>
+      <WaveLoader
+        size="7em"
+        primaryColor="hsl(220,90%,50%)"
+        secondaryColor="hsl(300,90%,50%)"
+      />
+    </LoadingSpinner>
+  ) : (
     <Overlay
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -576,16 +621,16 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
           <NavButton
             onClick={handleBack}
             disabled={currentStep === 0}
-            whileHover={currentStep === 0 ? {} : { scale: 1.02 }}
-            whileTap={currentStep === 0 ? {} : { scale: 0.98 }}
+            whilehover={currentStep === 0 ? {} : { scale: 1.02 }}
+            whiletap={currentStep === 0 ? {} : { scale: 0.98 }}
           >
             <ArrowBack /> Back
           </NavButton>
           <NavButton
             onClick={handleNext}
             disabled={!isStepComplete()}
-            whileHover={!isStepComplete() ? {} : { scale: 1.02 }}
-            whileTap={!isStepComplete() ? {} : { scale: 0.98 }}
+            whilehover={!isStepComplete() ? {} : { scale: 1.02 }}
+            whiletap={!isStepComplete() ? {} : { scale: 0.98 }}
           >
             {currentStep === steps.length - 1 ? "Finish" : "Next"}
             <ArrowForward />

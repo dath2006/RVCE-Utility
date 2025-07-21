@@ -12,6 +12,7 @@ import { CircularProgress } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CachedIcon from "@mui/icons-material/Cached";
+import SearchIcon from "@mui/icons-material/Search";
 
 const ViewerContainer = styled(motion.div)`
   position: fixed;
@@ -89,6 +90,7 @@ const LoadingContainer = styled(motion.div)`
 const FileViewer = ({ url, onClose }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchVisible, setSearchVisible] = useState(false);
   const containerRef = useRef(null);
   const iframeRef = useRef(null);
 
@@ -178,6 +180,32 @@ const FileViewer = ({ url, onClose }) => {
     setIsLoading(false);
   }, []);
 
+  const triggerSearch = () => {
+    // Method 1: Focus and attempt to simulate Ctrl+F
+    if (iframeRef.current) {
+      // Focus on iframe first
+      iframeRef.current.focus();
+
+      try {
+        // Try to create and dispatch a keyboard event
+        const event = new KeyboardEvent("keydown", {
+          key: "f",
+          code: "KeyF",
+          ctrlKey: true,
+          bubbles: true,
+          cancelable: true,
+        });
+
+        // This might not work across domains due to security restrictions
+        iframeRef.current.contentWindow.document.dispatchEvent(event);
+      } catch (error) {
+        // If direct method fails, show instructions
+        setSearchVisible(true);
+        setTimeout(() => setSearchVisible(false), 5000); // Hide after 5 seconds
+      }
+    }
+  };
+
   return (
     <ViewerContainer
       initial={{ x: "100%" }}
@@ -215,6 +243,21 @@ const FileViewer = ({ url, onClose }) => {
           <IconButton onClick={handleReload} disabled={isLoading}>
             <CachedIcon />
           </IconButton>
+          <IconButton onClick={triggerSearch} disabled={isLoading}>
+            <SearchIcon />
+          </IconButton>
+          {searchVisible && (
+            <div className="absolute top-14  bg-yellow-100 border border-yellow-400 text-yellow-700 p-3 rounded shadow-lg z-20 max-w-xs">
+              Click inside the PDF viewer and press Ctrl+F (or ⌘+F on Mac) to
+              search
+              <button
+                onClick={() => setSearchVisible(false)}
+                className="absolute top-1 right-1 text-yellow-700 hover:text-yellow-900"
+              >
+                ×
+              </button>
+            </div>
+          )}
         </div>
         <div className="flex">
           <IconButton onClick={toggleFullscreen}>

@@ -6,7 +6,6 @@ import Navigation from "./components/Navigation";
 import Home from "./pages/Home";
 import Resources from "./pages/Resources/index";
 import Contributors from "./pages/Contributors";
-import Quizzes from "./pages/Quizzes";
 import Workspace from "./components/Workspace";
 import GlobalStyles from "./styles/GlobalStyles";
 import FileViewer from "./components/FileViewer";
@@ -17,7 +16,6 @@ import { Analytics } from "@vercel/analytics/react";
 import CustomCursor from "./components/CustomCursor";
 import LoadingScreen from "./components/LoadingScreen";
 import FloatingDrawer from "./components/FloatingDrawer";
-import Contributation from "./pages/Contributation";
 import MainContribution from "./pages/MainContribution";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -25,6 +23,7 @@ import Attendance from "./pages/Attendance";
 import PopupCard from "./components/AuthCard";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Helmet } from "react-helmet";
+import Essentials from "./pages/Essentials";
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -340,7 +339,10 @@ function App() {
                   <Route
                     path="/resources"
                     element={
-                      <Resources setDisableWorkSpace={setDisableWorkSpace} />
+                      <Resources
+                        screenSize={screenSize}
+                        setDisableWorkSpace={setDisableWorkSpace}
+                      />
                     }
                   />
                   <Route
@@ -353,33 +355,25 @@ function App() {
                       />
                     }
                   />
-                  {/* <Route
+                  <Route
                     path="/contribute"
                     element={
                       <>
                         {!isLoading && isAuthenticated && (
-                          // <Contributation
-                          //   setDisableWorkSpace={setDisableWorkSpace}
-                          // />
                           <MainContribution
                             setDisableWorkSpace={setDisableWorkSpace}
                           />
                         )}
                       </>
                     }
-                  /> */}
+                  />
                   <Route
                     path="/attendance"
                     element={
                       <Attendance setDisableWorkSpace={setDisableWorkSpace} />
                     }
                   />
-                  <Route
-                    path="/quizzes"
-                    element={
-                      <Quizzes setDisableWorkSpace={setDisableWorkSpace} />
-                    }
-                  />
+                  <Route path="/essentials" element={<Essentials />} />
                 </Routes>
               </div>
               <AnimatePresence mode="wait">
@@ -424,12 +418,13 @@ function App() {
               </AnimatePresence>
 
               {/* <WorkspaceButton
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+                whilehover={{ scale: 1.1 }}
+                whiletap={{ scale: 0.9 }}
                 onClick={() => setShowWorkspace(!showWorkspace)}
               >
                 <WorkspacesIcon />
               </WorkspaceButton> */}
+
               {!disableWorkSpace && (
                 <FloatingDrawer
                   setShowWorkspace={setShowWorkspace}

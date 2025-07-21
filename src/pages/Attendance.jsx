@@ -10,12 +10,15 @@ import {
   HelpCircle,
   Youtube,
   InfoIcon,
+  LogOut,
+  MessageCircleQuestionIcon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import styled from "styled-components";
 import WaveLoader from "../components/Loading";
+import { useNavigate } from "react-router-dom";
 
 // Import your components
 import ImportTimeTable from "../components/ImportTimeTable";
@@ -39,14 +42,16 @@ const BottomBar = styled(motion.div)`
   -webkit-backdrop-filter: blur(21px) saturate(180%);
   background-color: ${(props) => props.theme.glassbgc};
   position: fixed;
-  bottom: 0px;
-  left: 0px;
-  right: 0px;
+  bottom: 12px;
+  left: 14px;
+  right: 14px;
   z-index: 20;
   display: flex;
   height: 4rem;
   align-items: center;
   justify-content: space-around;
+  border-radius: 2rem;
+  box-shadow: 0 -2px 16px 0 rgba(0, 0, 0, 0.12);
 `;
 
 const LoadingSpinner = styled(motion.div)`
@@ -57,13 +62,15 @@ const LoadingSpinner = styled(motion.div)`
 `;
 
 const AttendanceSystem = ({ setDisableWorkSpace }) => {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isAuthenticated, isLoading, getAccessTokenSilently } =
+    useAuth0();
   const [hasTimeTable, setHasTimeTable] = useState(false);
   const [activeComponent, setActiveComponent] = useState("import");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const navigate = useNavigate();
 
   // Create a ref for the main content area
   const contentRef = useRef(null);
@@ -81,7 +88,7 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
   // Improved responsive handler
   useEffect(() => {
     const checkScreenSize = () => {
-      const mobile = window.innerWidth < 768;
+      const mobile = window.innerWidth <= 925;
       setIsMobile(mobile);
       setSidebarOpen(!mobile);
     };
@@ -95,8 +102,14 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
     if (!isLoading && isAuthenticated) {
       try {
         setLoading(true);
+        const token = await getAccessTokenSilently();
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/timetable/check?email=${user.email}`
+          `${import.meta.env.VITE_API_URL}/timetable/check?email=${user.email}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
         if (res.data.success) {
           const hasTable = res.data.hasTimeTable;
@@ -287,7 +300,13 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
 
       {/* Bottom Tab Bar - Only on mobile */}
       {isMobile && !loading && (
-        <BottomBar>
+        <BottomBar
+          style={{
+            padding: "0.25rem 0.5rem",
+            borderRadius: "2rem",
+            width: "auto",
+          }}
+        >
           {!hasTimeTable ? (
             <>
               <button
@@ -303,10 +322,10 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
               </button>
               <button
                 className="flex flex-col items-center justify-center h-full w-1/2 text-gray-400"
-                onClick={() => setShowHelpModal(true)}
+                onClick={() => navigate("/")}
               >
-                <HelpCircle size={20} />
-                <span className="text-xs mt-1">Help</span>
+                <LogOut size={20} />
+                <span className="text-xs mt-1">Exit</span>
               </button>
             </>
           ) : (
@@ -352,15 +371,42 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
                 <span className="text-xs mt-1">Reset</span>
               </button>
               <button
-                className="flex flex-col items-center justify-center h-full w-1/5 text-gray-400"
-                onClick={() => setShowHelpModal(true)}
+                className="flex flex-col items-center justify-center h-full w-1/5 text-red-400"
+                onClick={() => navigate("/")}
               >
-                <HelpCircle size={18} />
-                <span className="text-xs mt-1">Help</span>
+                <LogOut size={20} />
+                <span className="text-xs mt-1">Exit</span>
               </button>
             </>
           )}
         </BottomBar>
+      )}
+
+      {/* Floating Help Flag for mobile, only when bottom bar is visible */}
+      {isMobile && !loading && (
+        <button
+          onClick={() => setShowHelpModal(true)}
+          style={{
+            position: "fixed",
+            top: 80,
+            right: -15,
+            zIndex: 30,
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            background: "#e0e7ff", // Tailwind bg-indigo-100
+            color: "#4f46e5", // Tailwind text-indigo-600
+            border: "none",
+            borderRadius: "100px 0 0 100px",
+            boxShadow: "0 2px 12px 0 rgba(0,0,0,0.10)",
+            padding: "0.4rem 0.7rem 0.4rem 0.7rem",
+            fontWeight: 500,
+            fontSize: "0.95rem",
+            cursor: "pointer",
+          }}
+        >
+          <MessageCircleQuestionIcon size={20} style={{ marginRight: 7 }} />
+        </button>
       )}
 
       {/* Help Modal */}

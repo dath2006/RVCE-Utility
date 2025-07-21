@@ -847,7 +847,8 @@ const MainAttendance = ({ setActiveComponent }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const istOffset = 5.5 * 60 * 60 * 1000;
   const now = new Date(new Date().getTime());
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isAuthenticated, isLoading, getAccessTokenSilently } =
+    useAuth0();
   const [accStart, setAccStart] = useState();
   const [accEnd, setAccEnd] = useState();
   const [date, setDate] = useState(new Date(now));
@@ -990,10 +991,16 @@ const MainAttendance = ({ setActiveComponent }) => {
   const handleAttendanceState = async () => {
     try {
       if (!isLoading && isAuthenticated) {
+        const token = await getAccessTokenSilently();
         const res = await axios.get(
           `${import.meta.env.VITE_API_URL}/attendance/statistics?email=${
             user.email
-          }`
+          }`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
         if (res.data.data.success) {
           setAttendanceState(res.data.data.attendanceState);
@@ -1016,12 +1023,18 @@ const MainAttendance = ({ setActiveComponent }) => {
 
     try {
       if (!isLoading && isAuthenticated) {
+        const token = await getAccessTokenSilently();
         const res = await axios.post(
           `${import.meta.env.VITE_API_URL}/attendance/init`,
           {
             user: {
               email: user.email,
               date: date,
+            },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
             },
           }
         );
@@ -1057,12 +1070,18 @@ const MainAttendance = ({ setActiveComponent }) => {
     try {
       if (!isLoading && isAuthenticated && subject.custom) {
         setLoading(true);
+        const token = await getAccessTokenSilently();
         const res = await axios.delete(
           `${import.meta.env.VITE_API_URL}/attendance/add?email=${
             user.email
           }&date=${date.toDateString()}&slotId=${subject.slotId}&courseId=${
             subject.courseId
-          }`
+          }`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
 
         // Only update day with the new data from server and update the cache as well
@@ -1088,6 +1107,7 @@ const MainAttendance = ({ setActiveComponent }) => {
   const saveAttendanceState = async () => {
     try {
       setLoading(true);
+      const token = await getAccessTokenSilently();
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/attendance/save`,
         {
@@ -1096,6 +1116,11 @@ const MainAttendance = ({ setActiveComponent }) => {
             date: date,
           },
           daySchedule: day,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -1155,6 +1180,7 @@ const MainAttendance = ({ setActiveComponent }) => {
 
     try {
       setLoading(true);
+      const token = await getAccessTokenSilently();
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/attendance/add`,
         {
@@ -1163,6 +1189,11 @@ const MainAttendance = ({ setActiveComponent }) => {
             date: date,
           },
           subject: newEvent,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
       if (res.data.success) {
@@ -1386,8 +1417,8 @@ const MainAttendance = ({ setActiveComponent }) => {
                               }
                               onClick={() => handleSubjectSelect(ele.slotId)}
                               variants={staggerItem}
-                              whileHover={{ y: -5 }}
-                              whileTap={{ scale: 0.98 }}
+                              whilehover={{ y: -5 }}
+                              whiletap={{ scale: 0.98 }}
                             >
                               {courseData && (
                                 <AttendanceTag

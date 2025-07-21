@@ -6,7 +6,7 @@ import { FilterList } from "@mui/icons-material";
 const FloatingButton = styled(motion.button)`
   position: fixed;
   bottom: 2rem;
-  left: 1.9rem;
+  left: 0.7rem;
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -18,14 +18,14 @@ const FloatingButton = styled(motion.button)`
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 100;
+  z-index: 94;
 `;
 
 const FloatingFilterButton = ({ onClick }) => {
   return (
     <FloatingButton
-      whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.9 }}
+      whilehover={{ scale: 1.1 }}
+      whiletap={{ scale: 0.9 }}
       onClick={onClick}
     >
       <FilterList />

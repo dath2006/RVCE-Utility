@@ -674,7 +674,8 @@ const TimetableCreator = ({
   setShowHelpModal,
 }) => {
   const theme = useTheme();
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isAuthenticated, isLoading, getAccessTokenSilently } =
+    useAuth0();
   const [currentTheme, setCurrentTheme] = useState(theme);
   const [currentStep, setCurrentStep] = useState(1);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -922,7 +923,7 @@ const TimetableCreator = ({
         toast.error("Please add at least one course to the timetable");
         return;
       }
-
+      const token = await getAccessTokenSilently();
       const result = await axios.post(
         `${import.meta.env.VITE_API_URL}/timetable/upload`,
         {
@@ -939,6 +940,11 @@ const TimetableCreator = ({
             fullName: user.name,
             imageUrl: user.picture,
             ...userData,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -1223,8 +1229,8 @@ const TimetableCreator = ({
 
             <ButtonGroup className={"mb-10"}>
               <PrimaryButton
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whilehover={{ scale: 1.05 }}
+                whiletap={{ scale: 0.95 }}
                 onClick={nextStep}
               >
                 Next <ArrowForward fontSize="small" />
@@ -1248,8 +1254,8 @@ const TimetableCreator = ({
               Add all your courses for the semester
             </SectionDescription>
             <PrimaryButton
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whilehover={{ scale: 1.05 }}
+              whiletap={{ scale: 0.95 }}
               onClick={() => openCourseModal()}
               style={{ marginBottom: "1.5rem" }}
             >
@@ -1316,15 +1322,15 @@ const TimetableCreator = ({
 
             <ButtonGroup>
               <SecondaryButton
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whilehover={{ scale: 1.05 }}
+                whiletap={{ scale: 0.95 }}
                 onClick={prevStep}
               >
                 <ArrowBack fontSize="small" /> Back
               </SecondaryButton>
               <PrimaryButton
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whilehover={{ scale: 1.05 }}
+                whiletap={{ scale: 0.95 }}
                 onClick={nextStep}
               >
                 Next <ArrowForward fontSize="small" />
@@ -1352,8 +1358,8 @@ const TimetableCreator = ({
               }}
             >
               <SecondaryButton
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whilehover={{ scale: 1.05 }}
+                whiletap={{ scale: 0.95 }}
                 onClick={() => {
                   setMergeMode(!mergeMode);
                   setMergingSlots([]);
@@ -1382,8 +1388,8 @@ const TimetableCreator = ({
             {/* Add this button to confirm merge if there are slots selected */}
             {mergeMode && mergingSlots.length > 1 && (
               <PrimaryButton
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whilehover={{ scale: 1.05 }}
+                whiletap={{ scale: 0.95 }}
                 onClick={() => setSlotAssignmentModalOpen(true)}
                 style={{ marginBottom: "1rem" }}
               >
@@ -1476,15 +1482,15 @@ const TimetableCreator = ({
 
             <ButtonGroup>
               <SecondaryButton
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whilehover={{ scale: 1.05 }}
+                whiletap={{ scale: 0.95 }}
                 onClick={prevStep}
               >
                 <ArrowBack fontSize="small" /> Back
               </SecondaryButton>
               <PrimaryButton
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whilehover={{ scale: 1.05 }}
+                whiletap={{ scale: 0.95 }}
                 onClick={() => {
                   toast.success("Timetable saved successfully!");
                   getFinalTimetableData();
@@ -1714,15 +1720,15 @@ const TimetableCreator = ({
 
               <ButtonGroup>
                 <SecondaryButton
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whilehover={{ scale: 1.05 }}
+                  whiletap={{ scale: 0.95 }}
                   onClick={() => setIsCourseModalOpen(false)}
                 >
                   Cancel
                 </SecondaryButton>
                 <PrimaryButton
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whilehover={{ scale: 1.05 }}
+                  whiletap={{ scale: 0.95 }}
                   onClick={saveCourse}
                   disabled={!currentCourse.name || !currentCourse.fullName}
                   style={{
@@ -1808,8 +1814,8 @@ const TimetableCreator = ({
 
               <ButtonGroup>
                 <SecondaryButton
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whilehover={{ scale: 1.05 }}
+                  whiletap={{ scale: 0.95 }}
                   onClick={() => setSlotAssignmentModalOpen(false)}
                 >
                   Cancel

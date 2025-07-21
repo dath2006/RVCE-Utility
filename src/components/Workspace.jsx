@@ -75,7 +75,7 @@ const Content = styled.div`
   gap: 1rem;
   transition: filter 0.3s ease;
   ${(props) =>
-    props.isBlurred &&
+    props.isblurred &&
     `
     filter: blur(2px);
     opacity: 0.7;
@@ -130,6 +130,7 @@ const FileGrid = styled.div`
   padding: 1rem;
   overflow-y: auto;
   height: calc(100% - 60px);
+  position: relative;
 
   /* Custom Scrollbar */
   ::-webkit-scrollbar {
@@ -171,12 +172,12 @@ const WorkspaceCard = ({ file, onRemove, onView, onDownload }) => {
 
   return (
     <Card
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+      whilehover={{ scale: 1.02 }}
+      whiletap={{ scale: 0.98 }}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
-      <Content isBlurred={showActions}>
+      <Content isblurred={showActions}>
         <Description />
         <span>{file.name}</span>
       </Content>
@@ -191,8 +192,8 @@ const WorkspaceCard = ({ file, onRemove, onView, onDownload }) => {
             exit={{ opacity: 0 }}
           >
             <IconButton
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+              whilehover={{ scale: 1.1 }}
+              whiletap={{ scale: 0.9 }}
               onClick={(e) => {
                 e.stopPropagation();
                 onRemove(file.id);
@@ -201,8 +202,8 @@ const WorkspaceCard = ({ file, onRemove, onView, onDownload }) => {
               <Close />
             </IconButton>
             <IconButton
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+              whilehover={{ scale: 1.1 }}
+              whiletap={{ scale: 0.9 }}
               onClick={(e) => {
                 e.stopPropagation();
                 onDownload(file);
@@ -211,8 +212,8 @@ const WorkspaceCard = ({ file, onRemove, onView, onDownload }) => {
               <GetApp />
             </IconButton>
             <IconButton
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+              whilehover={{ scale: 1.1 }}
+              whiletap={{ scale: 0.9 }}
               onClick={(e) => {
                 e.stopPropagation();
                 onView(file);
@@ -246,6 +247,18 @@ const Workspace = ({ onClose, setViewerFile }) => {
       if (timeoutId) clearTimeout(timeoutId);
     };
   }, [downloadStatus]);
+
+  // Prevent background scroll when workspace is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   const handleRemoveFile = (id) => {
     setFiles((prev) => {
@@ -314,15 +327,57 @@ const Workspace = ({ onClose, setViewerFile }) => {
         </div>
       </Header>
       <FileGrid>
-        {files.map((file) => (
-          <WorkspaceCard
-            key={file.id}
-            file={file}
-            onRemove={handleRemoveFile}
-            onView={onView}
-            onDownload={onDownload}
-          />
-        ))}
+        {files.length === 0 ? (
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: "100%",
+              height: "auto",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "1.5rem",
+              color: "#888",
+              textAlign: "center",
+              pointerEvents: "none",
+            }}
+          >
+            <img
+              src="/UserManual/image.png"
+              alt="Add files to workspace"
+              style={{
+                maxWidth: 400,
+                width: "100%",
+                height: "auto",
+                opacity: 0.85,
+                pointerEvents: "auto",
+              }}
+            />
+            <div style={{ fontSize: "1.1rem", maxWidth: 320 }}>
+              Your workspace is empty.
+              <br />
+              <span style={{ color: "#2563eb", fontWeight: 500 }}>
+                Add files to your workspace
+              </span>{" "}
+              for quick access. Use the <b>+</b> button on any file to add it
+              here!
+            </div>
+          </div>
+        ) : (
+          files.map((file) => (
+            <WorkspaceCard
+              key={file.id}
+              file={file}
+              onRemove={handleRemoveFile}
+              onView={onView}
+              onDownload={onDownload}
+            />
+          ))
+        )}
       </FileGrid>
       <AnimatePresence>
         {downloadStatus && (

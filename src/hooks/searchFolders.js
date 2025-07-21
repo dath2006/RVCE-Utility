@@ -1,14 +1,23 @@
 import jsonData from "../data/folderHierarchy.json" with {type: "json"};
 
-const searchFolderStructure = (query, data = jsonData) => {
+const searchFolderStructure = (query, data ) => {
+  if(data == undefined)
+    console.log("error?????");
+    
+
+  
   // Helper function to deep clone objects
   const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
   
   const searchInTree = (nodes) => {
+   
+    
     let results = [];
     
     for (const node of nodes) {
       // If folder name matches, return entire subtree
+
+      
       if (
         node.mimeType === "application/vnd.google-apps.folder" && 
         node.name.toLowerCase().includes(query.toLowerCase())

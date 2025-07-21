@@ -9,6 +9,7 @@ import {
   Upload,
   Smartphone,
 } from "lucide-react";
+import { useSwipeable } from "react-swipeable";
 
 const features = [
   {
@@ -178,8 +179,28 @@ const FloatingIcons = () => {
 const FeaturesSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false);
+  const [hovering, setHovering] = useState(false);
+  const [direction, setDirection] = useState("right");
   const sectionRef = useRef(null);
   const intervalRef = useRef(null);
+  const progressRef = useRef(null);
+
+  // Swipe handlers
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => {
+      setDirection("right");
+      setActiveIndex((prevIndex) => (prevIndex + 1) % features.length);
+    },
+    onSwipedRight: () => {
+      setDirection("left");
+      setActiveIndex(
+        (prevIndex) => (prevIndex - 1 + features.length) % features.length
+      );
+    },
+    preventDefaultTouchmoveEvent: true,
+    trackTouch: true,
+    trackMouse: false,
+  });
 
   useEffect(() => {
     // Add custom animation classes
@@ -278,17 +299,29 @@ const FeaturesSection = () => {
         </p>
       </div>
 
-      <div className="relative h-[28rem] flex items-center justify-center px-4">
-        {features.map((feature, index) => (
-          <div
-            key={feature.title}
-            className={`absolute transition-all duration-700 w-full ${
-              index === activeIndex ? "opacity-100 z-10" : "opacity-0 z-0"
-            }`}
-          >
-            <FeatureCard feature={feature} isActive={index === activeIndex} />
-          </div>
-        ))}
+      <div
+        className="relative h-[28rem] flex items-center justify-center px-4"
+        {...swipeHandlers}
+      >
+        {features.map((feature, index) => {
+          let cardDirection = "right";
+          if (index === activeIndex) cardDirection = direction;
+          else if (index < activeIndex) cardDirection = "left";
+          return (
+            <div
+              key={feature.title}
+              className={`absolute transition-all duration-700 w-full pointer-events-none ${
+                index === activeIndex ? "z-20" : "z-0"
+              }`}
+            >
+              <FeatureCard
+                feature={feature}
+                isActive={index === activeIndex}
+                direction={cardDirection}
+              />
+            </div>
+          );
+        })}
       </div>
 
       <div className="flex justify-center mt-12 space-x-2">

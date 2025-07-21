@@ -9,6 +9,9 @@ const Container = styled.div`
   display: flex;
   align-items: center;
   padding-right: 0;
+  @media (max-width: 601px) {
+    width: 150px;
+  }
 `;
 
 const Input = styled.input`

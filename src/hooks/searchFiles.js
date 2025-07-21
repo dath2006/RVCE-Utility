@@ -1,6 +1,6 @@
-import jsonData from "../data/folderHierarchy.json" with {type: "json"};
+// import jsonData from "../data/folderHierarchy.json" with {type: "json"};
 
-const searchFiles = (query, data = jsonData) => {
+const searchFiles = (query, data) => {
   const results = [];
 
   const traverse = (node, currentPath = []) => {

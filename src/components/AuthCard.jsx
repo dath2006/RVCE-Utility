@@ -21,20 +21,21 @@ const Overlay = styled(motion.div)`
 `;
 
 const Card = styled(motion.div)`
-  background: ${(props) => props.theme.surface};
-  color: ${(props) => props.theme.text};
-  border-radius: 16px;
-  padding: 2.5rem;
+  background: ${({ theme }) => theme.glassbgc};
+  color: ${({ theme }) => theme.text};
+  border-radius: 20px;
+  padding: 2.5rem 2rem 2rem 2rem;
   width: 100%;
   max-width: 480px;
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.15), 0 10px 10px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 14px 28px ${({ theme }) => theme.shadow}22,
+    0 10px 10px ${({ theme }) => theme.shadow}18;
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-
+  border: 1px solid ${({ theme }) => theme.border};
+  backdrop-filter: blur(12px);
   @media (max-width: 600px) {
-    padding: 2rem;
-    max-width: 90%;
+    padding: 2rem 1rem 1.5rem 1rem;
+    max-width: 95%;
     margin: 0 auto;
   }
 `;
@@ -146,9 +147,8 @@ const CloseButton = styled(X)`
 
 // Custom Clerk button wrappers with styled-components
 const StyledClerkButton = styled.div`
-  flex: ${(props) => (props.fullWidth ? "1" : "initial")};
-  width: ${(props) => (props.fullWidth ? "100%" : "auto")};
-
+  flex: ${(props) => (props.fullwidth ? "1" : "initial")};
+  width: ${(props) => (props.fullwidth ? "100%" : "auto")};
   button {
     width: 100%;
     height: 48px;
@@ -158,19 +158,21 @@ const StyledClerkButton = styled.div`
     transition: all 0.3s ease !important;
     box-shadow: ${(props) =>
       props.primary
-        ? "0 4px 14px rgba(99, 102, 241, 0.4)"
-        : " 0 6px 20px rgba(99, 102, 241, 0.4)"} !important;
-
-    /* Override Clerk's default styles */
-
+        ? `0 4px 14px ${props.theme.primary}44`
+        : `0 6px 20px ${props.theme.primary}22`} !important;
+    background: ${(props) =>
+      props.primary ? props.theme.gradient : props.theme.surface};
+    color: ${(props) => (props.primary ? "#fff" : props.theme.text)};
+    border: 1.5px solid ${(props) => props.theme.primary};
+    cursor: pointer;
     &:hover {
-      transform: translateY(-2px) !important;
-      box-shadow: ${(props) =>
-        props.primary && "0 6px 20px rgba(99, 102, 241, 0.5)"} !important;
+      transform: translateY(-2px) scale(1.03) !important;
+      box-shadow: 0 8px 24px ${(props) => props.theme.primary}55 !important;
+      background: ${(props) => props.theme.primary};
+      color: #fff;
     }
-
     &:active {
-      transform: translateY(0) !important;
+      transform: translateY(0) scale(0.98) !important;
     }
   }
 `;
@@ -204,9 +206,62 @@ const contentVariants = {
   visible: { opacity: 1, y: 0, transition: { type: "spring", damping: 25 } },
 };
 
+const UserInfoSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 1.5rem;
+`;
+const UserAvatar = styled.div`
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: ${({ theme }) => theme.gradient};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #fff;
+  box-shadow: 0 2px 8px ${({ theme }) => theme.primary}33;
+  overflow: hidden;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+`;
+const UserName = styled.div`
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text};
+`;
+const UserEmail = styled.div`
+  font-size: 0.98rem;
+  color: ${({ theme }) => theme.text}bb;
+  word-break: break-all;
+`;
+const GradientAccent = styled.div`
+  width: 100%;
+  height: 8px;
+  background: ${({ theme }) => theme.gradient};
+  border-radius: 8px 8px 0 0;
+  margin-bottom: 1.5rem;
+`;
+
 // Main component
 const PopupCard = ({ onClose, title, description, children }) => {
-  const { loginWithRedirect, logout, isAuthenticated, isLoading } = useAuth0();
+  const { loginWithRedirect, logout, isAuthenticated, isLoading, user } =
+    useAuth0();
+  // Helper for avatar fallback
+  const getInitials = (name) => {
+    if (!name) return "?";
+    const parts = name.split(" ");
+    return parts.length === 1
+      ? parts[0][0].toUpperCase()
+      : (parts[0][0] + parts[1][0]).toUpperCase();
+  };
   return (
     <AnimatePresence>
       {
@@ -224,21 +279,32 @@ const PopupCard = ({ onClose, title, description, children }) => {
             exit="exit"
             onClick={(e) => e.stopPropagation()}
           >
+            <GradientAccent />
             <CloseButton onClick={() => onClose()} />
             <CardHeader as={motion.div} variants={contentVariants}>
               <Decoration className="accent-line" />
               <CardTitle>{title}</CardTitle>
-
               <CardDescription>{description}</CardDescription>
             </CardHeader>
-
+            {/* User Info Section */}
+            {isAuthenticated && user && (
+              <UserInfoSection>
+                <UserAvatar>
+                  {user.picture ? (
+                    <img src={user.picture} alt={user.name} />
+                  ) : (
+                    getInitials(user.name)
+                  )}
+                </UserAvatar>
+                <UserName>{user.name}</UserName>
+                <UserEmail>{user.email}</UserEmail>
+              </UserInfoSection>
+            )}
             <CardContent as={motion.div} variants={contentVariants}>
               {children}
-
               <ButtonGroup as={motion.div} variants={contentVariants}>
                 {!isLoading && !isAuthenticated ? (
-                  <StyledClerkButton primary fullWidth>
-                    {/* <SignInButton /> */}
+                  <StyledClerkButton primary fullwidth>
                     <button
                       onClick={() => {
                         loginWithRedirect();
@@ -248,8 +314,7 @@ const PopupCard = ({ onClose, title, description, children }) => {
                     </button>
                   </StyledClerkButton>
                 ) : (
-                  <StyledClerkButton fullWidth>
-                    {/* <SignUpButton /> */}
+                  <StyledClerkButton fullwidth>
                     <button
                       onClick={() =>
                         logout({

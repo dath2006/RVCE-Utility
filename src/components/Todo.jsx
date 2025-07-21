@@ -60,8 +60,8 @@ function Todo() {
         </h1>
         {todos.length > 0 && (
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whilehover={{ scale: 1.05 }}
+            whiletap={{ scale: 0.95 }}
             onClick={clearAll}
             className="flex items-center gap-2 px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors text-sm sm:text-base"
           >
@@ -82,8 +82,8 @@ function Todo() {
             className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-indigo-400 font-inter text-gray-700 text-sm sm:text-base"
           />
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whilehover={{ scale: 1.05 }}
+            whiletap={{ scale: 0.95 }}
             className="bg-indigo-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl flex items-center justify-center gap-2 font-medium hover:bg-indigo-700 transition-colors text-sm sm:text-base whitespace-nowrap"
           >
             <PlusCircle size={18} className="sm:w-5 sm:h-5" />
@@ -105,11 +105,11 @@ function Todo() {
             >
               <motion.div
                 className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0"
-                whileHover={{ x: 10 }}
+                whilehover={{ x: 10 }}
               >
                 <motion.button
-                  whileHover={{ scale: 1.2 }}
-                  whileTap={{ scale: 0.9 }}
+                  whilehover={{ scale: 1.2 }}
+                  whiletap={{ scale: 0.9 }}
                   onClick={() => toggleTodo(todo.id)}
                   className="flex-shrink-0"
                 >
@@ -130,8 +130,8 @@ function Todo() {
                 </span>
               </motion.div>
               <motion.button
-                whileHover={{ scale: 1.2, rotate: 90 }}
-                whileTap={{ scale: 0.9 }}
+                whilehover={{ scale: 1.2, rotate: 90 }}
+                whiletap={{ scale: 0.9 }}
                 onClick={() => deleteTodo(todo.id)}
                 className="text-red-500 hover:text-red-600 flex-shrink-0"
               >

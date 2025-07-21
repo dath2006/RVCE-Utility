@@ -347,7 +347,8 @@ const Statistics = () => {
   const theme = useTheme();
   const isSmallMobile = useMediaQuery("(max-width:480px)");
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isAuthenticated, isLoading, getAccessTokenSilently } =
+    useAuth0();
   const [attendanceData, setAttendanceData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [expandedSubject, setExpandedSubject] = useState(null);
@@ -387,10 +388,16 @@ const Statistics = () => {
 
   const handleGetStats = async () => {
     try {
+      const token = await getAccessTokenSilently();
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/attendance/statistics?email=${
           user.email
-        }`
+        }`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       if (res.data.success) {
         return res.data.data;
@@ -409,12 +416,18 @@ const Statistics = () => {
     try {
       setLoading(true); // Use the existing loading state
       if (!isLoading && isAuthenticated) {
+        const token = await getAccessTokenSilently();
         const res = await axios.post(
           `${import.meta.env.VITE_API_URL}/attendance/updatePercent`, // Fixed the backtick
           {
             email: user.email,
             courseId,
             percentage: customMinAttendance[courseId],
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
 

@@ -13,12 +13,12 @@ const FloatingDrawer = ({ setShowWorkspace, isOpen, setIsOpen }) => {
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
   return (
-    <div className="fixed left-8 bottom-24 z-50">
+    <div className="fixed left-3 bottom-24 z-50">
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
         className="relative w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-shadow duration-300"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whilehover={{ scale: 1.05 }}
+        whiletap={{ scale: 0.95 }}
       >
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
@@ -55,8 +55,8 @@ const FloatingDrawer = ({ setShowWorkspace, isOpen, setIsOpen }) => {
                 >
                   <motion.div
                     className="relative flex items-center"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whilehover={{ scale: 1.05 }}
+                    whiletap={{ scale: 0.95 }}
                   >
                     <motion.button
                       className={`w-12 h-12 bg-white/10 backdrop-blur-lg rounded-full flex items-center justify-center border border-white/20 shadow-lg hover:shadow-xl hover:border-white/30 transition-all duration-200`}

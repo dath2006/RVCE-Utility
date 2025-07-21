@@ -131,7 +131,8 @@ const LoadingSpinner = styled.div`
 function TimeTable() {
   const [timetable, setTimeTable] = useState();
   const [timeSlots, setTimeSlots] = useState([]);
-  const { user, isLoading, isAuthenticated } = useAuth0();
+  const { user, isLoading, isAuthenticated, getAccessTokenSilently } =
+    useAuth0();
   const [loading, setLoading] = useState(false);
   const [timeSlotMatrix, setTimeSlotMatrix] = useState([]);
   const days = ["Time", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -150,8 +151,14 @@ function TimeTable() {
     try {
       if (!isLoading && isAuthenticated) {
         setLoading(true);
+        const token = await getAccessTokenSilently();
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/timetable?email=${user.email}`
+          `${import.meta.env.VITE_API_URL}/timetable?email=${user.email}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
 
         if (res.data.timeTable) {

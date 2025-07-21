@@ -465,7 +465,8 @@ const ImportTimeTable = ({
   const [attendancePercent, setAttendancePercent] = useState(85);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isValid, setIsValid] = useState(false);
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isAuthenticated, isLoading, getAccessTokenSilently } =
+    useAuth0();
   const [selectedDept, setSelectedDept] = useState(null);
 
   // Validate form
@@ -505,6 +506,7 @@ const ImportTimeTable = ({
     try {
       if (!isLoading && isAuthenticated) {
         setIsSubmitting(true);
+        const token = await getAccessTokenSilently();
         const res = await axios.post(
           `${import.meta.env.VITE_API_URL}/attendance/initialize`,
           {
@@ -517,6 +519,11 @@ const ImportTimeTable = ({
               courseStart: new Date("2025-03-17"),
               courseEnd: new Date("2025-07-12"),
               minAttendance: attendancePercent,
+            },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
             },
           }
         );
@@ -550,8 +557,8 @@ const ImportTimeTable = ({
             <TabOption
               active={activeTab === "import"}
               onClick={() => setActiveTab("import")}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whilehover={{ scale: 1.02 }}
+              whiletap={{ scale: 0.98 }}
             >
               <TabIcon>
                 <ImportIcon />
@@ -561,8 +568,8 @@ const ImportTimeTable = ({
             <TabOption
               active={activeTab === "create"}
               onClick={() => setActiveTab("create")}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whilehover={{ scale: 1.02 }}
+              whiletap={{ scale: 0.98 }}
             >
               <TabIcon>
                 <CreateIcon />
@@ -584,8 +591,8 @@ const ImportTimeTable = ({
                   <WarningNote>
                     <WarningIcon />
                     <span>
-                      Note: Import attendance feature is only available for 2nd
-                      semester students.
+                      Note: Await for the new semester to start. (the prev.
+                      import feature was available for 2nd sem.)
                     </span>
                   </WarningNote>
                   <SectionTitle>Select Department & Section</SectionTitle>
@@ -642,8 +649,8 @@ const ImportTimeTable = ({
                     setting schedules, and configuring attendance policies.
                   </CreateDescription>
                   <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whilehover={{ scale: 1.05 }}
+                    whiletap={{ scale: 0.95 }}
                   >
                     <PrimaryButton
                       onClick={() => {
@@ -668,16 +675,16 @@ const ImportTimeTable = ({
                   setSect("");
                   setAttendancePercent(85);
                 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whilehover={{ scale: 1.02 }}
+                whiletap={{ scale: 0.98 }}
               >
                 Reset
               </SecondaryButton>
               <PrimaryButton
                 disabled={!isValid || isSubmitting}
                 onClick={handleSubmit}
-                whileHover={{ scale: isValid && !isSubmitting ? 1.02 : 1 }}
-                whileTap={{ scale: isValid && !isSubmitting ? 0.98 : 1 }}
+                whilehover={{ scale: isValid && !isSubmitting ? 1.02 : 1 }}
+                whiletap={{ scale: isValid && !isSubmitting ? 0.98 : 1 }}
               >
                 {isSubmitting ? "Processing..." : "Import Timetable"}
               </PrimaryButton>

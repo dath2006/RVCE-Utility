@@ -1,61 +1,74 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import styled from "styled-components";
 import FileExplorer from "./FileExplorer";
 import BreadCrumbs from "./BreadCrumbs";
 import SearchBar from "./SearchBar";
 import searchFiles from "../../hooks/searchFiles";
 import { motion } from "framer-motion";
-import folderHierarchy from "../../data/folderHierarchy.json";
 import searchFolderStructure from "../../hooks/searchFolders";
 import FloatingFilterButton from "../../components/FloatingFilterButton";
 import SelectionPopup from "../../components/SelectionPopup";
+import { WindowProvider } from "../../components/FileViewer/WindowContext";
+import WaveLoader from "../../components/Loading";
+import axios from "axios";
+import { FilterList } from "@mui/icons-material";
 
 const Container = styled.div`
-  padding: 2rem;
+  padding: 0;
   height: 100%;
   display: flex;
   flex-direction: column;
-  @media (max-width: 768px) {
-    padding: 1rem;
-  }
 `;
 
 const Header = styled.div`
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  position: absolute;
+  position: sticky;
   top: 70px;
-  left: 0;
-  right: 0;
+  width: 100vw;
+  left: unset;
+  right: unset;
   background: ${(props) => props.theme.background};
-  padding: 1rem 2rem;
+  padding: 0.75rem 1.25rem;
   z-index: 10;
   background: rgba(255, 248, 248, 0.07);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(7.8px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 
   @media (max-width: 768px) {
+    padding: 0.5rem 0.5rem;
+    gap: 0.5rem;
+    top: 75px;
+  }
+
+  @media (max-width: 501px) {
+    padding: 0.5rem 0.5rem;
+    gap: 0.5rem;
     top: 60px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-    padding: 1rem;
   }
 `;
 
 const ScrollableContainer = styled.div`
-  margin-top: 9rem;
+  margin-top: 5.5rem;
   overflow-y: auto;
-  @media (max-width: 768px) {
-    overflow-y: auto;
-    margin-top: 15rem;
+  padding: 1rem;
+  @media (max-width: 601px) {
+    margin-top: 5rem;
+    padding: 1rem;
+  }
+
+  @media (max-width: 501px) {
+    margin-top: 4rem;
+    padding: 0 0.6rem;
   }
 `;
 
 const BreadcrumbsContainer = styled.div`
+  flex: 1 1 0%;
+  min-width: 0;
   @media (max-width: 768px) {
     font-size: 0.9rem;
     width: 100%;
@@ -70,9 +83,9 @@ const BreadcrumbsContainer = styled.div`
 `;
 
 const SearchContainer = styled.div`
-  @media (max-width: 768px) {
-    width: 100%;
-  }
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
 `;
 
 const NoResultsMessage = styled(motion.div)`
@@ -83,33 +96,38 @@ const NoResultsMessage = styled(motion.div)`
   opacity: 0.7;
 `;
 
-const Resources = ({ setDisableWorkSpace }) => {
+const LoadingSpinner = styled(motion.div)`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+`;
+
+const Resources = ({ screenSize, setDisableWorkSpace }) => {
   const [currentPath, setCurrentPath] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredFiles, setFilteredFiles] = useState([]);
-  const [filteredFolders, setFilteredFolders] = useState(folderHierarchy);
+  const [filteredFolders, setFilteredFolders] = useState([]);
+  const [jsonData, setJsonData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState(() => {
     const saved = localStorage.getItem("filters");
     return saved ? JSON.parse(saved) : null;
   });
   const [showFilterDialog, setShowFilterDialog] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  useEffect(() => {
-    const setShow = () => {
-      setDisableWorkSpace(false);
-    };
-    setShow();
-  }, []);
+  const handleShowFolders = useCallback(() => {
+    if (!jsonData || jsonData.length === 0) {
+      return;
+    }
+    if (!filters) {
+      setFilteredFolders(jsonData);
+      return;
+    }
 
-  useEffect(() => {
-    filters && handleShowFolders();
-    searchQuery &&
-      setFilteredFiles(() => [...searchFiles(searchQuery, filteredFolders)]);
-  }, [filters, searchQuery]);
-
-  const handleShowFolders = () => {
+    let arr = [];
     if (filters.cycle === "C - Cycle") {
-      let arr = [];
       [
         "Question Papers",
         "Chemistry (22CHY12A)",
@@ -119,12 +137,14 @@ const Resources = ({ setDisableWorkSpace }) => {
         "Maths (22MA11C)",
         filters.selectedESC,
         filters.selectedPLC,
-      ].map((sub) => {
-        searchFolderStructure(sub).map((data) => arr.push(data));
+      ].forEach((sub) => {
+        if (sub) {
+          searchFolderStructure(sub, jsonData).forEach((data) =>
+            arr.push(data)
+          );
+        }
       });
-      setFilteredFolders(() => [...arr]);
     } else {
-      let arr = [];
       [
         "Mechanical Engineering",
         "Basic Electronics",
@@ -135,59 +155,139 @@ const Resources = ({ setDisableWorkSpace }) => {
         filters.selectedETC,
         filters.selectedKannada,
         filters.selectedESC,
-      ].map((sub) => {
-        searchFolderStructure(sub).map((data) => arr.push(data));
+      ].forEach((sub) => {
+        if (sub) {
+          searchFolderStructure(sub, jsonData).forEach((data) =>
+            arr.push(data)
+          );
+        }
       });
-      setFilteredFolders(() => [...arr]);
     }
-  };
+    setFilteredFolders(arr);
+  }, [jsonData, filters]);
 
-  return (
-    <Container>
-      <div>
-        <Header>
-          <BreadcrumbsContainer>
-            <BreadCrumbs path={currentPath} onNavigate={setCurrentPath} />
-          </BreadcrumbsContainer>
-          <SearchContainer>
-            <SearchBar value={searchQuery} onChange={setSearchQuery} />
-          </SearchContainer>
-        </Header>
+  useEffect(() => {
+    const setShow = () => {
+      setDisableWorkSpace(false);
+    };
+    setShow();
+    getFiles();
+  }, []);
 
-        <ScrollableContainer>
-          {searchQuery && filteredFiles.length === 0 ? (
-            <NoResultsMessage
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              No files found for "{searchQuery}"
-            </NoResultsMessage>
-          ) : (
-            <FileExplorer
-              currentPath={currentPath}
-              searchQuery={searchQuery}
-              filteredFiles={filteredFiles}
-              onPathChange={setCurrentPath}
-              rootFolders={filteredFolders}
-            />
-          )}
-        </ScrollableContainer>
-      </div>
-      <FloatingFilterButton onClick={() => setShowFilterDialog(true)} />
-      {showFilterDialog && (
-        <SelectionPopup
-          filters={filters}
-          setFilters={setFilters}
-          onClose={() => setShowFilterDialog(false)}
-          onSubmit={(selectedFilters) => {
-            setFilters(selectedFilters);
-            localStorage.setItem("filters", JSON.stringify(selectedFilters));
-            setShowFilterDialog(false);
-          }}
-        />
-      )}
-    </Container>
+  useEffect(() => {
+    handleShowFolders();
+  }, [filters, jsonData, handleShowFolders]);
+
+  useEffect(() => {
+    if (searchQuery) {
+      setFilteredFiles([...searchFiles(searchQuery, jsonData)]);
+    } else {
+      setFilteredFiles([]);
+    }
+  }, [searchQuery, jsonData]);
+
+  async function getFiles() {
+    setLoading(true);
+
+    try {
+      const res = await axios.get(import.meta.env.VITE_FILES_URL);
+      const data = res.data;
+
+      setJsonData(data);
+    } catch (error) {
+      console.error("Error fetching files:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return loading ? (
+    <LoadingSpinner>
+      <WaveLoader
+        size="7em"
+        primaryColor="hsl(220,90%,50%)"
+        secondaryColor="hsl(300,90%,50%)"
+      />
+    </LoadingSpinner>
+  ) : (
+    <WindowProvider>
+      <Container>
+        <div>
+          <Header>
+            <BreadcrumbsContainer>
+              <BreadCrumbs path={currentPath} onNavigate={setCurrentPath} />
+            </BreadcrumbsContainer>
+            <SearchContainer>
+              <SearchBar value={searchQuery} onChange={setSearchQuery} />
+            </SearchContainer>
+          </Header>
+
+          <ScrollableContainer>
+            {searchQuery && filteredFiles.length === 0 ? (
+              <NoResultsMessage
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                No files found for "{searchQuery}"
+              </NoResultsMessage>
+            ) : (
+              <FileExplorer
+                key={refreshKey}
+                currentPath={currentPath}
+                searchQuery={searchQuery}
+                filteredFiles={filteredFiles}
+                onPathChange={setCurrentPath}
+                rootFolders={filteredFolders}
+              />
+            )}
+          </ScrollableContainer>
+        </div>
+        {screenSize >= 925 && (
+          <FloatingFilterButton onClick={() => setShowFilterDialog(true)} />
+        )}
+
+        {screenSize < 925 && !loading && (
+          <button
+            onClick={() => setShowFilterDialog(true)}
+            style={{
+              position: "fixed",
+              top: 140,
+              right: -15,
+              zIndex: 30,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              background: "#e0e7ff", // Tailwind bg-indigo-100
+              color: "#4f46e5", // Tailwind text-indigo-600
+              border: "none",
+              borderRadius: "100px 0 0 100px",
+              boxShadow: "0 2px 12px 0 rgba(0,0,0,0.10)",
+              padding: "0.4rem 0.7rem 0.4rem 0.7rem",
+              fontWeight: 500,
+              fontSize: "0.95rem",
+              cursor: "pointer",
+            }}
+          >
+            <FilterList size={20} style={{ marginRight: 7 }} />
+          </button>
+        )}
+
+        {showFilterDialog && (
+          <SelectionPopup
+            filters={filters}
+            setFilters={setFilters}
+            onClose={() => setShowFilterDialog(false)}
+            onSubmit={(selectedFilters) => {
+              setFilters(selectedFilters);
+              localStorage.setItem("filters", JSON.stringify(selectedFilters));
+              setShowFilterDialog(false);
+              setRefreshKey((k) => k + 1);
+            }}
+          />
+        )}
+      </Container>
+    </WindowProvider>
   );
 };
 

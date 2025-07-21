@@ -6,6 +6,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import FileViewer from "../../components/FileViewer";
 import { CheckCircle } from "@mui/icons-material";
+import { useWindowContext } from "../../components/FileViewer/WindowContext";
+import WindowManager from "../../components/FileViewer/WindowManager";
 
 const DownloadStatus = styled(motion.div)`
   position: fixed;
@@ -33,6 +35,18 @@ const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 1rem;
+  padding-bottom: 5.5rem; /* Prevent bottom bar overlay */
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    padding-bottom: 6.5rem;
+  }
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding-bottom: 7.5rem;
+  }
 `;
 
 const Toast = styled(motion.div)`
@@ -64,7 +78,18 @@ const FileExplorer = ({
     return saved ? JSON.parse(saved) : [];
   });
   const [viewerFile, setViewerFile] = useState(null);
+  const [showViewer, setShowViewer] = useState(() => {
+    const saved = localStorage.getItem("windows");
+    return saved ? true : false;
+  });
   const [showToast, setShowToast] = useState(false);
+  const { addWindow, getAllWindowsId, setWindows } = useWindowContext();
+
+  let isMobile = false;
+
+  if ("ontouchstart" in window) {
+    isMobile = true;
+  }
 
   useEffect(() => {
     let timeoutId;
@@ -85,6 +110,9 @@ const FileExplorer = ({
   const getCurrentFolder = () => {
     if (searchQuery) return filteredFiles;
     let current = rootFolders;
+    if (!current) {
+      return [];
+    }
     for (const path of currentPath) {
       current = current.find((item) => item.name === path)?.children || [];
     }
@@ -113,7 +141,20 @@ const FileExplorer = ({
   };
 
   const onView = (item) => {
+    if (getAllWindowsId().includes(item.id)) {
+      setWindows((prev) =>
+        prev.map((window) => {
+          if (window.contentId === item.id) {
+            return { ...window, state: "normal", isActive: true };
+          }
+          return window;
+        })
+      );
+      return;
+    }
     setViewerFile(item);
+    setShowViewer(true);
+    addWindow(item.name || "New Document", item.webViewLink, item.id);
   };
 
   const onDownload = async (item) => {
@@ -159,12 +200,13 @@ const FileExplorer = ({
       </Grid>
 
       <AnimatePresence>
-        {viewerFile && (
+        {viewerFile && isMobile && (
           <FileViewer
             url={viewerFile.webViewLink}
             onClose={() => setViewerFile(null)}
           />
         )}
+        {showViewer && !isMobile && <WindowManager />}
         {downloadStatus && (
           <DownloadStatus
             initial={{ opacity: 0, y: 50 }}

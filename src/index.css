@@ -77,3 +77,58 @@ body {
 .scale-100 {
   transform: scale(1.03);
 }
+
+:root {
+  --split-position: 50%;
+}
+
+/* Cursor styles */
+.cursor-col-resize {
+  cursor: col-resize !important;
+}
+
+.cursor-grabbing {
+  cursor: grabbing !important;
+}
+
+/* Prevent text selection during drag/resize operations */
+.select-none {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Split view resizing */
+.split-resize-handle {
+  @apply absolute top-0 bottom-0 w-1 bg-gray-200 hover:bg-blue-400 
+         hover:w-2 transition-all duration-150 ease-out cursor-col-resize z-50;
+}
+
+.split-resize-handle.left {
+  @apply -right-0.5 transform translate-x-1/2;
+}
+
+.split-resize-handle.right {
+  @apply -left-0.5 transform -translate-x-1/2;
+}
+
+/* Window transitions */
+.window-transition {
+  transition: width 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    height 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Resize handle styles */
+.resize-handle {
+  position: absolute;
+  background: transparent;
+  transition: background-color 0.2s;
+}
+
+.resize-handle:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.resize-handle:active {
+  background-color: rgba(59, 130, 246, 0.2);
+}
