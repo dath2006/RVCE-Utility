@@ -45,7 +45,7 @@ const BottomBar = styled(motion.div)`
   right: 0;
   bottom: 0;
   width: 100vw;
-  z-index: 99;
+  z-index: 50;
   display: flex;
   height: calc(4rem + env(safe-area-inset-bottom));
   min-height: 56px;
