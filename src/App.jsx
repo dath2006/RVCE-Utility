@@ -359,12 +359,11 @@ function App() {
                     path="/contribute"
                     element={
                       <>
-                        {/* {!isLoading && isAuthenticated && (
+                        {!isLoading && isAuthenticated && (
                           <MainContribution
                             setDisableWorkSpace={setDisableWorkSpace}
                           />
-                        )} */}
-                        <div>Contribution System Paused</div>
+                        )}
                       </>
                     }
                   />
