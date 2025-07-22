@@ -166,22 +166,22 @@ const LoadingSpinner = styled.div`
   }
 `;
 
-// Replace BottomBar definition with the one from Attendance.jsx
 const BottomBar = styled(motion.div)`
   backdrop-filter: blur(21px) saturate(180%);
   -webkit-backdrop-filter: blur(21px) saturate(180%);
   background-color: ${(props) => props.theme.glassbgc};
   position: fixed;
-  bottom: 0;
   left: 0;
   right: 0;
+  bottom: 0;
+  width: 100vw;
   z-index: 99;
   display: flex;
   height: 4rem;
   align-items: center;
   justify-content: space-around;
-  border-radius: 2rem 2rem 0 0;
   box-shadow: 0 -2px 16px 0 rgba(0, 0, 0, 0.12);
+  padding-bottom: env(safe-area-inset-bottom);
   @media (min-width: 925px) {
     display: none;
   }
@@ -433,11 +433,13 @@ const Navigation = ({
           initial={{ y: 80, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 80, opacity: 0 }}
-          style={{
-            padding: "0.25rem 0.1rem",
-            borderRadius: "2rem",
-            width: "auto",
-          }}
+          style={
+            {
+              // padding: "0.25rem 0.1rem",
+              // borderRadius: "2rem",
+              // width: "auto",
+            }
+          }
         >
           {navItems.map((item, idx) => {
             // Attendance is only for authenticated users
