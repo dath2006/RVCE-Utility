@@ -43,7 +43,8 @@ const BottomBar = styled(motion.div)`
   width: 100vw;
   z-index: 99;
   display: flex;
-  height: 4rem;
+  height: calc(4rem + env(safe-area-inset-bottom));
+  min-height: 56px;
   align-items: center;
   justify-content: space-around;
   // border-radius: 2rem 2rem 0 0;

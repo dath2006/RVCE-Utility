@@ -4,6 +4,13 @@ import "./index.css";
 import App from "./App.jsx";
 import { Auth0Provider } from "@auth0/auth0-react";
 
+function setAppHeight() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty("--app-vh", `${vh}px`);
+}
+window.addEventListener("resize", setAppHeight);
+setAppHeight();
+
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     window.location.reload();
