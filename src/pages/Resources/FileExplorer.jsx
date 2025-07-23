@@ -79,10 +79,10 @@ const FileExplorer = ({
   });
   const [viewerFile, setViewerFile] = useState(null);
   const [viewerModalId, setViewerModalId] = useState(0); // robust modal remount
-  const [showViewer, setShowViewer] = useState(() => {
-    const saved = localStorage.getItem("windows");
-    return saved ? true : false;
-  });
+
+  // Initialize showViewer to false to prevent flash on mobile
+  const [showViewer, setShowViewer] = useState(false);
+
   const [showToast, setShowToast] = useState(false);
   const [activeCardId, setActiveCardId] = useState(null); // Only one card active
   const { addWindow, getAllWindowsId, setWindows } = useWindowContext();
@@ -101,6 +101,14 @@ const FileExplorer = ({
           ) ||
           window.innerWidth <= 768);
       setIsMobile(mobile);
+
+      // Only set showViewer to true if not mobile and there are saved windows
+      if (!mobile) {
+        const saved = localStorage.getItem("windows");
+        if (saved) {
+          setShowViewer(true);
+        }
+      }
     };
 
     checkIsMobile();
@@ -241,7 +249,7 @@ const FileExplorer = ({
           />
         )}
 
-        {/* Desktop WindowManager */}
+        {/* Desktop WindowManager - only show if not mobile */}
         {!isMobile && showViewer && <WindowManager />}
 
         {downloadStatus && (
