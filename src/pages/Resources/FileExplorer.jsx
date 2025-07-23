@@ -78,18 +78,36 @@ const FileExplorer = ({
     return saved ? JSON.parse(saved) : [];
   });
   const [viewerFile, setViewerFile] = useState(null);
+  const [viewerModalId, setViewerModalId] = useState(0); // robust modal remount
   const [showViewer, setShowViewer] = useState(() => {
     const saved = localStorage.getItem("windows");
     return saved ? true : false;
   });
   const [showToast, setShowToast] = useState(false);
+  const [activeCardId, setActiveCardId] = useState(null); // Only one card active
   const { addWindow, getAllWindowsId, setWindows } = useWindowContext();
 
-  let isMobile = false;
+  // Better mobile detection with state
+  const [isMobile, setIsMobile] = useState(false);
 
-  if ("ontouchstart" in window) {
-    isMobile = true;
-  }
+  useEffect(() => {
+    const checkIsMobile = () => {
+      const mobile =
+        typeof window !== "undefined" &&
+        ("ontouchstart" in window ||
+          navigator.maxTouchPoints > 0 ||
+          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent
+          ) ||
+          window.innerWidth <= 768);
+      setIsMobile(mobile);
+    };
+
+    checkIsMobile();
+    window.addEventListener("resize", checkIsMobile);
+
+    return () => window.removeEventListener("resize", checkIsMobile);
+  }, []);
 
   useEffect(() => {
     let timeoutId;
@@ -141,7 +159,7 @@ const FileExplorer = ({
   };
 
   const onView = (item) => {
-    if (getAllWindowsId().includes(item.id)) {
+    if (!isMobile && getAllWindowsId().includes(item.id)) {
       setWindows((prev) =>
         prev.map((window) => {
           if (window.contentId === item.id) {
@@ -152,9 +170,17 @@ const FileExplorer = ({
       );
       return;
     }
-    setViewerFile(item);
-    setShowViewer(true);
-    addWindow(item.name || "New Document", item.webViewLink, item.id);
+
+    // For mobile, use FileViewer modal
+    if (isMobile) {
+      // Direct state update without setTimeout
+      setViewerModalId((id) => id + 1);
+      setViewerFile(item);
+    } else {
+      // For desktop, use WindowManager
+      setShowViewer(true);
+      addWindow(item.name || "New Document", item.webViewLink, item.id);
+    }
   };
 
   const onDownload = async (item) => {
@@ -184,6 +210,10 @@ const FileExplorer = ({
     }
   };
 
+  const handleCloseViewer = () => {
+    setViewerFile(null);
+  };
+
   return (
     <>
       <Grid>
@@ -195,18 +225,25 @@ const FileExplorer = ({
             onAddToWorkspace={onAddToWorkspace}
             onDownload={() => onDownload(item)}
             onView={onView}
+            activeCardId={activeCardId}
+            setActiveCardId={setActiveCardId}
           />
         ))}
       </Grid>
 
       <AnimatePresence>
-        {viewerFile && isMobile && (
+        {/* Mobile FileViewer */}
+        {isMobile && viewerFile && viewerFile.webViewLink && (
           <FileViewer
+            key={`mobile-${viewerFile.id}-${viewerModalId}`}
             url={viewerFile.webViewLink}
-            onClose={() => setViewerFile(null)}
+            onClose={handleCloseViewer}
           />
         )}
-        {showViewer && !isMobile && <WindowManager />}
+
+        {/* Desktop WindowManager */}
+        {!isMobile && showViewer && <WindowManager />}
+
         {downloadStatus && (
           <DownloadStatus
             initial={{ opacity: 0, y: 50 }}

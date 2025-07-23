@@ -80,25 +80,50 @@ const FileCard = ({
   onAddToWorkspace,
   onView,
   onDownload,
+  activeCardId,
+  setActiveCardId,
 }) => {
-  const [showActions, setShowActions] = useState(false);
   const isFolder = item.mimeType === "application/vnd.google-apps.folder";
 
-  const handleClick = () => {
+  // Mobile detection
+  const isMobile = typeof window !== "undefined" && "ontouchstart" in window;
+
+  const showActions = activeCardId === item.id;
+
+  const handleClick = (e) => {
     if (isFolder) {
       onNavigate();
     } else {
-      setShowActions(true);
+      if (isMobile) {
+        setActiveCardId(showActions ? null : item.id);
+      } else {
+        setActiveCardId(item.id);
+      }
     }
   };
 
+  // Close overlay on mobile if user taps outside the overlay
+  React.useEffect(() => {
+    if (!isMobile || !showActions) return;
+    const handleTouch = (e) => {
+      if (!e.target.closest(".file-card-action-area")) {
+        setActiveCardId(null);
+      }
+    };
+    document.addEventListener("touchstart", handleTouch);
+    return () => document.removeEventListener("touchstart", handleTouch);
+  }, [isMobile, showActions, setActiveCardId]);
+
   return (
     <Card
-      whilehover={{ scale: 1.02 }}
+      className="file-card-action-area"
+      whilehover={!isMobile ? { scale: 1.02 } : undefined}
       whiletap={{ scale: 0.98 }}
       onClick={handleClick}
-      onMouseEnter={() => !isFolder && setShowActions(true)}
-      onMouseLeave={() => setShowActions(false)}
+      onMouseEnter={
+        !isMobile ? () => !isFolder && setActiveCardId(item.id) : undefined
+      }
+      onMouseLeave={!isMobile ? () => setActiveCardId(null) : undefined}
     >
       <Content isblurred={showActions}>
         {isFolder ? <Folder /> : <Description />}
@@ -107,9 +132,9 @@ const FileCard = ({
 
       {item.path && (
         <SubjectBadge>
-          {["ESC", "PLC", "ETC"].includes(item.path[0].split(" ")[0])
-            ? item.path[1]
-            : item.path[0]}
+          {["ESC", "PLC", "ETC"].includes(item.path[2].split(" ")[0])
+            ? item.path[3]
+            : item.path[2]}
         </SubjectBadge>
       )}
 
@@ -119,6 +144,7 @@ const FileCard = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            onClick={isMobile ? (e) => e.stopPropagation() : undefined}
           >
             <IconButton
               whilehover={{ scale: 1.1 }}
@@ -126,6 +152,7 @@ const FileCard = ({
               onClick={(e) => {
                 e.stopPropagation();
                 onAddToWorkspace(item);
+                if (isMobile) setActiveCardId(null);
               }}
             >
               <Add />
@@ -136,6 +163,7 @@ const FileCard = ({
               onClick={(e) => {
                 e.stopPropagation();
                 onView(item);
+                if (isMobile) setActiveCardId(null);
               }}
             >
               <Visibility />
@@ -146,6 +174,7 @@ const FileCard = ({
               onClick={(e) => {
                 e.stopPropagation();
                 onDownload(item);
+                if (isMobile) setActiveCardId(null);
               }}
             >
               <GetApp />
