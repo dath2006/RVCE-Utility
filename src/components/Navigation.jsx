@@ -9,10 +9,11 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import "./Navigation.css";
 import UtilityDropdown from "./UtilityDropdown";
-import { Home as HomeIcon, BookOpen, Users, CalendarCheck } from "lucide-react";
+import { Home, BookOpen, Users, CalendarCheck } from "lucide-react";
 import { FaToolbox } from "react-icons/fa";
 
-const Nav = styled.nav`
+// Only modified the Nav component to add auto-hide functionality
+const Nav = styled(motion.nav)`
   padding: 1rem 2rem;
   background: rgba(255, 248, 248, 0.07);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
@@ -23,6 +24,7 @@ const Nav = styled.nav`
   width: 100%;
   top: 0;
   z-index: 99;
+  will-change: transform;
   @media (max-width: 500px) {
     padding: 0.5rem 1rem;
   }
@@ -166,6 +168,7 @@ const LoadingSpinner = styled.div`
   }
 `;
 
+// Enhanced BottomBar with better mobile positioning
 const BottomBar = styled(motion.div)`
   backdrop-filter: blur(21px) saturate(180%);
   -webkit-backdrop-filter: blur(21px) saturate(180%);
@@ -183,10 +186,49 @@ const BottomBar = styled(motion.div)`
   justify-content: space-around;
   box-shadow: 0 -2px 16px 0 rgba(0, 0, 0, 0.12);
   padding-bottom: env(safe-area-inset-bottom);
+
+  /* Enhanced mobile fixes */
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+
+  @supports (-webkit-touch-callout: none) {
+    /* iOS Safari specific fixes */
+    position: -webkit-sticky;
+    position: sticky;
+    bottom: 0;
+  }
+
   @media (min-width: 925px) {
     display: none;
   }
 `;
+
+// Simple auto-hide hook - just what you need
+const useAutoHideNav = () => {
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY > 100 && currentScrollY > lastScrollY) {
+        // Scrolling down & past threshold
+        setIsVisible(false);
+      } else {
+        // Scrolling up or at top
+        setIsVisible(true);
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
+
+  return isVisible;
+};
 
 const Navigation = ({
   toggleTheme,
@@ -207,6 +249,9 @@ const Navigation = ({
   const currentPath = location.pathname;
 
   const dropdownRef = useRef(null);
+
+  // Only add the auto-hide functionality
+  const isNavVisible = useAutoHideNav();
 
   const letters = "Utility".split("");
   const reversedLetters = "Utility".split("").reverse();
@@ -244,7 +289,7 @@ const Navigation = ({
 
   // Define nav items for bottom bar
   const navItems = [
-    { to: "/", label: "Home", icon: HomeIcon },
+    { to: "/", label: "Home", icon: Home },
     { to: "/resources", label: "Resources", icon: BookOpen },
     { to: "/contributors", label: "Contribute", icon: Users },
     { to: "/attendance", label: "Attendance", icon: CalendarCheck, auth: true },
@@ -253,7 +298,11 @@ const Navigation = ({
 
   return (
     <>
-      <Nav>
+      <Nav
+        initial={{ y: 0 }}
+        animate={{ y: isNavVisible ? 0 : "-100%" }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+      >
         <NavContainer>
           <div className="flex items-center gap-2">
             <div className="content">
@@ -434,13 +483,6 @@ const Navigation = ({
           initial={{ y: 80, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 80, opacity: 0 }}
-          style={
-            {
-              // padding: "0.25rem 0.1rem",
-              // borderRadius: "2rem",
-              // width: "auto",
-            }
-          }
         >
           {navItems.map((item, idx) => {
             // Attendance is only for authenticated users
