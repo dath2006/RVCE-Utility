@@ -583,4 +583,4 @@ const Navigation = ({
   );
 };
 
-export { useBottomBarAutoHide, Navigation };
+export default Navigation;
