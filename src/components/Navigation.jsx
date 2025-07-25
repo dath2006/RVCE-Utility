@@ -12,8 +12,8 @@ import UtilityDropdown from "./UtilityDropdown";
 import { Home, BookOpen, Users, CalendarCheck } from "lucide-react";
 import { FaToolbox } from "react-icons/fa";
 
-// Only modified the Nav component to add auto-hide functionality
-const Nav = styled(motion.nav)`
+// Standard Nav component - no auto-hide
+const Nav = styled.nav`
   padding: 1rem 2rem;
   background: rgba(255, 248, 248, 0.07);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
@@ -24,7 +24,6 @@ const Nav = styled(motion.nav)`
   width: 100%;
   top: 0;
   z-index: 99;
-  will-change: transform;
   @media (max-width: 500px) {
     padding: 0.5rem 1rem;
   }
@@ -65,7 +64,6 @@ const NavLinks = styled.div`
     padding: 1rem;
     justify-content: center;
     z-index: 999;
-    // background: rgba(255, 248, 248, 0.07);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
     -webkit-backdrop-filter: blur(7.8px);
     border: 1px solid rgba(255, 248, 248, 0.12);
@@ -100,7 +98,6 @@ const IconButton = styled.button`
   background: none;
   border: none;
   color: ${(props) => props.theme.text};
-
   cursor: pointer;
   padding: 0.5rem;
   display: flex;
@@ -168,34 +165,38 @@ const LoadingSpinner = styled.div`
   }
 `;
 
-// Enhanced BottomBar with better mobile positioning
+// Bottom bar with auto-hide functionality matching HTML example exactly
 const BottomBar = styled(motion.div)`
   backdrop-filter: blur(21px) saturate(180%);
   -webkit-backdrop-filter: blur(21px) saturate(180%);
   background-color: ${(props) => props.theme.glassbgc};
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100vw;
+  left: 1rem; /* 16px margin from left */
+  right: 1rem; /* 16px margin from right */
+  bottom: 1.5rem; /* 24px from bottom - elevated look */
+  width: calc(100vw - 2rem); /* Full width minus left/right margins */
   z-index: 50;
   display: flex;
-  height: calc(4rem + env(safe-area-inset-bottom));
+  height: 3.5rem; /* Slightly smaller height for modern look */
   min-height: 56px;
   align-items: center;
   justify-content: space-around;
-  box-shadow: 0 -2px 16px 0 rgba(0, 0, 0, 0.12);
-  padding-bottom: env(safe-area-inset-bottom);
-
-  /* Enhanced mobile fixes */
-  transform: translate3d(0, 0, 0);
-  -webkit-transform: translate3d(0, 0, 0);
+  border-radius: 1.5rem; /* Rounded corners - 24px */
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2), 0 2px 16px 0 rgba(0, 0, 0, 0.12); /* Enhanced shadow */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border for glass effect */
+  padding: 0.5rem;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease; /* Smooth transition */
+  transform: ${(props) => {
+    return props.isHidden
+      ? "translate3d(0, calc(100% + 2rem), 0)"
+      : "translate3d(0, 0, 0)";
+  }};
+  opacity: ${(props) => (props.isHidden ? 0 : 1)};
 
   @supports (-webkit-touch-callout: none) {
-    /* iOS Safari specific fixes */
     position: -webkit-sticky;
     position: sticky;
-    bottom: 0;
+    bottom: 1.5rem;
   }
 
   @media (min-width: 925px) {
@@ -203,31 +204,87 @@ const BottomBar = styled(motion.div)`
   }
 `;
 
-// Simple auto-hide hook - just what you need
-const useAutoHideNav = () => {
-  const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+// Hook for bottom bar auto-hide - matches HTML logic exactly
+const useBottomBarAutoHide = () => {
+  const [isHidden, setIsHidden] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
+    let lastScroll = 0;
 
-      if (currentScrollY > 100 && currentScrollY > lastScrollY) {
-        // Scrolling down & past threshold
-        setIsVisible(false);
-      } else {
-        // Scrolling up or at top
-        setIsVisible(true);
+    const handleScroll = (e) => {
+      // Try different scroll sources
+      const currentScroll =
+        window.pageYOffset ||
+        document.documentElement.scrollTop ||
+        document.body.scrollTop ||
+        0;
+
+      // Also check if the scroll is from a container
+      const target = e?.target;
+      const containerScroll = target?.scrollTop || 0;
+
+      // Use whichever is greater
+      const scrollPos = Math.max(currentScroll, containerScroll);
+
+      if (scrollPos <= 0) {
+        setIsHidden(false);
+        lastScroll = 0;
+        return;
       }
 
-      setLastScrollY(currentScrollY);
+      if (scrollPos > lastScroll) {
+        setIsHidden(true);
+      } else if (scrollPos < lastScroll) {
+        setIsHidden(false);
+      }
+
+      lastScroll = scrollPos;
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
+    // Add a small delay to ensure DOM is ready
+    const setupListeners = () => {
+      // Listen to window scroll
+      window.addEventListener("scroll", handleScroll, { passive: true });
 
-  return isVisible;
+      // Listen to document scroll
+      document.addEventListener("scroll", handleScroll, { passive: true });
+
+      // Find and listen to the scrollable container
+      const scrollContainer = document.querySelector(".overflow-y-auto");
+      if (scrollContainer) {
+        scrollContainer.addEventListener("scroll", handleScroll, {
+          passive: true,
+        });
+      }
+
+      // Also try to find any Locomotive Scroll container
+      const locomotiveContainer = document.querySelector(
+        "[data-scroll-container]"
+      );
+      if (locomotiveContainer) {
+        locomotiveContainer.addEventListener("scroll", handleScroll, {
+          passive: true,
+        });
+      }
+
+      return { scrollContainer, locomotiveContainer };
+    };
+
+    const { scrollContainer, locomotiveContainer } = setupListeners();
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      document.removeEventListener("scroll", handleScroll);
+      if (scrollContainer) {
+        scrollContainer.removeEventListener("scroll", handleScroll);
+      }
+      if (locomotiveContainer) {
+        locomotiveContainer.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, []);
+
+  return isHidden;
 };
 
 const Navigation = ({
@@ -250,8 +307,8 @@ const Navigation = ({
 
   const dropdownRef = useRef(null);
 
-  // Only add the auto-hide functionality
-  const isNavVisible = useAutoHideNav();
+  // Initialize bottom bar auto-hide
+  const isBottomBarHidden = useBottomBarAutoHide();
 
   const letters = "Utility".split("");
   const reversedLetters = "Utility".split("").reverse();
@@ -262,7 +319,6 @@ const Navigation = ({
       if (localStorage.getItem("theme") !== "dark") {
         localStorage.setItem("theme", "dark");
         setIsDarkMode(true);
-        // Optionally, call toggleTheme if needed to update parent
         if (typeof toggleTheme === "function") toggleTheme("dark");
       } else {
         setIsDarkMode(true);
@@ -282,7 +338,7 @@ const Navigation = ({
   }, []);
 
   const handleThemeToggle = () => {
-    if (currentPath.startsWith("/contribute")) return; // Prevent toggle
+    if (currentPath.startsWith("/contribute")) return;
     setIsDarkMode(!isDarkMode);
     toggleTheme();
   };
@@ -298,11 +354,7 @@ const Navigation = ({
 
   return (
     <>
-      <Nav
-        initial={{ y: 0 }}
-        animate={{ y: isNavVisible ? 0 : "-100%" }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-      >
+      <Nav>
         <NavContainer>
           <div className="flex items-center gap-2">
             <div className="content">
@@ -383,14 +435,12 @@ const Navigation = ({
               GAMMA
             </BetaTag>
           </div>
-          {/* Hide NavLinks and hamburger on mobile */}
+
           <NavLinks
             isOpen={isMenuOpen}
             ref={mobileMenuRef}
             onClick={() => setIsMenuOpen(false)}
-            // style={{ display: "none" }}
           >
-            {/* NavLinks hidden on mobile, visible only on desktop via CSS */}
             <NavLink to="/">Home</NavLink>
             <NavLink to="/resources">Resources</NavLink>
             <NavLink to="/contributors">Contribute</NavLink>
@@ -406,6 +456,7 @@ const Navigation = ({
             </NavLink>
             <NavLink to="/essentials">Essentials</NavLink>
           </NavLinks>
+
           <div className="flex gap-1 sm:gap-4">
             <div className="flex items-center gap-3">
               {!isLoading ? (
@@ -464,7 +515,6 @@ const Navigation = ({
             >
               {isDarkMode ? <LightMode /> : <DarkMode />}
             </IconButton>
-            {/* Hide hamburger menu on mobile */}
             <MobileMenuButton
               style={{ display: "none" }}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -474,19 +524,14 @@ const Navigation = ({
           </div>
         </NavContainer>
       </Nav>
-      {/* BottomBar for mobile navigation, only show if not on /attendance or /contribute */}
+
+      {/* Bottom Bar with auto-hide - only show if not on /attendance or /contribute */}
       {!(
         currentPath.startsWith("/attendance") ||
         currentPath.startsWith("/contribute")
       ) && (
-        <BottomBar
-          initial={{ y: 80, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 80, opacity: 0 }}
-        >
+        <BottomBar isHidden={isBottomBarHidden}>
           {navItems.map((item, idx) => {
-            // Attendance is only for authenticated users
-            // if (item.auth && (!isAuthenticated || isLoading)) return null;
             const isActive =
               item.to === "/"
                 ? currentPath === "/"
@@ -538,4 +583,4 @@ const Navigation = ({
   );
 };
 
-export default Navigation;
+export { useBottomBarAutoHide, Navigation };

@@ -323,7 +323,11 @@ function App() {
                 isMenuOpen={isMobileMenuOpen}
                 mobileMenuRef={mobileMenuRef}
               />
-              <div className="flex-1 overflow-y-auto overflow-x-hidden">
+              <div
+                className="flex-1 overflow-y-auto overflow-x-hidden"
+                id="main-scroll-container"
+                data-scroll-container
+              >
                 <Routes>
                   <Route
                     path="/"

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   X,
   FilePlus,
@@ -37,19 +37,34 @@ const BottomBar = styled(motion.div)`
   -webkit-backdrop-filter: blur(21px) saturate(180%);
   background-color: ${(props) => props.theme.glassbgc};
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100vw;
+  left: 1rem; /* 16px margin from left */
+  right: 1rem; /* 16px margin from right */
+  bottom: 1.5rem; /* 24px from bottom - elevated look */
+  width: calc(100vw - 2rem); /* Full width minus left/right margins */
   z-index: 50;
   display: flex;
-  height: calc(4rem + env(safe-area-inset-bottom));
+  height: 3.5rem; /* Slightly smaller height for modern look */
   min-height: 56px;
   align-items: center;
   justify-content: space-around;
-  // border-radius: 2rem 2rem 0 0;
-  box-shadow: 0 -2px 16px 0 rgba(0, 0, 0, 0.12);
-  padding-bottom: env(safe-area-inset-bottom);
+  border-radius: 1.5rem; /* Rounded corners - 24px */
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2), 0 2px 16px 0 rgba(0, 0, 0, 0.12); /* Enhanced shadow */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border for glass effect */
+  padding: 0.5rem;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease; /* Smooth transition */
+  transform: ${(props) => {
+    return props.isHidden
+      ? "translate3d(0, calc(100% + 2rem), 0)"
+      : "translate3d(0, 0, 0)";
+  }};
+  opacity: ${(props) => (props.isHidden ? 0 : 1)};
+
+  @supports (-webkit-touch-callout: none) {
+    position: -webkit-sticky;
+    position: sticky;
+    bottom: 1.5rem;
+  }
+
   @media (min-width: 925px) {
     display: none;
   }
@@ -62,6 +77,103 @@ const LoadingSpinner = styled(motion.div)`
   min-height: 400px;
 `;
 
+const useBottomBarAutoHide = () => {
+  const [isHidden, setIsHidden] = useState(false);
+  const lastScrollRef = useRef(0);
+  const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    const handleScroll = (e) => {
+      let currentScroll = 0;
+
+      // Get scroll position from the event target
+      if (e && e.target) {
+        currentScroll = e.target.scrollTop || 0;
+      }
+
+      // At top - always show
+      if (currentScroll <= 10) {
+        setIsHidden(false);
+        lastScrollRef.current = currentScroll;
+        return;
+      }
+
+      // Check scroll direction with threshold
+      const scrollDiff = currentScroll - lastScrollRef.current;
+
+      if (Math.abs(scrollDiff) > 10) {
+        // 10px threshold
+        if (scrollDiff > 0) {
+          setIsHidden(true);
+        } else {
+          setIsHidden(false);
+        }
+        lastScrollRef.current = currentScroll;
+      }
+    };
+
+    // Function to find and attach to scroll containers
+    const attachScrollListeners = () => {
+      // Wait for DOM to be ready and find containers
+      const containers = [
+        // Try to find the main app scroll container
+        document.querySelector("div.flex-1.overflow-y-auto"),
+        document.querySelector(".overflow-y-auto"),
+        // Fallback to any scrollable container
+        ...document.querySelectorAll('[class*="overflow-y-auto"]'),
+        ...document.querySelectorAll('[class*="overflow-auto"]'),
+        // Last resort - document and window
+        document.documentElement,
+        document.body,
+      ].filter(Boolean);
+
+      const addedListeners = [];
+
+      containers.forEach((container, index) => {
+        const wrappedHandler = (e) => {
+          // Ensure we're handling the right container
+          if (e.target === container || container.contains(e.target)) {
+            handleScroll(e);
+          }
+        };
+
+        container.addEventListener("scroll", wrappedHandler, {
+          passive: true,
+          capture: false,
+        });
+
+        addedListeners.push({ container, handler: wrappedHandler });
+      });
+
+      return addedListeners;
+    };
+
+    // Delay to ensure DOM is ready
+    timeoutRef.current = setTimeout(() => {
+      const listeners = attachScrollListeners();
+
+      // Store for cleanup
+      window._bottomBarScrollListeners = listeners;
+    }, 500);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      // Cleanup listeners
+      if (window._bottomBarScrollListeners) {
+        window._bottomBarScrollListeners.forEach(({ container, handler }) => {
+          container.removeEventListener("scroll", handler);
+        });
+        delete window._bottomBarScrollListeners;
+      }
+    };
+  }, []);
+
+  return isHidden;
+};
+
 const MainContribution = ({ setDisableWorkSpace }) => {
   const location = useLocation();
   const userRank = location.state?.userRank;
@@ -70,6 +182,8 @@ const MainContribution = ({ setDisableWorkSpace }) => {
   const [loading, setLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
+
+  const isBottomBarHidden = useBottomBarAutoHide();
 
   useEffect(() => {
     setDisableWorkSpace(true);
@@ -213,6 +327,7 @@ const MainContribution = ({ setDisableWorkSpace }) => {
       {/* Bottom Tab Bar - Only on mobile */}
       {isMobile && !loading && (
         <BottomBar
+          isHidden={isBottomBarHidden}
           style={
             {
               // padding: "0.25rem 0.5rem",
