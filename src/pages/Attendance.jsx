@@ -414,7 +414,7 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
 
       {/* Bottom Tab Bar - Only on mobile */}
       {isMobile && !loading && (
-        <BottomBar isHidden={isBottomBarHidden}>
+        <BottomBar>
           {!hasTimeTable ? (
             <>
               <button

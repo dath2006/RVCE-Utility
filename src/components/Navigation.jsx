@@ -12,8 +12,8 @@ import UtilityDropdown from "./UtilityDropdown";
 import { Home, BookOpen, Users, CalendarCheck } from "lucide-react";
 import { FaToolbox } from "react-icons/fa";
 
-// Standard Nav component - no auto-hide
-const Nav = styled.nav`
+// Updated Nav component with auto-hide functionality for mobile
+const Nav = styled(motion.nav)`
   padding: 1rem 2rem;
   background: rgba(255, 248, 248, 0.07);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
@@ -24,8 +24,20 @@ const Nav = styled.nav`
   width: 100%;
   top: 0;
   z-index: 99;
+
   @media (max-width: 500px) {
     padding: 0.5rem 1rem;
+    transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      opacity 0.25s ease;
+    transform: ${(props) =>
+      props.isHidden ? "translateY(-100%)" : "translateY(0)"};
+    opacity: ${(props) => (props.isHidden ? 0 : 1)};
+  }
+
+  @media (min-width: 501px) {
+    /* Always visible on desktop */
+    transform: translateY(0) !important;
+    opacity: 1 !important;
   }
 `;
 
@@ -204,41 +216,54 @@ const BottomBar = styled(motion.div)`
   }
 `;
 
-// Hook for bottom bar auto-hide - matches HTML logic exactly
-const useBottomBarAutoHide = () => {
+// Hook for navigation auto-hide - works for both top nav and bottom bar
+const useNavigationAutoHide = () => {
   const [isHidden, setIsHidden] = useState(false);
 
   useEffect(() => {
     let lastScroll = 0;
+    let ticking = false;
 
     const handleScroll = (e) => {
-      // Try different scroll sources
-      const currentScroll =
-        window.pageYOffset ||
-        document.documentElement.scrollTop ||
-        document.body.scrollTop ||
-        0;
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          // Try different scroll sources
+          const currentScroll =
+            window.pageYOffset ||
+            document.documentElement.scrollTop ||
+            document.body.scrollTop ||
+            0;
 
-      // Also check if the scroll is from a container
-      const target = e?.target;
-      const containerScroll = target?.scrollTop || 0;
+          // Also check if the scroll is from a container
+          const target = e?.target;
+          const containerScroll = target?.scrollTop || 0;
 
-      // Use whichever is greater
-      const scrollPos = Math.max(currentScroll, containerScroll);
+          // Use whichever is greater
+          const scrollPos = Math.max(currentScroll, containerScroll);
 
-      if (scrollPos <= 0) {
-        setIsHidden(false);
-        lastScroll = 0;
-        return;
+          if (scrollPos <= 0) {
+            setIsHidden(false);
+            lastScroll = 0;
+            ticking = false;
+            return;
+          }
+
+          const scrollDifference = scrollPos - lastScroll;
+
+          // More sensitive thresholds for better responsiveness
+          if (scrollDifference > 5 && scrollPos > 80) {
+            // Hide when scrolling down (threshold: 5px, minimum scroll: 80px)
+            setIsHidden(true);
+          } else if (scrollDifference < -3) {
+            // Show when scrolling up (threshold: 3px - more sensitive for showing)
+            setIsHidden(false);
+          }
+
+          lastScroll = scrollPos;
+          ticking = false;
+        });
+        ticking = true;
       }
-
-      if (scrollPos > lastScroll) {
-        setIsHidden(true);
-      } else if (scrollPos < lastScroll) {
-        setIsHidden(false);
-      }
-
-      lastScroll = scrollPos;
     };
 
     // Add a small delay to ensure DOM is ready
@@ -267,10 +292,21 @@ const useBottomBarAutoHide = () => {
         });
       }
 
-      return { scrollContainer, locomotiveContainer };
+      // Listen to the main scroll container from App.jsx
+      const mainScrollContainer = document.querySelector(
+        "#main-scroll-container"
+      );
+      if (mainScrollContainer) {
+        mainScrollContainer.addEventListener("scroll", handleScroll, {
+          passive: true,
+        });
+      }
+
+      return { scrollContainer, locomotiveContainer, mainScrollContainer };
     };
 
-    const { scrollContainer, locomotiveContainer } = setupListeners();
+    const { scrollContainer, locomotiveContainer, mainScrollContainer } =
+      setupListeners();
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
@@ -280,6 +316,9 @@ const useBottomBarAutoHide = () => {
       }
       if (locomotiveContainer) {
         locomotiveContainer.removeEventListener("scroll", handleScroll);
+      }
+      if (mainScrollContainer) {
+        mainScrollContainer.removeEventListener("scroll", handleScroll);
       }
     };
   }, []);
@@ -307,8 +346,8 @@ const Navigation = ({
 
   const dropdownRef = useRef(null);
 
-  // Initialize bottom bar auto-hide
-  const isBottomBarHidden = useBottomBarAutoHide();
+  // Initialize navigation auto-hide for both top nav and bottom bar
+  const isNavigationHidden = useNavigationAutoHide();
 
   const letters = "Utility".split("");
   const reversedLetters = "Utility".split("").reverse();
@@ -354,7 +393,7 @@ const Navigation = ({
 
   return (
     <>
-      <Nav>
+      <Nav isHidden={isNavigationHidden}>
         <NavContainer>
           <div className="flex items-center gap-2">
             <div className="content">
@@ -530,7 +569,7 @@ const Navigation = ({
         currentPath.startsWith("/attendance") ||
         currentPath.startsWith("/contribute")
       ) && (
-        <BottomBar isHidden={isBottomBarHidden}>
+        <BottomBar>
           {navItems.map((item, idx) => {
             const isActive =
               item.to === "/"

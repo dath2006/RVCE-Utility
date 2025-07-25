@@ -327,7 +327,6 @@ const MainContribution = ({ setDisableWorkSpace }) => {
       {/* Bottom Tab Bar - Only on mobile */}
       {isMobile && !loading && (
         <BottomBar
-          isHidden={isBottomBarHidden}
           style={
             {
               // padding: "0.25rem 0.5rem",
