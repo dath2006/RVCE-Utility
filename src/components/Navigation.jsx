@@ -565,7 +565,7 @@ const Navigation = ({
       </Nav>
 
       {/* Bottom Bar with auto-hide - only show if not on /attendance or /contribute */}
-      {!(
+      {/* {!(
         currentPath.startsWith("/attendance") ||
         currentPath.startsWith("/contribute")
       ) && (
@@ -617,7 +617,7 @@ const Navigation = ({
             );
           })}
         </BottomBar>
-      )}
+      )} */}
     </>
   );
 };

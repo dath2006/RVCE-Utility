@@ -24,6 +24,7 @@ import PopupCard from "./components/AuthCard";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Helmet } from "react-helmet";
 import Essentials from "./pages/Essentials";
+import BottomBar from "./components/BottomBar";
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -380,6 +381,10 @@ function App() {
                   <Route path="/essentials" element={<Essentials />} />
                 </Routes>
               </div>
+              <BottomBar
+                setShowAuthCard={setShowAuthCard}
+                showAuthCard={showAuthCard}
+              />
               <AnimatePresence mode="wait">
                 {showAuthCard &&
                   (!isAuthenticated ? (
