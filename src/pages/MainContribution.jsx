@@ -57,7 +57,6 @@ const BottomBar = styled(motion.div)`
   background-clip: padding-box;
   isolation: isolate;
   padding: 0.5rem;
-  padding-top: 1.2rem;
   padding-bottom: calc(0.1rem + env(safe-area-inset-bottom, 0px));
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
 
