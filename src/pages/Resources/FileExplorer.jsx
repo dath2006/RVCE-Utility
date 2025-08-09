@@ -92,10 +92,7 @@ const FileExplorer = ({
   const [isMobile, setIsMobile] = useState(false);
 
   // Register overlay when file viewer is open (either mobile or desktop)
-  useOverlay(
-    "fileViewer",
-    (isMobile && !!viewerFile) || (!isMobile && showViewer)
-  );
+  useOverlay("fileViewer", isMobile && !!viewerFile);
 
   useEffect(() => {
     const checkIsMobile = () => {
@@ -105,8 +102,8 @@ const FileExplorer = ({
           navigator.maxTouchPoints > 0 ||
           /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
             navigator.userAgent
-          ) ||
-          window.innerWidth <= 768);
+          )) &&
+        window.innerWidth <= 768;
       setIsMobile(mobile);
 
       // Only set showViewer to true if not mobile and there are saved windows
@@ -174,6 +171,9 @@ const FileExplorer = ({
   };
 
   const onView = (item) => {
+    console.log("onView called with item:", item);
+    console.log("isMobile:", isMobile);
+
     if (!isMobile && getAllWindowsId().includes(item.id)) {
       setWindows((prev) =>
         prev.map((window) => {
