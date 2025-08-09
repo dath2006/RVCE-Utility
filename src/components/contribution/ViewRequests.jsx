@@ -33,6 +33,7 @@ import axios from "axios";
 import WaveLoader from "../../components/Loading";
 import FileViewer from "../FileViewer";
 import AddRequest from "./AddRequest";
+import useBottomBarVisibility from "../../hooks/useBottomBarVisibility";
 
 const modalVariants = {
   hidden: { opacity: 0, scale: 0.95 },
@@ -433,6 +434,12 @@ const ViewRequests = () => {
   const [previewFile, setPreviewFile] = useState(null);
   const [previewAction, setPreviewAction] = useState(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+
+  // Use bottom bar visibility hooks for modals
+  useBottomBarVisibility(!!viewerFile, "file-viewer-requests");
+  useBottomBarVisibility(isAddModalOpen, "add-request-modal");
+  useBottomBarVisibility(showPreviewModal, "preview-modal");
+  useBottomBarVisibility(!!deleteRequestId, "delete-request-modal");
 
   // Pagination and sorting state
   const [currentPage, setCurrentPage] = useState(1);

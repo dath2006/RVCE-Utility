@@ -20,6 +20,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import FileViewer from "../FileViewer";
 import WaveLoader from "../Loading";
+import useBottomBarVisibility from "../../hooks/useBottomBarVisibility";
 
 const ViewContribution = ({ isOpen = true, userRank }) => {
   const { user, isAuthenticated, isLoading, getAccessTokenSilently } =
@@ -35,6 +36,9 @@ const ViewContribution = ({ isOpen = true, userRank }) => {
   const [loading, setLoading] = useState(false);
   const [expandedSubjects, setExpandedSubjects] = useState(new Set());
   const [viewerFile, setViewerFile] = useState(null);
+
+  // Use bottom bar visibility hook for file viewer
+  useBottomBarVisibility(!!viewerFile, "file-viewer-contribution");
 
   // Pagination settings
   const docsPerPage = 7;

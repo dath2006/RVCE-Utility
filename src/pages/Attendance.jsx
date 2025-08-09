@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   Menu,
   X,
@@ -19,6 +20,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import styled from "styled-components";
 import WaveLoader from "../components/Loading";
 import { useNavigate } from "react-router-dom";
+import { BottomBarProvider, useBottomBar } from "../contexts/BottomBarContext";
 
 // Import your components
 import ImportTimeTable from "../components/ImportTimeTable";
@@ -43,9 +45,10 @@ const BottomBar = styled(motion.div)`
   position: fixed;
   left: 1rem; /* 16px margin from left */
   right: 1rem; /* 16px margin from right */
-  bottom: 1.5rem; /* 24px from bottom - elevated look */
+  /* Keep above dynamic toolbars and gesture areas on mobile */
+  bottom: calc(max(1.5rem, env(safe-area-inset-bottom, 0px)));
   width: calc(100vw - 2rem); /* Full width minus left/right margins */
-  z-index: 50;
+  z-index: 10; /* Lower z-index so modals/popups can appear above */
   display: flex;
   height: 3.5rem; /* Slightly smaller height for modern look */
   min-height: 56px;
@@ -53,20 +56,19 @@ const BottomBar = styled(motion.div)`
   justify-content: space-around;
   border-radius: 1.5rem; /* Rounded corners - 24px */
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2), 0 2px 16px 0 rgba(0, 0, 0, 0.12); /* Enhanced shadow */
-  border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border for glass effect */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
+  background-clip: padding-box;
+  isolation: isolate;
   padding: 0.5rem;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease; /* Smooth transition */
-  transform: ${(props) => {
-    return props.isHidden
-      ? "translate3d(0, calc(100% + 2rem), 0)"
-      : "translate3d(0, 0, 0)";
-  }};
-  opacity: ${(props) => (props.isHidden ? 0 : 1)};
+  padding-top: 1.2rem;
+  padding-bottom: calc(0.1rem + env(safe-area-inset-bottom, 0px));
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
 
   @supports (-webkit-touch-callout: none) {
     position: -webkit-sticky;
     position: sticky;
-    bottom: 1.5rem;
+    bottom: calc(max(1.25rem, env(safe-area-inset-bottom, 0px)));
   }
 
   @media (min-width: 925px) {
@@ -81,103 +83,8 @@ const LoadingSpinner = styled(motion.div)`
   min-height: 400px;
 `;
 
-const useBottomBarAutoHide = () => {
-  const [isHidden, setIsHidden] = useState(false);
-  const lastScrollRef = useRef(0);
-  const timeoutRef = useRef(null);
-
-  useEffect(() => {
-    const handleScroll = (e) => {
-      let currentScroll = 0;
-
-      // Get scroll position from the event target
-      if (e && e.target) {
-        currentScroll = e.target.scrollTop || 0;
-      }
-
-      // At top - always show
-      if (currentScroll <= 10) {
-        setIsHidden(false);
-        lastScrollRef.current = currentScroll;
-        return;
-      }
-
-      // Check scroll direction with threshold
-      const scrollDiff = currentScroll - lastScrollRef.current;
-
-      if (Math.abs(scrollDiff) > 10) {
-        // 10px threshold
-        if (scrollDiff > 0) {
-          setIsHidden(true);
-        } else {
-          setIsHidden(false);
-        }
-        lastScrollRef.current = currentScroll;
-      }
-    };
-
-    // Function to find and attach to scroll containers
-    const attachScrollListeners = () => {
-      // Wait for DOM to be ready and find containers
-      const containers = [
-        // Try to find the main app scroll container
-        document.querySelector("div.flex-1.overflow-y-auto"),
-        document.querySelector(".overflow-y-auto"),
-        // Fallback to any scrollable container
-        ...document.querySelectorAll('[class*="overflow-y-auto"]'),
-        ...document.querySelectorAll('[class*="overflow-auto"]'),
-        // Last resort - document and window
-        document.documentElement,
-        document.body,
-      ].filter(Boolean);
-
-      const addedListeners = [];
-
-      containers.forEach((container, index) => {
-        const wrappedHandler = (e) => {
-          // Ensure we're handling the right container
-          if (e.target === container || container.contains(e.target)) {
-            handleScroll(e);
-          }
-        };
-
-        container.addEventListener("scroll", wrappedHandler, {
-          passive: true,
-          capture: false,
-        });
-
-        addedListeners.push({ container, handler: wrappedHandler });
-      });
-
-      return addedListeners;
-    };
-
-    // Delay to ensure DOM is ready
-    timeoutRef.current = setTimeout(() => {
-      const listeners = attachScrollListeners();
-
-      // Store for cleanup
-      window._bottomBarScrollListeners = listeners;
-    }, 500);
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-
-      // Cleanup listeners
-      if (window._bottomBarScrollListeners) {
-        window._bottomBarScrollListeners.forEach(({ container, handler }) => {
-          container.removeEventListener("scroll", handler);
-        });
-        delete window._bottomBarScrollListeners;
-      }
-    };
-  }, []);
-
-  return isHidden;
-};
-const AttendanceSystem = ({ setDisableWorkSpace }) => {
+// Internal component that uses the context
+const AttendanceContent = ({ setDisableWorkSpace }) => {
   const { user, isAuthenticated, isLoading, getAccessTokenSilently } =
     useAuth0();
   const [hasTimeTable, setHasTimeTable] = useState(false);
@@ -188,10 +95,24 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
   const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
 
-  const isBottomBarHidden = useBottomBarAutoHide();
+  // Use the bottom bar context
+  const { isBottomBarVisible, hideBottomBar, showBottomBar } = useBottomBar();
   useEffect(() => {
     setDisableWorkSpace(true);
   }, [setDisableWorkSpace]);
+
+  // Handle help modal visibility
+  useEffect(() => {
+    if (showHelpModal) {
+      hideBottomBar("help-modal");
+    } else {
+      showBottomBar("help-modal");
+    }
+
+    return () => {
+      showBottomBar("help-modal");
+    };
+  }, [showHelpModal]); // Remove hideBottomBar and showBottomBar from dependencies
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -404,7 +325,7 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
             </div>
           ) : (
             <div
-              className={`flex-1 p-4 overflow-auto ${isMobile ? "pb-16" : ""}`}
+              className={`flex-1 p-4 overflow-auto ${isMobile ? "pb-10" : ""}`}
             >
               {renderComponent()}
             </div>
@@ -412,83 +333,354 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
         </div>
       </div>
 
-      {/* Bottom Tab Bar - Only on mobile */}
-      {isMobile && !loading && (
-        <BottomBar>
-          {!hasTimeTable ? (
-            <>
-              <button
-                className={`flex flex-col items-center justify-center h-full w-1/2 ${
-                  activeComponent === "import" || activeComponent === "custom"
-                    ? "text-indigo-500"
-                    : "text-gray-400"
-                }`}
-                onClick={() => navigateTo("import")}
-              >
-                <FilePlus size={20} />
-                <span className="text-xs mt-1">Import</span>
-              </button>
-              <button
-                className="flex flex-col items-center justify-center h-full w-1/2 text-gray-400"
-                onClick={() => navigate("/")}
-              >
-                <LogOut size={20} />
-                <span className="text-xs mt-1">Exit</span>
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                className={`flex flex-col items-center justify-center h-full w-1/5 ${
-                  activeComponent === "main"
-                    ? "text-indigo-500"
-                    : "text-gray-400"
-                }`}
-                onClick={() => navigateTo("main")}
-              >
-                <Calendar size={18} />
-                <span className="text-xs mt-1">Attendance</span>
-              </button>
-              <button
-                className={`flex flex-col items-center justify-center h-full w-1/5 ${
-                  activeComponent === "statistics"
-                    ? "text-indigo-500"
-                    : "text-gray-400"
-                }`}
-                onClick={() => navigateTo("statistics")}
-              >
-                <BarChart2 size={18} />
-                <span className="text-xs mt-1">Stats</span>
-              </button>
-              <button
-                className={`flex flex-col items-center justify-center h-full w-1/5 ${
-                  activeComponent === "view"
-                    ? "text-indigo-500"
-                    : "text-gray-400"
-                }`}
-                onClick={() => navigateTo("view")}
-              >
-                <Eye size={18} />
-                <span className="text-xs mt-1">View</span>
-              </button>
-              <button
-                className="flex flex-col items-center justify-center h-full w-1/5 text-red-400"
-                onClick={resetTimeTable}
-              >
-                <RefreshCw size={18} />
-                <span className="text-xs mt-1">Reset</span>
-              </button>
-              <button
-                className="flex flex-col items-center justify-center h-full w-1/5 text-red-400"
-                onClick={() => navigate("/")}
-              >
-                <LogOut size={20} />
-                <span className="text-xs mt-1">Exit</span>
-              </button>
-            </>
-          )}
-        </BottomBar>
-      )}
+      {/* Bottom Tab Bar - Only on mobile and when visible */}
+      {isMobile &&
+        !loading &&
+        isBottomBarVisible &&
+        createPortal(
+          <BottomBar>
+            {!hasTimeTable ? (
+              <>
+                <button
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color:
+                      activeComponent === "import" ||
+                      activeComponent === "custom"
+                        ? "#6366f1"
+                        : "#a1a1aa",
+                    textDecoration: "none",
+                    flex: 1,
+                    minWidth: 0,
+                    fontWeight: 400,
+                    fontSize: "0.75rem",
+                    transition: "color 0.2s",
+                    padding: "0.35rem 0.25rem",
+                    gap: 2,
+                    lineHeight: 1,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => navigateTo("import")}
+                >
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: 18,
+                    }}
+                  >
+                    <FilePlus
+                      size={18}
+                      strokeWidth={1.5}
+                      color={
+                        activeComponent === "import" ||
+                        activeComponent === "custom"
+                          ? "#6366f1"
+                          : "#a1a1aa"
+                      }
+                    />
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      marginTop: 2,
+                      fontWeight: 400,
+                      lineHeight: 1,
+                    }}
+                  >
+                    Import
+                  </span>
+                </button>
+                <button
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#a1a1aa",
+                    textDecoration: "none",
+                    flex: 1,
+                    minWidth: 0,
+                    fontWeight: 400,
+                    fontSize: "0.75rem",
+                    transition: "color 0.2s",
+                    padding: "0.35rem 0.25rem",
+                    gap: 2,
+                    lineHeight: 1,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => navigate("/")}
+                >
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: 18,
+                    }}
+                  >
+                    <LogOut size={18} strokeWidth={1.5} color="#a1a1aa" />
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      marginTop: 2,
+                      fontWeight: 400,
+                      lineHeight: 1,
+                    }}
+                  >
+                    Exit
+                  </span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: activeComponent === "main" ? "#6366f1" : "#a1a1aa",
+                    textDecoration: "none",
+                    flex: 1,
+                    minWidth: 0,
+                    fontWeight: 400,
+                    fontSize: "0.75rem",
+                    transition: "color 0.2s",
+                    padding: "0.35rem 0.25rem",
+                    gap: 2,
+                    lineHeight: 1,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => navigateTo("main")}
+                >
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: 18,
+                    }}
+                  >
+                    <Calendar
+                      size={18}
+                      strokeWidth={1.5}
+                      color={activeComponent === "main" ? "#6366f1" : "#a1a1aa"}
+                    />
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      marginTop: 2,
+                      fontWeight: 400,
+                      lineHeight: 1,
+                    }}
+                  >
+                    Attendance
+                  </span>
+                </button>
+                <button
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color:
+                      activeComponent === "statistics" ? "#6366f1" : "#a1a1aa",
+                    textDecoration: "none",
+                    flex: 1,
+                    minWidth: 0,
+                    fontWeight: 400,
+                    fontSize: "0.75rem",
+                    transition: "color 0.2s",
+                    padding: "0.35rem 0.25rem",
+                    gap: 2,
+                    lineHeight: 1,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => navigateTo("statistics")}
+                >
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: 18,
+                    }}
+                  >
+                    <BarChart2
+                      size={18}
+                      strokeWidth={1.5}
+                      color={
+                        activeComponent === "statistics" ? "#6366f1" : "#a1a1aa"
+                      }
+                    />
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      marginTop: 2,
+                      fontWeight: 400,
+                      lineHeight: 1,
+                    }}
+                  >
+                    Stats
+                  </span>
+                </button>
+                <button
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: activeComponent === "view" ? "#6366f1" : "#a1a1aa",
+                    textDecoration: "none",
+                    flex: 1,
+                    minWidth: 0,
+                    fontWeight: 400,
+                    fontSize: "0.75rem",
+                    transition: "color 0.2s",
+                    padding: "0.35rem 0.25rem",
+                    gap: 2,
+                    lineHeight: 1,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => navigateTo("view")}
+                >
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: 18,
+                    }}
+                  >
+                    <Eye
+                      size={18}
+                      strokeWidth={1.5}
+                      color={activeComponent === "view" ? "#6366f1" : "#a1a1aa"}
+                    />
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      marginTop: 2,
+                      fontWeight: 400,
+                      lineHeight: 1,
+                    }}
+                  >
+                    View
+                  </span>
+                </button>
+                <button
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#a1a1aa",
+                    textDecoration: "none",
+                    flex: 1,
+                    minWidth: 0,
+                    fontWeight: 400,
+                    fontSize: "0.75rem",
+                    transition: "color 0.2s",
+                    padding: "0.35rem 0.25rem",
+                    gap: 2,
+                    lineHeight: 1,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                  onClick={resetTimeTable}
+                >
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: 18,
+                    }}
+                  >
+                    <RefreshCw size={18} strokeWidth={1.5} color="#a1a1aa" />
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      marginTop: 2,
+                      fontWeight: 400,
+                      lineHeight: 1,
+                    }}
+                  >
+                    Reset
+                  </span>
+                </button>
+                <button
+                  className="text-red-500"
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#a1a1aa",
+                    textDecoration: "none",
+                    flex: 1,
+                    minWidth: 0,
+                    fontWeight: 400,
+                    fontSize: "0.75rem",
+                    transition: "color 0.2s",
+                    padding: "0.35rem 0.25rem",
+                    gap: 2,
+                    lineHeight: 1,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => navigate("/")}
+                >
+                  <span
+                    className="text-red-500"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: 18,
+                    }}
+                  >
+                    <LogOut size={18} strokeWidth={1.5} />
+                  </span>
+                  <span
+                    className="text-red-500"
+                    style={{
+                      fontSize: "0.72rem",
+                      marginTop: 2,
+                      fontWeight: 400,
+                      lineHeight: 1,
+                    }}
+                  >
+                    Exit
+                  </span>
+                </button>
+              </>
+            )}
+          </BottomBar>,
+          document.body
+        )}
 
       {/* Floating Help Flag for mobile, only when bottom bar is visible */}
       {isMobile && !loading && (
@@ -593,6 +785,15 @@ const AttendanceSystem = ({ setDisableWorkSpace }) => {
         )}
       </AnimatePresence>
     </div>
+  );
+};
+
+// Main wrapper component with context provider
+const AttendanceSystem = ({ setDisableWorkSpace }) => {
+  return (
+    <BottomBarProvider>
+      <AttendanceContent setDisableWorkSpace={setDisableWorkSpace} />
+    </BottomBarProvider>
   );
 };
 

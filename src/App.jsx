@@ -25,6 +25,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { Helmet } from "react-helmet";
 import Essentials from "./pages/Essentials";
 import BottomBar from "./components/BottomBar";
+import { NavigationProvider, useOverlay } from "./contexts/NavigationContext";
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -201,7 +202,7 @@ const overlayVariants = {
   exit: { opacity: 0 },
 };
 
-function App() {
+function AppContent() {
   const locomotiveScroll = new LocomotiveScroll();
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "dark"
@@ -210,13 +211,20 @@ function App() {
   const [showWorkspace, setShowWorkspace] = useState(false);
   const [showTodoMenu, setShowTodoMenu] = useState(false);
   const [viewerFile, setViewerFile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showAuthCard, setShowAuthCard] = useState();
+  const [showAuthCard, setShowAuthCard] = useState(false);
   const [disableWorkSpace, setDisableWorkSpace] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef(null);
   const screenSize = window.screen.width;
+
+  // Register overlays with navigation context
+  useOverlay("workspace", showWorkspace);
+  useOverlay("todoMenu", showTodoMenu);
+  useOverlay("authCard", showAuthCard);
+  useOverlay("fileViewer", !!viewerFile);
+  useOverlay("mobileMenu", isMobileMenuOpen);
 
   let isMobile = false;
 
@@ -262,11 +270,11 @@ function App() {
       </Helmet>
 
       <GlobalStyles />
-      <LoadingScreen
+      {/* <LoadingScreen
         isLoading={loading}
         onLoadingComplete={() => setLoading(false)}
         screenSize={screenSize}
-      />
+      /> */}
       <StyledToastContainer
         position="top-right"
         autoClose={3000}
@@ -490,6 +498,15 @@ function App() {
         </Router>
       </div>
     </ThemeProvider>
+  );
+}
+
+// Main App component with NavigationProvider
+function App() {
+  return (
+    <NavigationProvider>
+      <AppContent />
+    </NavigationProvider>
   );
 }
 

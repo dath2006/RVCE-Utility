@@ -12,6 +12,7 @@ import { WindowProvider } from "../../components/FileViewer/WindowContext";
 import WaveLoader from "../../components/Loading";
 import axios from "axios";
 import { FilterList } from "@mui/icons-material";
+import { useOverlay } from "../../contexts/NavigationContext";
 
 const Container = styled.div`
   padding: 0;
@@ -110,12 +111,14 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
   const [filteredFolders, setFilteredFolders] = useState([]);
   const [jsonData, setJsonData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showFilterDialog, setShowFilterDialog] = useState(false);
   const [filters, setFilters] = useState(() => {
     const saved = localStorage.getItem("filters");
     return saved ? JSON.parse(saved) : null;
   });
-  const [showFilterDialog, setShowFilterDialog] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  useOverlay("filterDialog", showFilterDialog);
 
   const handleShowFolders = useCallback(() => {
     if (!jsonData || jsonData.length === 0) {

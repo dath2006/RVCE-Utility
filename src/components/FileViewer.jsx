@@ -1,16 +1,8 @@
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import styled from "styled-components";
 import { Close, Fullscreen, FullscreenExit } from "@mui/icons-material";
 import { motion, AnimatePresence } from "framer-motion";
 import { CircularProgress } from "@mui/material";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CachedIcon from "@mui/icons-material/Cached";
 import SearchIcon from "@mui/icons-material/Search";
 
@@ -30,16 +22,17 @@ const ViewerContainer = styled(motion.div)`
 const ControlBar = styled.div`
   display: flex;
   justify-content: space-between;
-  padding: 0.5rem;
+  padding: 0.25rem 0.5rem;
   background: ${(props) => props.theme.surface || "#f5f5f5"};
   z-index: 98;
+  border-bottom: 1px solid ${(props) => props.theme.border || "#e0e0e0"};
 `;
 
 const IconButton = styled.button`
   background: none;
   border: none;
   color: ${(props) => props.theme.text || "black"};
-  padding: 0.5rem;
+  padding: 0.375rem;
   cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
   display: flex;
   align-items: center;
@@ -94,42 +87,12 @@ const FileViewer = ({ url, onClose }) => {
   const containerRef = useRef(null);
   const iframeRef = useRef(null);
 
-  // Manage navigation history with more robust state
-  const [navigationState, setNavigationState] = useState({
-    history: [],
-    currentIndex: -1,
-  });
-
-  // Synchronize history when URL changes
+  // Reset loading state when URL changes
   useEffect(() => {
     if (url) {
-      setNavigationState((prev) => {
-        // Prevent duplicate entries
-        const updatedHistory = prev.history.slice(0, prev.currentIndex + 1);
-
-        // Only add if different from last entry
-        if (
-          !updatedHistory.length ||
-          updatedHistory[updatedHistory.length - 1] !== url
-        ) {
-          updatedHistory.push(url);
-        }
-
-        return {
-          history: updatedHistory,
-          currentIndex: updatedHistory.length - 1,
-        };
-      });
-
-      // Reset loading state
       setIsLoading(true);
     }
   }, [url]);
-
-  // Memoized current URL for rendering
-  const currentUrl = useMemo(() => {
-    return navigationState.history[navigationState.currentIndex] || null;
-  }, [navigationState.history, navigationState.currentIndex]);
 
   // Fullscreen toggle
   const toggleFullscreen = useCallback(() => {
@@ -142,38 +105,13 @@ const FileViewer = ({ url, onClose }) => {
     }
   }, []);
 
-  // Navigation handlers with improved logic
-  const handleBackward = useCallback(() => {
-    setNavigationState((prev) => {
-      if (prev.currentIndex > 0) {
-        return {
-          ...prev,
-          currentIndex: prev.currentIndex - 1,
-        };
-      }
-      return prev;
-    });
-  }, []);
-
-  const handleForward = useCallback(() => {
-    setNavigationState((prev) => {
-      if (prev.currentIndex < prev.history.length - 1) {
-        return {
-          ...prev,
-          currentIndex: prev.currentIndex + 1,
-        };
-      }
-      return prev;
-    });
-  }, []);
-
   // Reload handler
   const handleReload = useCallback(() => {
-    if (iframeRef.current && currentUrl) {
+    if (iframeRef.current && url) {
       setIsLoading(true);
-      iframeRef.current.src = currentUrl;
+      iframeRef.current.src = url;
     }
-  }, [currentUrl]);
+  }, [url]);
 
   // Load handling
   const handleIframeLoad = useCallback(() => {
@@ -216,30 +154,6 @@ const FileViewer = ({ url, onClose }) => {
     >
       <ControlBar>
         <div className="flex">
-          <IconButton
-            onClick={handleBackward}
-            disabled={navigationState.currentIndex <= 0}
-            style={{
-              opacity: navigationState.currentIndex <= 0 ? 0.5 : 1,
-            }}
-          >
-            <ArrowBackIcon />
-          </IconButton>
-          <IconButton
-            onClick={handleForward}
-            disabled={
-              navigationState.currentIndex >= navigationState.history.length - 1
-            }
-            style={{
-              opacity:
-                navigationState.currentIndex >=
-                navigationState.history.length - 1
-                  ? 0.5
-                  : 1,
-            }}
-          >
-            <ArrowForwardIcon />
-          </IconButton>
           <IconButton onClick={handleReload} disabled={isLoading}>
             <CachedIcon />
           </IconButton>
@@ -280,12 +194,12 @@ const FileViewer = ({ url, onClose }) => {
             </LoadingContainer>
           )}
         </AnimatePresence>
-        {currentUrl && (
+        {url && (
           <StyledIframe
             ref={iframeRef}
-            key={currentUrl}
+            key={url}
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
-            src={currentUrl}
+            src={url}
             allow="autoplay; fullscreen; downloads"
             allowFullScreen
             onLoad={handleIframeLoad}

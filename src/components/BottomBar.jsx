@@ -1,10 +1,12 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import styled from "styled-components";
 import { Home, BookOpen, Users, CalendarCheck } from "lucide-react";
 import { FaToolbox } from "react-icons/fa";
 import { useAuth0 } from "@auth0/auth0-react";
+import { useNavigation } from "../contexts/NavigationContext";
 
 // Bottom bar with auto-hide functionality matching HTML example exactly
 const Bottombar = styled(motion.div)`
@@ -14,9 +16,10 @@ const Bottombar = styled(motion.div)`
   position: fixed;
   left: 1rem; /* 16px margin from left */
   right: 1rem; /* 16px margin from right */
-  bottom: 1.5rem; /* 24px from bottom - elevated look */
+  /* Keep above dynamic toolbars and gesture areas on mobile */
+  bottom: calc(max(1.5rem, env(safe-area-inset-bottom, 0px)));
   width: calc(100vw - 2rem); /* Full width minus left/right margins */
-  z-index: 50;
+  z-index: 10; /* Lower z-index so modals/popups can appear above */
   display: flex;
   height: 3.5rem; /* Slightly smaller height for modern look */
   min-height: 56px;
@@ -24,9 +27,14 @@ const Bottombar = styled(motion.div)`
   justify-content: space-around;
   border-radius: 1.5rem; /* Rounded corners - 24px */
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2), 0 2px 16px 0 rgba(0, 0, 0, 0.12); /* Enhanced shadow */
-  border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border for glass effect */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
+  background-clip: padding-box;
+  isolation: isolate;
   padding: 0.5rem;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease; /* Smooth transition */
+  padding-top: 1.2rem;
+  padding-bottom: calc(0.1rem + env(safe-area-inset-bottom, 0px));
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
   transform: ${(props) => {
     return props.isHidden
       ? "translate3d(0, calc(100% + 2rem), 0)"
@@ -37,7 +45,7 @@ const Bottombar = styled(motion.div)`
   @supports (-webkit-touch-callout: none) {
     position: -webkit-sticky;
     position: sticky;
-    bottom: 1.5rem;
+    bottom: calc(max(1.25rem, env(safe-area-inset-bottom, 0px)));
   }
 
   @media (min-width: 925px) {
@@ -56,62 +64,83 @@ const navItems = [
 
 const BottomBar = ({ setShowAuthCard, showAuthCard }) => {
   const { isAuthenticated } = useAuth0();
+  const { hideNavigation } = useNavigation();
   const location = useLocation();
   const currentPath = location.pathname;
-  return (
-    !(
-      currentPath.startsWith("/attendance") ||
-      currentPath.startsWith("/contribute")
-    ) && (
-      <Bottombar>
-        {navItems.map((item, idx) => {
-          const isActive =
-            item.to === "/"
-              ? currentPath === "/"
-              : currentPath.startsWith(item.to);
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
+  const shouldHide =
+    currentPath.startsWith("/attendance") ||
+    currentPath.startsWith("/contribute") ||
+    hideNavigation; // Hide when any overlay is active
+
+  if (shouldHide) return null;
+
+  // Render in a portal attached to body to avoid transformed ancestors breaking fixed positioning
+  return createPortal(
+    <Bottombar>
+      {navItems.map((item) => {
+        const isActive =
+          item.to === "/"
+            ? currentPath === "/"
+            : currentPath.startsWith(item.to);
+        const Icon = item.icon;
+        return (
+          <Link
+            key={item.to}
+            to={item.to}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              color: isActive ? "#6366f1" : "#a1a1aa",
+              textDecoration: "none",
+              flex: 1,
+              minWidth: 0,
+              fontWeight: 400,
+              fontSize: "0.75rem",
+              transition: "color 0.2s",
+              padding: "0.35rem 0.25rem",
+              gap: 2,
+              lineHeight: 1,
+            }}
+            onClick={
+              item.auth && !isAuthenticated
+                ? (e) => {
+                    e.preventDefault();
+                    setShowAuthCard(!showAuthCard);
+                  }
+                : undefined
+            }
+          >
+            <span
               style={{
-                display: "flex",
-                flexDirection: "column",
+                display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: isActive ? "#6366f1" : "#a1a1aa",
-                textDecoration: "none",
-                flex: 1,
-                fontWeight: 400,
-                fontSize: "0.75rem",
-                transition: "color 0.2s",
-                padding: "0.1rem 0",
-                gap: 1,
+                height: 18,
               }}
-              onClick={
-                item.auth && !isAuthenticated
-                  ? (e) => {
-                      e.preventDefault();
-                      setShowAuthCard(!showAuthCard);
-                    }
-                  : undefined
-              }
             >
               <Icon
                 size={18}
                 strokeWidth={1.5}
                 color={isActive ? "#6366f1" : "#a1a1aa"}
               />
-              <span
-                style={{ fontSize: "0.75rem", marginTop: 2, fontWeight: 400 }}
-              >
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
-      </Bottombar>
-    )
+            </span>
+            <span
+              style={{
+                fontSize: "0.72rem",
+                marginTop: 2,
+                fontWeight: 400,
+                lineHeight: 1,
+              }}
+            >
+              {item.label}
+            </span>
+          </Link>
+        );
+      })}
+    </Bottombar>,
+    document.body
   );
 };
 

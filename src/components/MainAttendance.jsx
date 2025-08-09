@@ -22,6 +22,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useAuth0 } from "@auth0/auth0-react";
 import SemesterCompletionCard from "./SemesterCompletionCard";
+import { useBottomBarVisibility } from "../hooks/useBottomBarVisibility";
 
 // Styled Components
 
@@ -877,6 +878,13 @@ const MainAttendance = ({ setActiveComponent }) => {
   const initCalledRef = useRef(false);
 
   const [semEnd, setSemEnd] = useState(false);
+
+  // Bottom bar visibility management for modals/popups
+  useBottomBarVisibility(showDay, "day-popup");
+  useBottomBarVisibility(showCalendar, "calendar-popup");
+  useBottomBarVisibility(subjectAdd, "subject-add-modal");
+  useBottomBarVisibility(!!subject, "subject-detail-panel");
+
   // Add useEffect for handling outside clicks
   useEffect(() => {
     const handleClickOutside = (event) => {

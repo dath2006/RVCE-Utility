@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import SelectionPopup from "./SelectionPopup";
+import { useOverlay } from "../contexts/NavigationContext";
 
 const FirstVisit = () => {
   const navigate = useNavigate();
@@ -11,6 +12,8 @@ const FirstVisit = () => {
     return saved ? JSON.parse(saved) : null;
   });
   const [mounted, setMounted] = useState(false);
+
+  useOverlay("firstVisit", true);
 
   useEffect(() => {
     setMounted(true);

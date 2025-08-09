@@ -232,19 +232,19 @@ const FileUploadSystem = ({ setDisableWorkSpace }) => {
     formData.docType;
 
   return (
-    <div className="h-fit  flex items-center justify-center p-3 sm:p-5 lg:p-6">
+    <div className="h-fit flex items-center justify-center p-2 sm:p-3 lg:p-6 w-full box-border">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full h-full max-w-4xl bg-slate-900/50 backdrop-blur-lg rounded-lg shadow-lg border border-slate-800 p-5 sm:p-6 lg:p-8"
+        className="w-full h-full max-w-4xl bg-slate-900/50 backdrop-blur-lg rounded-lg shadow-lg border border-slate-800 p-3 sm:p-5 lg:p-8 overflow-hidden box-border"
       >
-        <div className="text-center mb-4">
+        <div className="text-center mb-3 sm:mb-4">
           <motion.h1
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-3xl sm:text-4xl font-bold text-white mb-2"
+            className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2"
           >
             Upload Study Materials
           </motion.h1>
@@ -258,7 +258,7 @@ const FileUploadSystem = ({ setDisableWorkSpace }) => {
           </motion.p>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <FormFields formData={formData} onChange={handleFormChange} />
 
           <FileDropZone

@@ -10,7 +10,7 @@ const UploadButton = ({ onClick, disabled, isUploading, fileCount }) => {
       onClick={onClick}
       disabled={disabled}
       className={`
-        w-full flex items-center justify-center space-x-2 px-6 py-4 rounded-lg font-semibold text-white
+        w-full flex items-center justify-center space-x-2 px-4 sm:px-6 py-3 sm:py-4 rounded-lg font-semibold text-white text-sm sm:text-base
         transition-all duration-300 relative overflow-hidden
         ${
           disabled
@@ -34,9 +34,9 @@ const UploadButton = ({ onClick, disabled, isUploading, fileCount }) => {
 
       <div className="flex items-center space-x-2 relative z-10">
         {isUploading ? (
-          <Loader2 size={20} className="animate-spin" />
+          <Loader2 size={18} className="animate-spin sm:w-5 sm:h-5" />
         ) : (
-          <Upload size={20} />
+          <Upload size={18} className="sm:w-5 sm:h-5" />
         )}
         <span>
           {isUploading

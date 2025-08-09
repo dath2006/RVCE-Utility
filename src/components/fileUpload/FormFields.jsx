@@ -33,7 +33,7 @@ const FormFields = ({ formData, onChange }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.5 }}
-      className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6"
+      className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-6"
     >
       {/* Semester Field */}
       <div className="space-y-2">
@@ -44,7 +44,7 @@ const FormFields = ({ formData, onChange }) => {
           <select
             value={formData.semester}
             onChange={(e) => onChange("semester", e.target.value)}
-            className="w-full bg-slate-800/50 backdrop-blur-sm rounded-lg border border-slate-700/50 p-3 sm:p-4 text-white transition-all duration-200 hover:border-slate-600/50 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none cursor-pointer"
+            className="w-full bg-slate-800/50 backdrop-blur-sm rounded-lg border border-slate-700/50 p-2.5 sm:p-3 lg:p-4 text-white transition-all duration-200 hover:border-slate-600/50 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none cursor-pointer text-sm sm:text-base"
           >
             <option value="">Select Semester</option>
             {Array.from({ length: 8 }, (_, i) => (
@@ -74,7 +74,7 @@ const FormFields = ({ formData, onChange }) => {
           <select
             value={formData.branch}
             onChange={(e) => onChange("branch", e.target.value)}
-            className="w-full bg-slate-800/50 backdrop-blur-sm rounded-lg border border-slate-700/50 p-3 sm:p-4 text-white transition-all duration-200 hover:border-slate-600/50 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none cursor-pointer"
+            className="w-full bg-slate-800/50 backdrop-blur-sm rounded-lg border border-slate-700/50 p-2.5 sm:p-3 lg:p-4 text-white transition-all duration-200 hover:border-slate-600/50 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none cursor-pointer text-sm sm:text-base"
           >
             <option value="">Select Branch</option>
             {branchOptions.map((branch) => (
@@ -105,7 +105,7 @@ const FormFields = ({ formData, onChange }) => {
               onChange("subjectCode", e.target.value.trim().toUpperCase());
             }
           }}
-          className="w-full bg-slate-800/50 backdrop-blur-sm rounded-lg border border-slate-700/50 p-3 sm:p-4 text-white placeholder-slate-400 transition-all duration-200 hover:border-slate-600/50 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="w-full bg-slate-800/50 backdrop-blur-sm rounded-lg border border-slate-700/50 p-2.5 sm:p-3 lg:p-4 text-white placeholder-slate-400 transition-all duration-200 hover:border-slate-600/50 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm sm:text-base"
         />
       </div>
 
@@ -123,7 +123,7 @@ const FormFields = ({ formData, onChange }) => {
               onChange("subjectName", e.target.value.trim() || "");
             }
           }}
-          className="w-full bg-slate-800/50 backdrop-blur-sm rounded-lg border border-slate-700/50 p-3 sm:p-4 text-white placeholder-slate-400 transition-all duration-200 hover:border-slate-600/50 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="w-full bg-slate-800/50 backdrop-blur-sm rounded-lg border border-slate-700/50 p-2.5 sm:p-3 lg:p-4 text-white placeholder-slate-400 transition-all duration-200 hover:border-slate-600/50 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm sm:text-base"
         />
       </div>
 
@@ -136,7 +136,7 @@ const FormFields = ({ formData, onChange }) => {
           <select
             value={formData.docType}
             onChange={(e) => onChange("docType", e.target.value)}
-            className="w-full bg-slate-800/50 backdrop-blur-sm rounded-lg border border-slate-700/50 p-3 sm:p-4 text-white transition-all duration-200 hover:border-slate-600/50 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none cursor-pointer"
+            className="w-full bg-slate-800/50 backdrop-blur-sm rounded-lg border border-slate-700/50 p-2.5 sm:p-3 lg:p-4 text-white transition-all duration-200 hover:border-slate-600/50 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none cursor-pointer text-sm sm:text-base"
           >
             <option className="bg-slate-800 text-white" value="">
               Select Type

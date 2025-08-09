@@ -9,18 +9,18 @@ const FileList = ({ files, onRemoveFile, isUploading }) => {
       animate={{ opacity: 1, height: "auto" }}
       exit={{ opacity: 0, height: 0 }}
       transition={{ duration: 0.3 }}
-      className="space-y-3"
+      className="space-y-2 sm:space-y-3"
     >
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">
-          Selected Files ({files.length})
+      <div className="flex items-center justify-between flex-wrap gap-1 sm:gap-2">
+        <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-white flex-shrink-0">
+          Files ({files.length})
         </h3>
-        <div className="px-3 py-1 bg-slate-700/50 rounded-full text-sm text-slate-300">
-          {files.filter((f) => f.uploaded).length} / {files.length} uploaded
+        <div className="px-1.5 sm:px-2 lg:px-3 py-0.5 sm:py-1 bg-slate-700/50 rounded-full text-xs sm:text-sm text-slate-300 flex-shrink-0">
+          {files.filter((f) => f.uploaded).length}/{files.length}
         </div>
       </div>
 
-      <div className="max-h-64 overflow-y-auto space-y-2 pr-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+      <div className="max-h-40 sm:max-h-48 lg:max-h-64 overflow-y-auto space-y-1.5 sm:space-y-2 pr-1 sm:pr-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 overflow-x-hidden">
         <AnimatePresence>
           {files.map((fileItem, index) => (
             <FileItem

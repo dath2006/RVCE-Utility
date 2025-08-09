@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronUp } from "lucide-react";
 import WorkspacesIcon from "@mui/icons-material/Workspaces";
 import { FilterList } from "@mui/icons-material";
+import { useNavigation } from "../contexts/NavigationContext";
 
 const drawerItems = [
   { icon: WorkspacesIcon, label: "Workspace" },
@@ -11,9 +13,21 @@ const drawerItems = [
 
 const FloatingDrawer = ({ setShowWorkspace, isOpen, setIsOpen }) => {
   const [hoveredIndex, setHoveredIndex] = useState(null);
+  const { hideNavigation } = useNavigation();
 
-  return (
-    <div className="fixed left-3 bottom-24 z-50">
+  // Hide if navigation should be hidden due to active overlays
+  if (hideNavigation) return null;
+
+  // Safe-area aware fixed container, rendered in a portal like the bottom bar
+  return createPortal(
+    <div
+      className="left-3 fixed"
+      style={{
+        zIndex: 15, // Slightly above bottom bar but below modals
+        left: "0.75rem",
+        bottom: "calc(env(safe-area-inset-bottom, 0px) + 5.5rem)",
+      }}
+    >
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
         className="relative w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-shadow duration-300"
@@ -113,7 +127,8 @@ const FloatingDrawer = ({ setShowWorkspace, isOpen, setIsOpen }) => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </div>,
+    document.body
   );
 };
 

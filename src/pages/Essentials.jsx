@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import FileViewer from "../components/FileViewer";
+import { useOverlay } from "../contexts/NavigationContext";
 
 const EssentialsContainer = styled.div`
   min-height: 100vh;
@@ -553,6 +554,8 @@ const subjects = {
 const Essentials = ({ theme }) => {
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedUrl, setSelectedUrl] = useState(null);
+
+  useOverlay("essentials", !!selectedUrl);
 
   const handleSubjectSelect = (subject) => {
     setSelectedSubject(selectedSubject === subject ? "" : subject);

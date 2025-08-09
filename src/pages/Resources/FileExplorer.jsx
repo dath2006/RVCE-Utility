@@ -8,6 +8,7 @@ import FileViewer from "../../components/FileViewer";
 import { CheckCircle } from "@mui/icons-material";
 import { useWindowContext } from "../../components/FileViewer/WindowContext";
 import WindowManager from "../../components/FileViewer/WindowManager";
+import { useOverlay } from "../../contexts/NavigationContext";
 
 const DownloadStatus = styled(motion.div)`
   position: fixed;
@@ -89,6 +90,12 @@ const FileExplorer = ({
 
   // Better mobile detection with state
   const [isMobile, setIsMobile] = useState(false);
+
+  // Register overlay when file viewer is open (either mobile or desktop)
+  useOverlay(
+    "fileViewer",
+    (isMobile && !!viewerFile) || (!isMobile && showViewer)
+  );
 
   useEffect(() => {
     const checkIsMobile = () => {

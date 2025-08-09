@@ -15,6 +15,7 @@ import {
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useAuth0 } from "@auth0/auth0-react";
+import { useBottomBarVisibility } from "../hooks/useBottomBarVisibility";
 
 // Constants
 const daysOfWeek = ["MON", "TUE", "WED", "THU", "FRI"];
@@ -713,6 +714,10 @@ const TimetableCreator = ({
   const [events, setEvents] = useState([]);
   const [slotAssignmentModalOpen, setSlotAssignmentModalOpen] = useState(false);
   const [currentSlot, setCurrentSlot] = useState(null);
+
+  // Bottom bar visibility management for modals
+  useBottomBarVisibility(isCourseModalOpen, "course-modal");
+  useBottomBarVisibility(slotAssignmentModalOpen, "slot-assignment-modal");
 
   useEffect(() => {
     setCurrentTheme(theme);

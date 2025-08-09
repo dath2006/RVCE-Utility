@@ -26,6 +26,7 @@ import AddRequest from "./AddRequest";
 import ViewRequestModal from "./ViewRequestModal";
 
 import WaveLoader from "../Loading";
+import useBottomBarVisibility from "../../hooks/useBottomBarVisibility";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -84,6 +85,11 @@ const Requests = () => {
   const [pendingCancelIndex, setPendingCancelIndex] = useState(null);
   const filterRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Use bottom bar visibility hooks for modals
+  useBottomBarVisibility(isAddModalOpen, "add-request-modal");
+  useBottomBarVisibility(!!activeUpload, "upload-modal");
+  useBottomBarVisibility(showCancelConfirm, "cancel-confirm-modal");
 
   // Close filter dropdown when clicking outside
   useEffect(() => {

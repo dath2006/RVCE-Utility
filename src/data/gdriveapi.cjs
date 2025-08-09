@@ -3,39 +3,41 @@ const path = require("path");
 const fs = require("fs");
 const { log } = require("console");
 
-// Load the Service Account credentials
-const SCOPES = ["https://www.googleapis.com/auth/drive"];
-const KEY_FILE = path.join(__dirname, "credentials.json");
+// OAuth2 credentials from environment variables
+const CLIENT_ID =
+ 
+const CLIENT_SECRET = 
+const REFRESH_TOKEN =
+ 
 
-const auth = new google.auth.GoogleAuth({
-  keyFile: KEY_FILE, // Path to your service account key file
-  scopes: SCOPES,
-});
+const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET);
+oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
 
-// Drive API instance
-const drive = google.drive({ version: "v3", auth });
+const drive = google.drive({ version: "v3", auth: oauth2Client });
 
 /**
- * Get all files and folders in Google Drive
+ * Recursively get all files and folders under a specific parent folder
  */
-async function getDriveFiles() {
-  let files = [];
+async function getDriveFilesRecursive(parentId, files = []) {
   let nextPageToken = null;
-
   do {
     const response = await drive.files.list({
-      q: "trashed = false",
+      q: `'${parentId}' in parents and trashed = false`,
       fields:
         "nextPageToken, files(id, name, mimeType, parents, webViewLink, webContentLink)",
       pageSize: 1000,
       pageToken: nextPageToken,
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true,
     });
-    // console.log(response.data.files);
-
-    files = files.concat(response.data.files);
+    for (const file of response.data.files) {
+      files.push(file);
+      if (file.mimeType === "application/vnd.google-apps.folder") {
+        await getDriveFilesRecursive(file.id, files);
+      }
+    }
     nextPageToken = response.data.nextPageToken;
   } while (nextPageToken);
-
   return files;
 }
 
@@ -86,18 +88,24 @@ function buildHierarchy(files) {
  */
 async function main() {
   try {
-    const files = await getDriveFiles();
+    const ROOT_FOLDER_ID = "1HTXnomvzo7OdFvbnBxVjw5JpgrgvErRR";
+    // Get root folder info
+    const rootFolder = await drive.files.get({
+      fileId: ROOT_FOLDER_ID,
+      fields: "id, name, mimeType, parents",
+      supportsAllDrives: true,
+    });
+    // Recursively get all descendants
+    const files = [
+      rootFolder.data,
+      ...(await getDriveFilesRecursive(ROOT_FOLDER_ID)),
+    ];
     const hierarchy = buildHierarchy(files);
-
-    // Log or save the folder structure
-    // console.log(JSON.stringify(hierarchy, null, 2));
-    console.log("Saved to file");
-
-    // Optional: Save to a JSON file
     fs.writeFileSync(
       "folderHierarchy.json",
       JSON.stringify(hierarchy, null, 2)
     );
+    console.log("Saved to file");
   } catch (error) {
     console.error("Error:", error.message);
   }

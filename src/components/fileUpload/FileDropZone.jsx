@@ -19,7 +19,7 @@ const FileDropZone = ({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.5, duration: 0.5 }}
       className={`
-        relative min-h-[200px] border-2 border-dashed rounded-xl p-8 text-center cursor-pointer
+        relative min-h-[160px] sm:min-h-[200px] border-2 border-dashed rounded-xl p-4 sm:p-6 lg:p-8 text-center cursor-pointer
         transition-all duration-300 ease-in-out
         ${
           isDragging
@@ -33,7 +33,7 @@ const FileDropZone = ({
       onDragLeave={onDragLeave}
       onClick={onFileSelect}
     >
-      <div className="flex flex-col items-center justify-center space-y-4">
+      <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
         <motion.div
           animate={{
             y: isDragging ? [-5, 5, -5] : 0,
@@ -45,7 +45,7 @@ const FileDropZone = ({
             ease: "easeInOut",
           }}
           className={`
-            p-4 rounded-full transition-colors duration-300
+            p-3 sm:p-4 rounded-full transition-colors duration-300
             ${
               isDragging
                 ? "bg-blue-500/20 text-blue-400"
@@ -53,20 +53,20 @@ const FileDropZone = ({
             }
           `}
         >
-          <Upload size={32} />
+          <Upload size={24} className="sm:w-8 sm:h-8" />
         </motion.div>
 
-        <div className="space-y-2">
-          <p className="text-lg font-medium text-white">
+        <div className="space-y-1 sm:space-y-2">
+          <p className="text-base sm:text-lg font-medium text-white">
             {isDragging ? "Drop files here" : "Drag and drop files here"}
           </p>
-          <p className="text-slate-400">
+          <p className="text-sm sm:text-base text-slate-400">
             or{" "}
             <span className="text-blue-400 hover:text-blue-300 underline">
               browse files
             </span>
           </p>
-          <p className="text-sm text-slate-500">
+          <p className="text-xs sm:text-sm text-slate-500">
             PDF, DOC, PPT files up to 20MB each
           </p>
         </div>

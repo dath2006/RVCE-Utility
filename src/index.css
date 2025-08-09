@@ -4,6 +4,8 @@
 
 html,
 body {
+  /* Prefer dynamic viewport units on modern browsers with fallback to JS-updated var */
+  min-height: 100dvh;
   height: var(--app-height);
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
@@ -20,6 +22,13 @@ body {
 #root {
   overflow-x: hidden;
   min-height: var(--app-height);
+}
+
+/* Ensure scrollable area has room for the bottom bar on mobile */
+@media (max-width: 925px) {
+  #main-scroll-container {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 @supports (-webkit-touch-callout: none) {

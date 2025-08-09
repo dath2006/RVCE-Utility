@@ -9,10 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import "./Navigation.css";
 import UtilityDropdown from "./UtilityDropdown";
-import { Home, BookOpen, Users, CalendarCheck } from "lucide-react";
-import { FaToolbox } from "react-icons/fa";
-
-// Updated Nav component with auto-hide functionality for mobile
+// Updated Nav component - always visible (auto-hide removed)
 const Nav = styled(motion.nav)`
   padding: 1rem 2rem;
   background: rgba(255, 248, 248, 0.07);
@@ -27,11 +24,8 @@ const Nav = styled(motion.nav)`
 
   @media (max-width: 500px) {
     padding: 0.5rem 1rem;
-    transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-      opacity 0.25s ease;
-    transform: ${(props) =>
-      props.isHidden ? "translateY(-100%)" : "translateY(0)"};
-    opacity: ${(props) => (props.isHidden ? 0 : 1)};
+    transform: translateY(0);
+    opacity: 1;
   }
 
   @media (min-width: 501px) {
@@ -177,155 +171,6 @@ const LoadingSpinner = styled.div`
   }
 `;
 
-// Bottom bar with auto-hide functionality matching HTML example exactly
-const BottomBar = styled(motion.div)`
-  backdrop-filter: blur(21px) saturate(180%);
-  -webkit-backdrop-filter: blur(21px) saturate(180%);
-  background-color: ${(props) => props.theme.glassbgc};
-  position: fixed;
-  left: 1rem; /* 16px margin from left */
-  right: 1rem; /* 16px margin from right */
-  bottom: 1.5rem; /* 24px from bottom - elevated look */
-  width: calc(100vw - 2rem); /* Full width minus left/right margins */
-  z-index: 50;
-  display: flex;
-  height: 3.5rem; /* Slightly smaller height for modern look */
-  min-height: 56px;
-  align-items: center;
-  justify-content: space-around;
-  border-radius: 1.5rem; /* Rounded corners - 24px */
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2), 0 2px 16px 0 rgba(0, 0, 0, 0.12); /* Enhanced shadow */
-  border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border for glass effect */
-  padding: 0.5rem;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease; /* Smooth transition */
-  transform: ${(props) => {
-    return props.isHidden
-      ? "translate3d(0, calc(100% + 2rem), 0)"
-      : "translate3d(0, 0, 0)";
-  }};
-  opacity: ${(props) => (props.isHidden ? 0 : 1)};
-
-  @supports (-webkit-touch-callout: none) {
-    position: -webkit-sticky;
-    position: sticky;
-    bottom: 1.5rem;
-  }
-
-  @media (min-width: 925px) {
-    display: none;
-  }
-`;
-
-// Hook for navigation auto-hide - works for both top nav and bottom bar
-const useNavigationAutoHide = () => {
-  const [isHidden, setIsHidden] = useState(false);
-
-  useEffect(() => {
-    let lastScroll = 0;
-    let ticking = false;
-
-    const handleScroll = (e) => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          // Try different scroll sources
-          const currentScroll =
-            window.pageYOffset ||
-            document.documentElement.scrollTop ||
-            document.body.scrollTop ||
-            0;
-
-          // Also check if the scroll is from a container
-          const target = e?.target;
-          const containerScroll = target?.scrollTop || 0;
-
-          // Use whichever is greater
-          const scrollPos = Math.max(currentScroll, containerScroll);
-
-          if (scrollPos <= 0) {
-            setIsHidden(false);
-            lastScroll = 0;
-            ticking = false;
-            return;
-          }
-
-          const scrollDifference = scrollPos - lastScroll;
-
-          // More sensitive thresholds for better responsiveness
-          if (scrollDifference > 5 && scrollPos > 80) {
-            // Hide when scrolling down (threshold: 5px, minimum scroll: 80px)
-            setIsHidden(true);
-          } else if (scrollDifference < -3) {
-            // Show when scrolling up (threshold: 3px - more sensitive for showing)
-            setIsHidden(false);
-          }
-
-          lastScroll = scrollPos;
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    // Add a small delay to ensure DOM is ready
-    const setupListeners = () => {
-      // Listen to window scroll
-      window.addEventListener("scroll", handleScroll, { passive: true });
-
-      // Listen to document scroll
-      document.addEventListener("scroll", handleScroll, { passive: true });
-
-      // Find and listen to the scrollable container
-      const scrollContainer = document.querySelector(".overflow-y-auto");
-      if (scrollContainer) {
-        scrollContainer.addEventListener("scroll", handleScroll, {
-          passive: true,
-        });
-      }
-
-      // Also try to find any Locomotive Scroll container
-      const locomotiveContainer = document.querySelector(
-        "[data-scroll-container]"
-      );
-      if (locomotiveContainer) {
-        locomotiveContainer.addEventListener("scroll", handleScroll, {
-          passive: true,
-        });
-      }
-
-      // Listen to the main scroll container from App.jsx
-      const mainScrollContainer = document.querySelector(
-        "#main-scroll-container"
-      );
-      if (mainScrollContainer) {
-        mainScrollContainer.addEventListener("scroll", handleScroll, {
-          passive: true,
-        });
-      }
-
-      return { scrollContainer, locomotiveContainer, mainScrollContainer };
-    };
-
-    const { scrollContainer, locomotiveContainer, mainScrollContainer } =
-      setupListeners();
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      document.removeEventListener("scroll", handleScroll);
-      if (scrollContainer) {
-        scrollContainer.removeEventListener("scroll", handleScroll);
-      }
-      if (locomotiveContainer) {
-        locomotiveContainer.removeEventListener("scroll", handleScroll);
-      }
-      if (mainScrollContainer) {
-        mainScrollContainer.removeEventListener("scroll", handleScroll);
-      }
-    };
-  }, []);
-
-  return isHidden;
-};
-
 const Navigation = ({
   toggleTheme,
   showTodoMenu,
@@ -345,9 +190,6 @@ const Navigation = ({
   const currentPath = location.pathname;
 
   const dropdownRef = useRef(null);
-
-  // Initialize navigation auto-hide for both top nav and bottom bar
-  const isNavigationHidden = useNavigationAutoHide();
 
   const letters = "Utility".split("");
   const reversedLetters = "Utility".split("").reverse();
@@ -382,18 +224,9 @@ const Navigation = ({
     toggleTheme();
   };
 
-  // Define nav items for bottom bar
-  const navItems = [
-    { to: "/", label: "Home", icon: Home },
-    { to: "/resources", label: "Resources", icon: BookOpen },
-    { to: "/contributors", label: "Contribute", icon: Users },
-    { to: "/attendance", label: "Attendance", icon: CalendarCheck, auth: true },
-    { to: "/essentials", label: "Essentials", icon: FaToolbox },
-  ];
-
   return (
     <>
-      <Nav isHidden={isNavigationHidden}>
+      <Nav>
         <NavContainer>
           <div className="flex items-center gap-2">
             <div className="content">
@@ -563,61 +396,6 @@ const Navigation = ({
           </div>
         </NavContainer>
       </Nav>
-
-      {/* Bottom Bar with auto-hide - only show if not on /attendance or /contribute */}
-      {/* {!(
-        currentPath.startsWith("/attendance") ||
-        currentPath.startsWith("/contribute")
-      ) && (
-        <BottomBar>
-          {navItems.map((item, idx) => {
-            const isActive =
-              item.to === "/"
-                ? currentPath === "/"
-                : currentPath.startsWith(item.to);
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: isActive ? "#6366f1" : "#a1a1aa",
-                  textDecoration: "none",
-                  flex: 1,
-                  fontWeight: 400,
-                  fontSize: "0.75rem",
-                  transition: "color 0.2s",
-                  padding: "0.1rem 0",
-                  gap: 1,
-                }}
-                onClick={
-                  item.auth && !isAuthenticated
-                    ? (e) => {
-                        e.preventDefault();
-                        setShowAuthCard(!showAuthCard);
-                      }
-                    : undefined
-                }
-              >
-                <Icon
-                  size={18}
-                  strokeWidth={1.5}
-                  color={isActive ? "#6366f1" : "#a1a1aa"}
-                />
-                <span
-                  style={{ fontSize: "0.75rem", marginTop: 2, fontWeight: 400 }}
-                >
-                  {item.label}
-                </span>
-              </Link>
-            );
-          })}
-        </BottomBar>
-      )} */}
     </>
   );
 };
