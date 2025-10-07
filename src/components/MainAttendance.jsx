@@ -847,7 +847,8 @@ const staggerItem = {
 const MainAttendance = ({ setActiveComponent }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const istOffset = 5.5 * 60 * 60 * 1000;
-  const now = new Date(new Date().getTime());
+  const now = new Date();
+  now.setHours(0, 0, 0, 0); // Set time to 00:00:00.000
   const { user, isAuthenticated, isLoading, getAccessTokenSilently } =
     useAuth0();
   const [accStart, setAccStart] = useState();
@@ -1032,12 +1033,16 @@ const MainAttendance = ({ setActiveComponent }) => {
     try {
       if (!isLoading && isAuthenticated) {
         const token = await getAccessTokenSilently();
+
+        // Format date to YYYY-MM-DD to avoid timezone conversion issues
+        const formattedDate = d.format(date, "YYYY-MM-DD");
+
         const res = await axios.post(
           `${import.meta.env.VITE_API_URL}/attendance/init`,
           {
             user: {
               email: user.email,
-              date: date,
+              date: formattedDate,
             },
           },
           {
@@ -1116,12 +1121,16 @@ const MainAttendance = ({ setActiveComponent }) => {
     try {
       setLoading(true);
       const token = await getAccessTokenSilently();
+
+      // Format date to YYYY-MM-DD to avoid timezone conversion issues
+      const formattedDate = d.format(date, "YYYY-MM-DD");
+
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/attendance/save`,
         {
           user: {
             email: user.email,
-            date: date,
+            date: formattedDate,
           },
           daySchedule: day,
         },
@@ -1189,12 +1198,16 @@ const MainAttendance = ({ setActiveComponent }) => {
     try {
       setLoading(true);
       const token = await getAccessTokenSilently();
+
+      // Format date to YYYY-MM-DD to avoid timezone conversion issues
+      const formattedDate = d.format(date, "YYYY-MM-DD");
+
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/attendance/add`,
         {
           user: {
             email: user.email,
-            date: date,
+            date: formattedDate,
           },
           subject: newEvent,
         },

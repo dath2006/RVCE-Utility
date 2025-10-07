@@ -359,27 +359,53 @@ const sectionVariants = {
   animate: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 };
 
-// Department data
-const departmentData = [
-  { code: "AI", name: "Artificial Intelligence", sections: ["A", "B"] },
-  { code: "BT", name: "Biotechnology", sections: [] },
-  { code: "CS", name: "Computer Science", sections: ["A", "B", "C", "D", "E"] },
-  { code: "CD", name: "Data Science", sections: [] },
-  { code: "CY", name: "Cyber Security", sections: [] },
-  { code: "IS", name: "Information Science", sections: ["A", "B"] },
-  {
-    code: "EC",
-    name: "Electronics & Communication",
-    sections: ["A", "B", "C", "D"],
-  },
-  { code: "EE", name: "Electrical Engineering", sections: [] },
-  { code: "ET", name: "Electronics & Telecommunication", sections: [] },
-  { code: "AS", name: "Aerospace Engineering", sections: [] },
-  { code: "CH", name: "Chemical Engineering", sections: [] },
-  { code: "CV", name: "Civil Engineering", sections: [] },
-  { code: "IM", name: "Industrial Management", sections: [] },
-  { code: "ME", name: "Mechanical Engineering", sections: ["A", "B"] },
+// Semester options
+const semesterOptions = [
+  { value: "1", label: "1st Semester" },
+  { value: "3", label: "3rd Semester" },
 ];
+
+// Department data based on semester
+const departmentDataBySemester = {
+  1: [
+    { code: "AI", name: "Artificial Intelligence", sections: ["A", "B", "C"] },
+    { code: "BT", name: "Biotechnology", sections: [] },
+    {
+      code: "CS",
+      name: "Computer Science",
+      sections: ["A", "B", "C", "D", "E", "F"],
+    },
+    { code: "CD", name: "Data Science", sections: [] },
+    { code: "CY", name: "Cyber Security", sections: [] },
+    {
+      code: "EC",
+      name: "Electronics & Communication",
+      sections: ["A", "B", "C", "D"],
+    },
+    { code: "EE", name: "Electrical Engineering", sections: [] },
+    { code: "ET", name: "Electronics & Telecommunication", sections: [] },
+    { code: "AS", name: "Aerospace Engineering", sections: [] },
+    { code: "CH", name: "Chemical Engineering", sections: [] },
+    { code: "CV", name: "Civil Engineering", sections: [] },
+    { code: "IM", name: "Industrial Management", sections: [] },
+    { code: "ME", name: "Mechanical Engineering", sections: ["A", "B"] },
+  ],
+  3: [
+    {
+      code: "CS",
+      name: "Computer Science",
+      sections: ["A", "B", "C", "D", "E"],
+    },
+    { code: "CD", name: "Data Science", sections: [] },
+    { code: "CY", name: "Cyber Security", sections: [] },
+    {
+      code: "EC",
+      name: "Electronics & Communication",
+      sections: ["A", "B", "C", "D"],
+    },
+    { code: "AS", name: "Aerospace Engineering", sections: [] },
+  ],
+};
 
 // Icon components
 const ImportIcon = () => (
@@ -460,6 +486,7 @@ const ImportTimeTable = ({
   setHasTimeTable,
 }) => {
   const [activeTab, setActiveTab] = useState("import");
+  const [sem, setSem] = useState("");
   const [dept, setDept] = useState("");
   const [sect, setSect] = useState("");
   const [attendancePercent, setAttendancePercent] = useState(85);
@@ -468,12 +495,38 @@ const ImportTimeTable = ({
   const { user, isAuthenticated, isLoading, getAccessTokenSilently } =
     useAuth0();
   const [selectedDept, setSelectedDept] = useState(null);
+  const [availableDepartments, setAvailableDepartments] = useState([]);
+
+  // Update available departments when semester changes
+  useEffect(() => {
+    if (sem) {
+      setAvailableDepartments(departmentDataBySemester[sem] || []);
+      // Reset department and section when semester changes
+      setDept("");
+      setSect("");
+      setSelectedDept(null);
+    } else {
+      setAvailableDepartments([]);
+    }
+  }, [sem]);
 
   // Validate form
   useEffect(() => {
     if (activeTab === "import") {
+      // Require semester selection first
+      if (!sem) {
+        setIsValid(false);
+        return;
+      }
+
+      // Require department selection
+      if (!dept) {
+        setIsValid(false);
+        return;
+      }
+
       // If the selected department has sections, require a section selection
-      const deptInfo = departmentData.find((d) => d.code === dept);
+      const deptInfo = availableDepartments.find((d) => d.code === dept);
       if (deptInfo) {
         if (deptInfo.sections.length > 0) {
           setIsValid(dept !== "" && sect !== "");
@@ -486,7 +539,7 @@ const ImportTimeTable = ({
     } else {
       setIsValid(true);
     }
-  }, [dept, sect, activeTab]);
+  }, [sem, dept, sect, activeTab, availableDepartments]);
 
   // Handle department change
   const handleDeptChange = (e) => {
@@ -495,7 +548,7 @@ const ImportTimeTable = ({
     setSect(""); // Reset section when department changes
 
     // Find selected department info
-    const deptInfo = departmentData.find((d) => d.code === selectedCode);
+    const deptInfo = availableDepartments.find((d) => d.code === selectedCode);
     setSelectedDept(deptInfo || null);
   };
 
@@ -514,10 +567,13 @@ const ImportTimeTable = ({
               fullName: user.name,
               email: user.email,
               imageUrl: user.picture,
+              semester: sem,
               branch: dept,
               section: sect,
-              courseStart: new Date("2025-03-17"),
-              courseEnd: new Date("2025-07-12"),
+              courseStart:
+                sem === "1" ? new Date("2025-09-08") : new Date("2025-09-29"),
+              courseEnd:
+                sem === "1" ? new Date("2025-12-12") : new Date("2026-01-31"),
               minAttendance: attendancePercent,
             },
           },
@@ -588,49 +644,102 @@ const ImportTimeTable = ({
                 variants={sectionVariants}
               >
                 <FormSection>
-                  <WarningNote>
+                  {/* <WarningNote>
                     <WarningIcon />
                     <span>
-                      Note: Await for the new semester to start. (the prev.
-                      import feature was available for 2nd sem.)
+                      Note: Import attendance is available only for the 1st sem
+                      and 3rd sem.
                     </span>
-                  </WarningNote>
-                  <SectionTitle>Select Department & Section</SectionTitle>
-
+                  </WarningNote> */}
+                  <SectionTitle>Step 1: Select Semester</SectionTitle>
                   <SelectContainer>
                     <SelectWrapper>
                       <StyledSelect
-                        value={dept}
-                        onChange={handleDeptChange}
-                        required
+                        value={sem}
+                        onChange={(e) => setSem(e.target.value)}
                       >
-                        <option value="">Select Department</option>
-                        {departmentData.map((department) => (
-                          <option key={department.code} value={department.code}>
-                            {department.code} - {department.name}
+                        <option value="">Select Semester</option>
+                        {semesterOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
                           </option>
                         ))}
                       </StyledSelect>
                       <SelectArrow>▼</SelectArrow>
                     </SelectWrapper>
+                  </SelectContainer>
+                </FormSection>
 
-                    {selectedDept && selectedDept.sections.length > 0 && (
+                {sem && (
+                  <FormSection>
+                    <SectionTitle>Step 2: Select Department</SectionTitle>
+                    <SelectContainer>
                       <SelectWrapper>
                         <StyledSelect
-                          value={sect}
-                          onChange={(e) => setSect(e.target.value)}
+                          value={dept}
+                          onChange={handleDeptChange}
                           required
                         >
-                          <option value="">Select Section</option>
-                          {selectedDept.sections.map((section) => (
-                            <option key={section} value={section}>
-                              Section {section}
+                          <option value="">Select Department</option>
+                          {availableDepartments.map((department) => (
+                            <option
+                              key={department.code}
+                              value={department.code}
+                            >
+                              {department.code} - {department.name}
                             </option>
                           ))}
                         </StyledSelect>
                         <SelectArrow>▼</SelectArrow>
                       </SelectWrapper>
-                    )}
+                    </SelectContainer>
+                  </FormSection>
+                )}
+
+                {sem &&
+                  dept &&
+                  selectedDept &&
+                  selectedDept.sections.length > 0 && (
+                    <FormSection>
+                      <SectionTitle>Step 3: Select Section</SectionTitle>
+                      <SelectContainer>
+                        <SelectWrapper>
+                          <StyledSelect
+                            value={sect}
+                            onChange={(e) => setSect(e.target.value)}
+                            required
+                          >
+                            <option value="">Select Section</option>
+                            {selectedDept.sections.map((section) => (
+                              <option key={section} value={section}>
+                                Section {section}
+                              </option>
+                            ))}
+                          </StyledSelect>
+                          <SelectArrow>▼</SelectArrow>
+                        </SelectWrapper>
+                      </SelectContainer>
+                    </FormSection>
+                  )}
+
+                <FormSection>
+                  <SectionTitle>Set Minimum Attendance</SectionTitle>
+                  <SelectContainer>
+                    <SelectWrapper>
+                      <StyledSelect
+                        value={attendancePercent}
+                        onChange={(e) =>
+                          setAttendancePercent(parseInt(e.target.value))
+                        }
+                      >
+                        {[75, 80, 85, 90, 95].map((percent) => (
+                          <option key={percent} value={percent}>
+                            {percent}% Minimum Attendance
+                          </option>
+                        ))}
+                      </StyledSelect>
+                      <SelectArrow>▼</SelectArrow>
+                    </SelectWrapper>
                   </SelectContainer>
                 </FormSection>
               </motion.div>
@@ -671,9 +780,12 @@ const ImportTimeTable = ({
             <ActionButtons>
               <SecondaryButton
                 onClick={() => {
+                  setSem("");
                   setDept("");
                   setSect("");
                   setAttendancePercent(85);
+                  setSelectedDept(null);
+                  setAvailableDepartments([]);
                 }}
                 whilehover={{ scale: 1.02 }}
                 whiletap={{ scale: 0.98 }}

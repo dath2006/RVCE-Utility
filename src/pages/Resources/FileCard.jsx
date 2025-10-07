@@ -132,7 +132,7 @@ const FileCard = ({
 
       {item.path && (
         <SubjectBadge>
-          {["ESC", "PLC", "ETC"].includes(item.path[2].split(" ")[0])
+          {["ESC", "PLC", "ETC", "Basket"].includes(item.path[2].split(" ")[0])
             ? item.path[3]
             : item.path[2]}
         </SubjectBadge>

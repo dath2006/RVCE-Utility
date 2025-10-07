@@ -171,9 +171,6 @@ const FileExplorer = ({
   };
 
   const onView = (item) => {
-    console.log("onView called with item:", item);
-    console.log("isMobile:", isMobile);
-
     if (!isMobile && getAllWindowsId().includes(item.id)) {
       setWindows((prev) =>
         prev.map((window) => {

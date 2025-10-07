@@ -147,7 +147,7 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
           );
         }
       });
-    } else {
+    } else if (filters.cycle === "P - Cycle") {
       [
         "Mechanical Engineering",
         "Basic Electronics",
@@ -158,6 +158,21 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
         filters.selectedETC,
         filters.selectedKannada,
         filters.selectedESC,
+      ].forEach((sub) => {
+        if (sub) {
+          searchFolderStructure(sub, jsonData).forEach((data) =>
+            arr.push(data)
+          );
+        }
+      });
+    } else if (filters.cycle === "3 - Sem") {
+      [
+        "OS (CS235AI)",
+        "Maths (MAT231CT)",
+        "DTL (CS237DL)",
+        "DSA (IS233AI)",
+        "ADLD (CS234AI)",
+        filters.selectedSem3,
       ].forEach((sub) => {
         if (sub) {
           searchFolderStructure(sub, jsonData).forEach((data) =>

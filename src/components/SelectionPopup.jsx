@@ -251,12 +251,14 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
     selectedPLC: "",
     selectedETC: "",
     selectedKannada: "",
+    selectedSem3: "",
   });
 
   const [escCourses, setEscCourses] = useState([]);
   const [plcCourses, setPlcCourses] = useState([]);
   const [etcCourses, setEtcCourses] = useState([]);
   const [kannadaCourses, setKannadaCourses] = useState([]);
+  const [sem3Courses, setSem3Courses] = useState([]);
   const [showHelp, setShowHelp] = useState([false, "hi"]);
   const [jsonData, setJsonData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -272,6 +274,19 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
       return;
     }
     const firstYear = data.find((item) => item.name === "1 Year");
+    const secondYear = data.find((item) => item.name === "2 Year");
+
+    if (secondYear) {
+      const sem3 = secondYear.children.find((item) => item.name === "3 - Sem");
+      if (sem3) {
+        const basket = sem3.children.find(
+          (item) => item.name === "Basket course"
+        );
+        setSem3Courses(
+          basket ? basket.children.map((course) => course.name) : []
+        );
+      }
+    }
 
     if (firstYear) {
       const cCycle = firstYear.children.find(
@@ -323,6 +338,8 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
 
   const getContent = (text) => {
     const results = searchFiles(`_which ${text} to choose.txt`, jsonData);
+    console.log(results);
+
     return results ? results[0].Content : "No help content available.";
   };
 
@@ -344,47 +361,79 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
           >
             1 Year
           </Card>
-          <Card disabled>2 Year</Card>
+          <Card
+            selected={selection.year === "2 Year"}
+            onClick={() =>
+              setSelection((prev) => {
+                return { ...prev, year: "2 Year" };
+              })
+            }
+            whilehover={{ scale: 1.02 }}
+            whiletap={{ scale: 0.98 }}
+          >
+            2 Year
+          </Card>
           <Card disabled>3 Year</Card>
           <Card disabled>4 Year</Card>
         </StepContent>
       ),
     },
     {
-      title: "Choose Your Cycle",
-      description: "Select your academic cycle",
+      title: "Choose Your Sem",
+      description: "Select your academic semester/cycle",
       content: (
         <StepContent>
-          <Card
-            selected={selection.cycle === "C - Cycle"}
-            onClick={() =>
-              setSelection((prev) => {
-                return { ...prev, cycle: "C - Cycle" };
-              })
-            }
-            whilehover={{ scale: 1.02 }}
-            whiletap={{ scale: 0.98 }}
-          >
-            C - Cycle
-          </Card>
-          <Card
-            selected={selection.cycle === "P - Cycle"}
-            onClick={() =>
-              setSelection((prev) => {
-                return { ...prev, cycle: "P - Cycle" };
-              })
-            }
-            whilehover={{ scale: 1.02 }}
-            whiletap={{ scale: 0.98 }}
-          >
-            P - Cycle
-          </Card>
+          {selection.year === "1 Year" && (
+            <>
+              <Card
+                selected={selection.cycle === "C - Cycle"}
+                onClick={() =>
+                  setSelection((prev) => {
+                    return { ...prev, cycle: "C - Cycle" };
+                  })
+                }
+                whilehover={{ scale: 1.02 }}
+                whiletap={{ scale: 0.98 }}
+              >
+                C - Cycle
+              </Card>
+              <Card
+                selected={selection.cycle === "P - Cycle"}
+                onClick={() =>
+                  setSelection((prev) => {
+                    return { ...prev, cycle: "P - Cycle" };
+                  })
+                }
+                whilehover={{ scale: 1.02 }}
+                whiletap={{ scale: 0.98 }}
+              >
+                P - Cycle
+              </Card>
+            </>
+          )}
+          {selection.year === "2 Year" && (
+            <>
+              <Card
+                selected={selection.cycle === "3 - Sem"}
+                onClick={() =>
+                  setSelection((prev) => {
+                    return { ...prev, cycle: "3 - Sem" };
+                  })
+                }
+                whilehover={{ scale: 1.02 }}
+                whiletap={{ scale: 0.98 }}
+              >
+                3rd - Sem (CSE only)
+              </Card>
+              <Card disabled>4th - Sem</Card>
+            </>
+          )}
         </StepContent>
       ),
     },
     {
       title: "Select Your Courses",
-      description: "Choose your courses based on your cycle",
+      description: "Choose your courses based on your semester/cycle",
       content: (
         <StepContent>
           {selection.cycle === "C - Cycle" ? (
@@ -443,7 +492,7 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
                 />
               </SelectContainer>
             </>
-          ) : (
+          ) : selection.cycle === "P - Cycle" ? (
             <>
               <SelectContainer>
                 <StyledSelect
@@ -526,6 +575,37 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
                 />
               </SelectContainer>
             </>
+          ) : (
+            selection.cycle === "3 - Sem" && (
+              <>
+                <SelectContainer>
+                  <StyledSelect
+                    value={selection.selectedSem3}
+                    onChange={(e) =>
+                      setSelection((prev) => {
+                        return { ...prev, selectedSem3: e.target.value };
+                      })
+                    }
+                  >
+                    <option value="">-- Select Basket Course --</option>
+                    {sem3Courses.map(
+                      (course, index) =>
+                        !course.includes(".txt") && (
+                          <option key={index} value={course}>
+                            {course}
+                          </option>
+                        )
+                    )}
+                  </StyledSelect>
+                  <TbHelpSquareRoundedFilled
+                    className="help-icon"
+                    onClick={() => {
+                      setShowHelp([true, getContent("basket")]);
+                    }}
+                  />
+                </SelectContainer>
+              </>
+            )
           )}
         </StepContent>
       ),
@@ -556,12 +636,14 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
       case 2:
         if (selection.cycle === "C - Cycle") {
           return selection.selectedESC && selection.selectedPLC;
-        } else {
+        } else if (selection.cycle === "P - Cycle") {
           return (
             selection.selectedETC &&
             selection.selectedKannada &&
             selection.selectedESC
           );
+        } else if (selection.cycle === "3 - Sem") {
+          return selection.selectedSem3;
         }
       default:
         return false;
