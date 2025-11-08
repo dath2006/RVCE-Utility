@@ -13,9 +13,9 @@ export default defineConfig({
       },
       includeAssets: ["favicon.ico", "Logo.svg", "robots.txt"],
       manifest: {
-        name: "RVCE Utility",
-        short_name: "RVCE",
-        description: "RVCE Resource Portal",
+        name: "RV Utility",
+        short_name: "RV Utility",
+        description: "RV Resource Portal",
         theme_color: "#ffffff",
         icons: [
           {
