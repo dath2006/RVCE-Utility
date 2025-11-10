@@ -165,7 +165,7 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
           );
         }
       });
-    } else if (filters.cycle === "3 - Sem") {
+    } else if (filters.cycle === "3-Sem-CSE") {
       [
         "OS (CS235AI)",
         "Maths (MAT231CT)",
@@ -174,6 +174,14 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
         "ADLD (CS234AI)",
         filters.selectedSem3,
       ].forEach((sub) => {
+        if (sub) {
+          searchFolderStructure(sub, jsonData).forEach((data) =>
+            arr.push(data)
+          );
+        }
+      });
+    } else if (filters.cycle === "3-Sem-ECE") {
+      ["network", "Maths ECE", "digital", "analog"].forEach((sub) => {
         if (sub) {
           searchFolderStructure(sub, jsonData).forEach((data) =>
             arr.push(data)

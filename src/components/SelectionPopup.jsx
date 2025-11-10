@@ -277,7 +277,9 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
     const secondYear = data.find((item) => item.name === "2 Year");
 
     if (secondYear) {
-      const sem3 = secondYear.children.find((item) => item.name === "3 - Sem");
+      const sem3 = secondYear.children.find(
+        (item) => item.name === "3-Sem-CSE" || item.name === "3-Sem-ECE"
+      );
       if (sem3) {
         const basket = sem3.children.find(
           (item) => item.name === "Basket course"
@@ -414,18 +416,29 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
           {selection.year === "2 Year" && (
             <>
               <Card
-                selected={selection.cycle === "3 - Sem"}
+                selected={selection.cycle === "3-Sem-CSE"}
                 onClick={() =>
                   setSelection((prev) => {
-                    return { ...prev, cycle: "3 - Sem" };
+                    return { ...prev, cycle: "3-Sem-CSE" };
                   })
                 }
                 whilehover={{ scale: 1.02 }}
                 whiletap={{ scale: 0.98 }}
               >
-                3rd - Sem (CSE only)
+                3rd - Sem (CSE)
               </Card>
-              <Card disabled>4th - Sem</Card>
+              <Card
+                selected={selection.cycle === "3-Sem-ECE"}
+                onClick={() =>
+                  setSelection((prev) => {
+                    return { ...prev, cycle: "3-Sem-ECE" };
+                  })
+                }
+                whilehover={{ scale: 1.02 }}
+                whiletap={{ scale: 0.98 }}
+              >
+                3rd - Sem (ECE)
+              </Card>
             </>
           )}
         </StepContent>
@@ -575,38 +588,45 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
                 />
               </SelectContainer>
             </>
-          ) : (
-            selection.cycle === "3 - Sem" && (
-              <>
-                <SelectContainer>
-                  <StyledSelect
-                    value={selection.selectedSem3}
-                    onChange={(e) =>
-                      setSelection((prev) => {
-                        return { ...prev, selectedSem3: e.target.value };
-                      })
-                    }
-                  >
-                    <option value="">-- Select Basket Course --</option>
-                    {sem3Courses.map(
-                      (course, index) =>
-                        !course.includes(".txt") && (
-                          <option key={index} value={course}>
-                            {course}
-                          </option>
-                        )
-                    )}
-                  </StyledSelect>
-                  <TbHelpSquareRoundedFilled
-                    className="help-icon"
-                    onClick={() => {
-                      setShowHelp([true, getContent("basket")]);
-                    }}
-                  />
-                </SelectContainer>
-              </>
-            )
-          )}
+          ) : selection.cycle === "3-Sem-CSE" ? (
+            <>
+              <SelectContainer>
+                <StyledSelect
+                  value={selection.selectedSem3}
+                  onChange={(e) =>
+                    setSelection((prev) => {
+                      return { ...prev, selectedSem3: e.target.value };
+                    })
+                  }
+                >
+                  <option value="">-- Select Basket Course --</option>
+                  {sem3Courses.map(
+                    (course, index) =>
+                      !course.includes(".txt") && (
+                        <option key={index} value={course}>
+                          {course}
+                        </option>
+                      )
+                  )}
+                </StyledSelect>
+                <TbHelpSquareRoundedFilled
+                  className="help-icon"
+                  onClick={() => {
+                    setShowHelp([true, getContent("basket")]);
+                  }}
+                />
+              </SelectContainer>
+            </>
+          ) : selection.cycle === "3-Sem-ECE" ? (
+            <>
+              {selection.selectedSem3 !== "N/A" &&
+                setSelection((prev) => ({ ...prev, selectedSem3: "N/A" }))}
+              <p>
+                No course selection needed for 3rd Sem ECE. Click "Finish" to
+                proceed.
+              </p>
+            </>
+          ) : null}
         </StepContent>
       ),
     },
@@ -642,8 +662,10 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
             selection.selectedKannada &&
             selection.selectedESC
           );
-        } else if (selection.cycle === "3 - Sem") {
+        } else if (selection.cycle === "3-Sem-CSE") {
           return selection.selectedSem3;
+        } else if (selection.cycle === "3-Sem-ECE") {
+          return true;
         }
       default:
         return false;
