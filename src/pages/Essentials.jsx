@@ -572,7 +572,7 @@ const Essentials = ({ theme }) => {
 
   const handleHolidayList = () => {
     setSelectedUrl(
-      "https://drive.google.com/file/d/114-VW6q_W_XjTslyc90vCeFZV7oVdjUi/preview"
+      "https://drive.google.com/file/d/1c6h_O2zGKccDWviNap-t7_s6budIjJ_2/preview"
     );
   };
 
