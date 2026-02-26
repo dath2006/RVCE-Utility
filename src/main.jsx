@@ -42,7 +42,7 @@ if (window.visualViewport) {
     passive: true,
   });
 }
-
+ 
 // Handle page visibility changes (when returning from background)
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) {
