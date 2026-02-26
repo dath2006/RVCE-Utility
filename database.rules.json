@@ -1,0 +1,23 @@
+{
+  "rules": {
+    "stats": {
+      // Anyone can read the stats to display on the Home Page
+      ".read": true,
+
+      "totalVisits": {
+        // Allow anyone to write, but only strictly increment by 1
+        ".write": "!data.exists() || (newData.isNumber() && newData.val() == data.val() + 1)"
+      },
+
+      "verifiedUsers": {
+        // Allow anyone to write, but only strictly increment by 1
+        ".write": "!data.exists() || (newData.isNumber() && newData.val() == data.val() + 1)"
+      },
+      
+      "totalResources": {
+        // Allow anyone to write, but only strictly increment
+        ".write": "!data.exists() || (newData.isNumber() && newData.val() >= data.val())"
+      }
+    }
+  }
+}

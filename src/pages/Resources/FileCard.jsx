@@ -26,7 +26,7 @@ const Content = styled.div`
   gap: 1rem;
   transition: filter 0.3s ease;
   ${(props) =>
-    props.isblurred &&
+    props.$isblurred &&
     `
     filter: blur(2px);
     opacity: 0.7;
@@ -125,7 +125,7 @@ const FileCard = ({
       }
       onMouseLeave={!isMobile ? () => setActiveCardId(null) : undefined}
     >
-      <Content isblurred={showActions}>
+      <Content $isblurred={showActions}>
         {isFolder ? <Folder /> : <Description />}
         <span>{item.name}</span>
       </Content>

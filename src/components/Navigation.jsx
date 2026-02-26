@@ -62,7 +62,7 @@ const NavLinks = styled.div`
   display: flex;
 
   @media (max-width: 924px) {
-    display: ${(props) => (props.isOpen ? "flex" : "none")};
+    display: ${(props) => (props.$isOpen ? "flex" : "none")};
     position: absolute;
     top: 100%;
     left: 0;
@@ -312,7 +312,7 @@ const Navigation = ({
           </div>
 
           <NavLinks
-            isOpen={isMenuOpen}
+            $isOpen={isMenuOpen}
             ref={mobileMenuRef}
             onClick={() => setIsMenuOpen(false)}
           >
@@ -414,7 +414,7 @@ const Navigation = ({
               disabled={currentPath.startsWith("/contribute")}
               onClick={handleThemeToggle}
               style={{
-                opacity: currentPath.startsWith("/contribute") && 0.3,
+                opacity: currentPath.startsWith("/contribute") ? 0.3 : 1,
               }}
             >
               {isDarkMode ? <LightMode /> : <DarkMode />}
