@@ -15,7 +15,6 @@
     "@clerk/clerk-react": "^5.25.3",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@google-analytics/data": "^5.2.1",
     "@mui/icons-material": "^6.5.0",
     "@mui/material": "^6.5.0",
     "@radix-ui/react-slot": "^1.1.1",
