@@ -4,6 +4,8 @@ import styled from "styled-components";
 import { Menu, Close, DarkMode, LightMode } from "@mui/icons-material";
 import { useAuth0 } from "@auth0/auth0-react";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import GitHubIcon from "@mui/icons-material/GitHub";
+import { useGithubStars } from "../hooks/useGithubStars";
 
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -60,7 +62,7 @@ const NavLinks = styled.div`
   display: flex;
 
   @media (max-width: 924px) {
-    display: ${(props) => (props.isOpen ? "flex" : "none")};
+    display: ${(props) => (props.$isOpen ? "flex" : "none")};
     position: absolute;
     top: 100%;
     left: 0;
@@ -182,6 +184,7 @@ const Navigation = ({
   mobileMenuRef,
 }) => {
   const { user, isAuthenticated, isLoading } = useAuth0();
+  const { stars } = useGithubStars();
   const [isDarkMode, setIsDarkMode] = useState(
     localStorage.getItem("theme") === "dark"
   );
@@ -309,7 +312,7 @@ const Navigation = ({
           </div>
 
           <NavLinks
-            isOpen={isMenuOpen}
+            $isOpen={isMenuOpen}
             ref={mobileMenuRef}
             onClick={() => setIsMenuOpen(false)}
           >
@@ -330,6 +333,34 @@ const Navigation = ({
           </NavLinks>
 
           <div className="flex gap-1 sm:gap-4">
+            {stars !== null && (
+              <a
+                href="https://github.com/dath2006/RVCE-Utility"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-center gap-1.5 px-3 py-1 mx-1 hidden sm:flex rounded-full bg-[#f3f4f6] dark:bg-[#1f2937] hover:bg-[#e5e7eb] dark:hover:bg-[#374151] transition-all text-sm font-bold text-black dark:text-white cursor-pointer shadow-sm"
+                style={{ textDecoration: 'none' }}
+                aria-label="GitHub Repository Stars"
+              >
+                <GitHubIcon style={{ fontSize: '1.2rem' }} />
+                <span>{stars}</span>
+              </a>
+            )}
+
+            {stars !== null && (
+              <a
+                href="https://github.com/dath2006/RVCE-Utility"
+                target="_blank"
+                rel="noreferrer"
+                className="flex sm:hidden items-center justify-center gap-1 px-2.5 py-1 mx-0.5 rounded-full bg-[#f3f4f6] dark:bg-[#1f2937] hover:bg-[#e5e7eb] dark:hover:bg-[#374151] transition-all text-xs font-bold text-black dark:text-white cursor-pointer shadow-sm"
+                style={{ textDecoration: 'none' }}
+                aria-label="GitHub Repository Stars"
+              >
+                <GitHubIcon style={{ fontSize: '1.1rem' }} />
+                <span>{stars}</span>
+              </a>
+            )}
+
             <div className="flex items-center gap-3">
               {!isLoading ? (
                 <button
@@ -378,11 +409,12 @@ const Navigation = ({
                 </LoadingSpinner>
               )}
             </div>
+
             <IconButton
               disabled={currentPath.startsWith("/contribute")}
               onClick={handleThemeToggle}
               style={{
-                opacity: currentPath.startsWith("/contribute") && 0.3,
+                opacity: currentPath.startsWith("/contribute") ? 0.3 : 1,
               }}
             >
               {isDarkMode ? <LightMode /> : <DarkMode />}

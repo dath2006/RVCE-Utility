@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import { NavLink } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquarePlus, ArrowRight } from "lucide-react";
+import { MessageSquarePlus, ArrowRight, Users, BookOpen, Eye } from "lucide-react";
 import { Button } from "@mui/material";
 import FileViewer from "./FileViewer";
 import FeaturesSection from "./FeaturesSection";
@@ -10,6 +10,7 @@ import FeaturesSection from "./FeaturesSection";
 import { useAuth0 } from "@auth0/auth0-react";
 import Help from "./Help";
 import axios from "axios";
+import { listenToHomeStats, incrementVisitCount, incrementVerifiedUserCount } from "../firebase";
 
 // --- Aurora styled for theme ---
 const AuroraBgStyled = styled.div`
@@ -298,6 +299,60 @@ const Resources = styled(NavLink)`
   }
 `;
 
+const StatsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  margin: 2rem auto 4rem auto;
+  max-width: 900px;
+  width: 100%;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    justify-content: space-around;
+    gap: 0;
+  }
+`;
+
+const StatItem = styled(motion.div)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1rem 2rem;
+
+  h3 {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #0ea5e9; /* TechAstra inspired blue */
+    margin-bottom: 0.5rem;
+    line-height: 1;
+  }
+
+  p {
+    color: ${(props) => props.theme.text}99;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0;
+  }
+`;
+
+const StatDivider = styled.div`
+  width: 80%;
+  height: 1px;
+  background: ${(props) => props.theme.border || "rgba(128,128,128,0.2)"};
+
+  @media (min-width: 768px) {
+    width: 1px;
+    height: 60px;
+  }
+`;
+
 const CarouselContainer = styled.div`
   position: relative;
   width: 100%;
@@ -362,11 +417,11 @@ const CarouselDot = styled.button`
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: ${({ active, theme }) => (active ? theme.primary : theme.border)};
+  background: ${({ $active, theme }) => ($active ? theme.primary : theme.border)};
   margin: 0 0.2rem;
   border: none;
   transition: background 0.3s, transform 0.3s;
-  transform: ${({ active }) => (active ? "scale(1.2)" : "scale(1)")};
+  transform: ${({ $active }) => ($active ? "scale(1.2)" : "scale(1)")};
 `;
 const CarouselArrow = styled.button`
   position: absolute;
@@ -573,7 +628,7 @@ const NewsCarousel = ({ newsItems }) => {
         {newsItems.map((_, idx) => (
           <CarouselDot
             key={idx}
-            active={idx === current}
+            $active={idx === current}
             onClick={() => setCurrent(idx)}
             aria-label={`Go to news ${idx + 1}`}
           />
@@ -591,6 +646,35 @@ export default function AfterVisit({ showAuthCard, setShowAuthCard }) {
   );
   const [data, setData] = useState(null);
   const [isOpen, setIsOpen] = useState(true);
+  const [stats, setStats] = useState({
+    totalVisits: 0,
+    verifiedUsers: 0,
+    totalResources: 0
+  });
+
+  // Stats logic
+  useEffect(() => {
+    // 1. Increment visitor count (ideally you'd add cookie checks to not over-count)
+    if (!sessionStorage.getItem('visited_v2')) {
+      incrementVisitCount();
+      sessionStorage.setItem('visited_v2', 'true');
+    }
+
+    // 2. Setup real-time listener for live updates
+    const unsubscribe = listenToHomeStats((data) => {
+        setStats(data);
+    });
+
+    // Cleanup listener on unmount
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated && !sessionStorage.getItem('verified_counted')) {
+      incrementVerifiedUserCount();
+      sessionStorage.setItem('verified_counted', 'true');
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const getMsg = async () => {
@@ -666,6 +750,29 @@ export default function AfterVisit({ showAuthCard, setShowAuthCard }) {
           </Resources>
         </motion.div>
       </HeroSection>
+
+      <Section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+        <StatsContainer>
+          <StatItem whileHover={{ scale: 1.05 }}>
+            <h3>{stats.totalResources.toLocaleString()}+</h3>
+            <p>Total Resources</p>
+          </StatItem>
+          
+          <StatDivider />
+          
+          <StatItem whileHover={{ scale: 1.05 }}>
+            <h3>{stats.totalVisits.toLocaleString()}+</h3>
+            <p>Total Visits</p>
+          </StatItem>
+
+          <StatDivider />
+          
+          <StatItem whileHover={{ scale: 1.05 }}>
+            <h3>{stats.verifiedUsers.toLocaleString()}+</h3>
+            <p>Verified Users</p>
+          </StatItem>
+        </StatsContainer>
+      </Section>
 
       <Section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <motion.div

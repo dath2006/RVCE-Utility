@@ -12,6 +12,7 @@ import {
   allowedExtensions,
 } from "../../utils/fileValidation";
 import { useAuth0 } from "@auth0/auth0-react";
+import { incrementResourceCount } from "../../firebase";
 
 const FileUploadSystem = ({ setDisableWorkSpace }) => {
   const { user, getAccessTokenSilently } = useAuth0();
@@ -193,6 +194,11 @@ const FileUploadSystem = ({ setDisableWorkSpace }) => {
     // Check results based on our tracking array
     const successfulUploads = uploadResults.filter((result) => result.success);
     const failedUploads = uploadResults.filter((result) => !result.success);
+    
+    if (successfulUploads.length > 0) {
+      incrementResourceCount(successfulUploads.length);
+    }
+    
     const allUploaded =
       failedUploads.length === 0 && successfulUploads.length > 0;
 
