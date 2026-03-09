@@ -8,6 +8,7 @@ import searchFiles from "../hooks/searchFiles";
 import { Close, ArrowForward, ArrowBack } from "@mui/icons-material";
 import axios from "axios";
 import WaveLoader from "./Loading";
+import FileViewer from "./FileViewer";
 
 const Overlay = styled(motion.div)`
   position: fixed;
@@ -96,14 +97,14 @@ const Card = styled(motion.div)`
     props.selected
       ? props.theme.gradient
       : props.disabled
-      ? props.theme.secondary + "20"
-      : props.theme.surface};
+        ? props.theme.secondary + "20"
+        : props.theme.surface};
   color: ${(props) =>
     props.selected
       ? "white"
       : props.disabled
-      ? props.theme.text + "80"
-      : props.theme.text};
+        ? props.theme.text + "80"
+        : props.theme.text};
   border-radius: 12px;
   cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
   opacity: ${(props) => (props.disabled ? 0.5 : 1)};
@@ -252,6 +253,7 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
     selectedETC: "",
     selectedKannada: "",
     selectedSem3: "",
+    selectedSem4: "",
   });
 
   const [escCourses, setEscCourses] = useState([]);
@@ -259,6 +261,7 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
   const [etcCourses, setEtcCourses] = useState([]);
   const [kannadaCourses, setKannadaCourses] = useState([]);
   const [sem3Courses, setSem3Courses] = useState([]);
+  const [sem4Courses, setSem4Courses] = useState([]);
   const [showHelp, setShowHelp] = useState([false, "hi"]);
   const [jsonData, setJsonData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -278,30 +281,33 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
 
     if (secondYear) {
       const sem3 = secondYear.children.find(
-        (item) => item.name === "3-Sem-CSE" || item.name === "3-Sem-ECE"
+        (item) => item.name === "3-Sem-CSE" || item.name === "3-Sem-ECE",
       );
       if (sem3) {
         const basket = sem3.children.find(
-          (item) => item.name === "Basket course"
+          (item) => item.name === "Basket course",
         );
         setSem3Courses(
-          basket ? basket.children.map((course) => course.name) : []
+          basket ? basket.children.map((course) => course.name) : [],
+        );
+        setSem4Courses(
+          basket ? basket.children.map((course) => course.name) : [],
         );
       }
     }
 
     if (firstYear) {
       const cCycle = firstYear.children.find(
-        (item) => item.name === "C - Cycle"
+        (item) => item.name === "C - Cycle",
       );
       const pCycle = firstYear.children.find(
-        (item) => item.name === "P - Cycle"
+        (item) => item.name === "P - Cycle",
       );
 
       if (cCycle) {
         const esc = cCycle.children.find((item) => item.name === "ESC");
         const plc = cCycle.children.find(
-          (item) => item.name === "PLC (22PL15X)"
+          (item) => item.name === "PLC (22PL15X)",
         );
         setEscCourses(esc ? esc.children.map((course) => course.name) : []);
         setPlcCourses(plc ? plc.children.map((course) => course.name) : []);
@@ -309,16 +315,16 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
 
       if (pCycle) {
         const etc = pCycle.children.find(
-          (item) => item.name === "ETC (22EM2XX)"
+          (item) => item.name === "ETC (22EM2XX)",
         );
         const kannada = pCycle.children.find(
-          (item) => item.name === "Kannada (22HSXK17)"
+          (item) => item.name === "Kannada (22HSXK17)",
         );
         const esc = cCycle.children.find((item) => item.name === "ESC");
         setEscCourses(esc ? esc.children.map((course) => course.name) : []);
         setEtcCourses(etc ? etc.children.map((course) => course.name) : []);
         setKannadaCourses(
-          kannada ? kannada.children.map((course) => course.name) : []
+          kannada ? kannada.children.map((course) => course.name) : [],
         );
       }
     }
@@ -342,7 +348,7 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
     const results = searchFiles(`_which ${text} to choose.txt`, jsonData);
     console.log(results);
 
-    return results ? results[0].Content : "No help content available.";
+    return results && results[0].webViewLink;
   };
 
   const steps = [
@@ -439,6 +445,18 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
               >
                 3rd - Sem (ECE)
               </Card>
+              <Card
+                selected={selection.cycle === "4-Sem-CSE"}
+                onClick={() =>
+                  setSelection((prev) => {
+                    return { ...prev, cycle: "4-Sem-CSE" };
+                  })
+                }
+                whilehover={{ scale: 1.02 }}
+                whiletap={{ scale: 0.98 }}
+              >
+                4th - Sem (CSE)
+              </Card>
             </>
           )}
         </StepContent>
@@ -467,7 +485,7 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
                         <option key={index} value={course}>
                           {course}
                         </option>
-                      )
+                      ),
                   )}
                 </StyledSelect>
                 <TbHelpSquareRoundedFilled
@@ -494,7 +512,7 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
                         <option key={index} value={course}>
                           {course}
                         </option>
-                      )
+                      ),
                   )}
                 </StyledSelect>
                 <TbHelpSquareRoundedFilled
@@ -523,7 +541,7 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
                         <option key={index} value={course}>
                           {course}
                         </option>
-                      )
+                      ),
                   )}
                 </StyledSelect>
                 <TbHelpSquareRoundedFilled
@@ -550,7 +568,7 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
                         <option key={index} value={course}>
                           {course}
                         </option>
-                      )
+                      ),
                   )}
                 </StyledSelect>
                 <TbHelpSquareRoundedFilled
@@ -577,7 +595,7 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
                         <option key={index} value={course}>
                           {course}
                         </option>
-                      )
+                      ),
                   )}
                 </StyledSelect>
                 <TbHelpSquareRoundedFilled
@@ -606,7 +624,7 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
                         <option key={index} value={course}>
                           {course}
                         </option>
-                      )
+                      ),
                   )}
                 </StyledSelect>
                 <TbHelpSquareRoundedFilled
@@ -625,6 +643,35 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
                 No course selection needed for 3rd Sem ECE. Click "Finish" to
                 proceed.
               </p>
+            </>
+          ) : selection.cycle === "4-Sem-CSE" ? (
+            <>
+              <SelectContainer>
+                <StyledSelect
+                  value={selection.selectedSem4}
+                  onChange={(e) =>
+                    setSelection((prev) => {
+                      return { ...prev, selectedSem4: e.target.value };
+                    })
+                  }
+                >
+                  <option value="">-- Select Basket Course --</option>
+                  {sem4Courses.map(
+                    (course, index) =>
+                      !course.includes(".txt") && (
+                        <option key={index} value={course}>
+                          {course}
+                        </option>
+                      ),
+                  )}
+                </StyledSelect>
+                <TbHelpSquareRoundedFilled
+                  className="help-icon"
+                  onClick={() => {
+                    setShowHelp([true, getContent("basket")]);
+                  }}
+                />
+              </SelectContainer>
             </>
           ) : null}
         </StepContent>
@@ -666,6 +713,8 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
           return selection.selectedSem3;
         } else if (selection.cycle === "3-Sem-ECE") {
           return true;
+        } else if (selection.cycle === "4-Sem-CSE") {
+          return selection.selectedSem4;
         }
       default:
         return false;
@@ -742,9 +791,14 @@ const SelectionPopup = ({ onClose, onSubmit }) => {
         </NavigationButtons>
       </PopupCard>
       {showHelp[0] && (
-        <Help
-          text={showHelp[1]}
-          isOpen={showHelp[0]}
+        // <Help
+        //   text={showHelp[1]}
+        //   isOpen={showHelp[0]}
+        //   onClose={() => setShowHelp([false, ""])}
+        // />
+        <FileViewer
+          key={showHelp[1]}
+          url={showHelp[1]}
           onClose={() => setShowHelp([false, ""])}
         />
       )}

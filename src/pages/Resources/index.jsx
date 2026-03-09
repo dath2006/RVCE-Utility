@@ -13,6 +13,7 @@ import WaveLoader from "../../components/Loading";
 import axios from "axios";
 import { FilterList } from "@mui/icons-material";
 import { useOverlay } from "../../contexts/NavigationContext";
+import { HelpCircle } from "lucide-react";
 
 const Container = styled.div`
   padding: 0;
@@ -143,7 +144,7 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
       ].forEach((sub) => {
         if (sub) {
           searchFolderStructure(sub, jsonData).forEach((data) =>
-            arr.push(data)
+            arr.push(data),
           );
         }
       });
@@ -161,7 +162,7 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
       ].forEach((sub) => {
         if (sub) {
           searchFolderStructure(sub, jsonData).forEach((data) =>
-            arr.push(data)
+            arr.push(data),
           );
         }
       });
@@ -176,7 +177,7 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
       ].forEach((sub) => {
         if (sub) {
           searchFolderStructure(sub, jsonData).forEach((data) =>
-            arr.push(data)
+            arr.push(data),
           );
         }
       });
@@ -184,7 +185,24 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
       ["network", "Maths ECE", "digital", "analog"].forEach((sub) => {
         if (sub) {
           searchFolderStructure(sub, jsonData).forEach((data) =>
-            arr.push(data)
+            arr.push(data),
+          );
+        }
+      });
+    } else if (filters.cycle === "4-Sem-CSE") {
+      [
+        "UHV (HS248AT)",
+        "IOT (CS344AI)",
+        "DSE (CS246TG) [NPTEL]",
+        "DMS (CS241AT)",
+        "DAA (CD343AI)",
+        "CN (CY245AT)",
+        "AEC (MUSIC)",
+        filters.selectedSem4,
+      ].forEach((sub) => {
+        if (sub) {
+          searchFolderStructure(sub, jsonData).forEach((data) =>
+            arr.push(data),
           );
         }
       });
