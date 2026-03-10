@@ -577,6 +577,11 @@ const majorContributors = [
       "Adithya Bhandari played a pivotal role in kickstarting the resource collection for first-year students, laying the foundation for this platform's growth and impact.",
     github: "https://github.com/aditya-bhandari-cd23",
   },
+  {
+    name: "Hitarth Mehra",
+    description: "Hitarth Mehra played a key role in curating and organizing resources for second-year students, significantly enhancing the platform's content and accessibility.",
+    github: "https://github.com/Hitme02",
+    }
   // Add more major contributors here as needed
 ];
 
