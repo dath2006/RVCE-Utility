@@ -25,7 +25,11 @@ const EssentialsContainer = styled.div`
   background: ${(props) => props.theme.background};
   color: ${(props) => props.theme.text};
   padding: 1.5rem;
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
   padding-top: 8rem;
 
   @media (max-width: 768px) {
@@ -572,7 +576,7 @@ const Essentials = ({ theme }) => {
 
   const handleHolidayList = () => {
     setSelectedUrl(
-      "https://drive.google.com/file/d/1c6h_O2zGKccDWviNap-t7_s6budIjJ_2/preview"
+      "https://drive.google.com/file/d/1c6h_O2zGKccDWviNap-t7_s6budIjJ_2/preview",
     );
   };
 
@@ -583,7 +587,7 @@ const Essentials = ({ theme }) => {
   const handleMailDeveloper = () => {
     window.open(
       "mailto:sathishdathds.cs24@rvce.edu.in?subject=Contributing to the site&body=Hi Sathish, I would like to contribute to the site...",
-      "_blank"
+      "_blank",
     );
   };
 
@@ -679,7 +683,7 @@ const Essentials = ({ theme }) => {
                         onClick={() =>
                           handleAttempt(
                             subjects[selectedSubject].slug,
-                            chapter.slug
+                            chapter.slug,
                           )
                         }
                         whilehover={{ scale: 1.05 }}
@@ -744,7 +748,7 @@ const Essentials = ({ theme }) => {
             <CardIcon theme={theme}>
               <Calendar size={20} />
             </CardIcon>
-            <CardTitle>2025 Holiday List</CardTitle>
+            <CardTitle>2026 Holiday List</CardTitle>
           </CardHeader>
           <CardDescription theme={theme}>
             View important holidays and academic breaks
