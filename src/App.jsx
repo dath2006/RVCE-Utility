@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import styled, { ThemeProvider } from "styled-components";
+import styled, { ThemeProvider, createGlobalStyle } from "styled-components";
 import { lightTheme, darkTheme } from "./styles/theme";
 import Navigation from "./components/Navigation";
 import Home from "./pages/Home";
@@ -11,14 +11,11 @@ import GlobalStyles from "./styles/GlobalStyles";
 import FileViewer from "./components/FileViewer";
 import { motion, AnimatePresence } from "framer-motion";
 import Todo from "./components/Todo";
-import LocomotiveScroll from "locomotive-scroll";
+import { ReactLenis } from "lenis/react";
 import { Analytics } from "@vercel/analytics/react";
-import CustomCursor from "./components/CustomCursor";
-import LoadingScreen from "./components/LoadingScreen";
 import FloatingDrawer from "./components/FloatingDrawer";
 import MainContribution from "./pages/MainContribution";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { Toaster } from "@/components/ui/sonner";
 import Attendance from "./pages/Attendance";
 import PopupCard from "./components/AuthCard";
 import { useAuth0 } from "@auth0/auth0-react";
@@ -26,6 +23,7 @@ import { Helmet } from "react-helmet";
 import Essentials from "./pages/Essentials";
 import BottomBar from "./components/BottomBar";
 import { NavigationProvider, useOverlay } from "./contexts/NavigationContext";
+import RedesignFeedbackPrompt from "./components/RedesignFeedbackPrompt";
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -33,7 +31,10 @@ const AppContainer = styled.div`
   margin: 0;
 
   color: ${(props) => props.theme.text};
-  transition: all 0.3s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
   position: relative;
   overflow-x: hidden;
 
@@ -105,94 +106,65 @@ const TodoContainer = styled(motion.div)`
   }
 `;
 
-const StyledToastContainer = styled(ToastContainer)`
-  // Base container styling
-  &.Toastify__toast-container {
-    padding: 10px;
-    width: 320px;
-    box-sizing: border-box;
-  }
-
-  // Common toast styling
-  .Toastify__toast {
-    margin-bottom: 12px;
-    border-radius: 10px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    padding: 14px 16px;
-    background-color: #f8f9fc; // Light base background
-    color: #464d59;
-    border-left: 4px solid transparent;
-
-    // Smooth transitions
-    transition: all 0.2s ease;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+const ThemeTransitionStyles = createGlobalStyle`
+  @media (prefers-reduced-motion: no-preference) {
+    ::view-transition-group(root),
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: 0.6s;
     }
-  }
 
-  // Different toast types with subtle colors
-  .Toastify__toast--success {
-    background-color: #f3fbf8;
-    border-left-color: #5ccfab;
-
-    .Toastify__progress-bar {
-      background: linear-gradient(to right, #5ccfab, #3db89a);
+    ::view-transition-old(root) {
+      animation: none;
+      mix-blend-mode: normal;
     }
-  }
 
-  .Toastify__toast--error {
-    background-color: #fef8f8;
-    border-left-color: #f87878;
-
-    .Toastify__progress-bar {
-      background: linear-gradient(to right, #f87878, #e05c5c);
+    ::view-transition-new(root) {
+      mix-blend-mode: normal;
+      will-change: clip-path;
+      animation: themeCurvedDiagonalReveal 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
     }
-  }
 
-  .Toastify__toast--warning {
-    background-color: #fffaf2;
-    border-left-color: #ffb547;
-
-    .Toastify__progress-bar {
-      background: linear-gradient(to right, #ffb547, #f7a62d);
+    @keyframes themeCurvedDiagonalReveal {
+      0% {
+        clip-path: circle(0% at -8% -8%);
+      }
+      22% {
+        clip-path: circle(38% at 14% 14%);
+      }
+      54% {
+        clip-path: circle(88% at 45% 45%);
+      }
+      76% {
+        clip-path: circle(126% at 78% 78%);
+      }
+      100% {
+        clip-path: circle(175% at 112% 112%);
+      }
     }
-  }
 
-  .Toastify__toast--info {
-    background-color: #f2f8fd;
-    border-left-color: #62b6ff;
-
-    .Toastify__progress-bar {
-      background: linear-gradient(to right, #62b6ff, #4a9af5);
+    @keyframes themeSoftShimmer {
+      0% {
+        filter: brightness(1) saturate(1)
+          drop-shadow(0 0 0 rgba(255, 255, 255, 0));
+      }
+      34% {
+        filter: brightness(1.04) saturate(1.01)
+          drop-shadow(0 0 6px rgba(255, 255, 255, 0.16));
+      }
+      58% {
+        filter: brightness(1.08) saturate(1.02)
+          drop-shadow(0 0 10px rgba(255, 255, 255, 0.24));
+      }
+      78% {
+        filter: brightness(1.03) saturate(1.01)
+          drop-shadow(0 0 5px rgba(255, 255, 255, 0.12));
+      }
+      100% {
+        filter: brightness(1) saturate(1)
+          drop-shadow(0 0 0 rgba(255, 255, 255, 0));
+      }
     }
-  }
-
-  // Progress bar styling
-  .Toastify__progress-bar {
-    height: 3px;
-    opacity: 0.8;
-  }
-
-  // Close button styling
-  .Toastify__close-button {
-    color: #8896aa;
-    opacity: 0.7;
-
-    &:hover {
-      opacity: 1;
-      color: #464d59;
-    }
-  }
-
-  // Toast body styling
-  .Toastify__toast-body {
-    padding: 4px 0;
-    font-family: "Inter", system-ui, -apple-system, sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 1.5;
   }
 `;
 
@@ -203,20 +175,20 @@ const overlayVariants = {
 };
 
 function AppContent() {
-  const locomotiveScroll = new LocomotiveScroll();
   const [theme, setTheme] = useState(
-    () => localStorage.getItem("theme") || "dark"
+    () =>
+      localStorage.getItem("theme") ||
+      (window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light"),
   );
-  const { isAuthenticated, user, logout, isLoading } = useAuth0();
+  const { isAuthenticated, isLoading, user } = useAuth0();
   const [showWorkspace, setShowWorkspace] = useState(false);
   const [showTodoMenu, setShowTodoMenu] = useState(false);
   const [viewerFile, setViewerFile] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [loading] = useState(false);
   const [showAuthCard, setShowAuthCard] = useState(false);
   const [disableWorkSpace, setDisableWorkSpace] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const mobileMenuRef = useRef(null);
   const screenSize = window.screen.width;
 
   // Register overlays with navigation context
@@ -224,37 +196,34 @@ function AppContent() {
   useOverlay("todoMenu", showTodoMenu);
   useOverlay("authCard", showAuthCard);
   useOverlay("fileViewer", !!viewerFile);
-  useOverlay("mobileMenu", isMobileMenuOpen);
-
-  let isMobile = false;
-
-  if ("ontouchstart" in window) {
-    isMobile = true;
-  }
 
   useEffect(() => {
-    localStorage.getItem("theme") || localStorage.setItem("theme", "dark");
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        mobileMenuRef.current &&
-        !mobileMenuRef.current.contains(event.target)
-      ) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    // Syncs DOM dark class on initial mount / hydration.
+    document.documentElement.classList.toggle("dark", theme === "dark");
   }, []);
 
   const toggleTheme = () => {
-    setTheme((prev) => {
-      const newTheme = prev === "light" ? "dark" : "light";
+    const applyThemeToggle = () => {
+      const newTheme = theme === "light" ? "dark" : "light";
+      // Synchronously flip the Tailwind dark-class AND React state in the same
+      // tick � View Transition must never capture a frame where one system has
+      // flipped but the other has not (that gap is the visible blink).
+      document.documentElement.classList.toggle("dark", newTheme === "dark");
       localStorage.setItem("theme", newTheme);
-      return newTheme;
+      setTheme(newTheme);
+    };
+
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    if (!document.startViewTransition || reduceMotion) {
+      applyThemeToggle();
+      return;
+    }
+
+    document.startViewTransition(() => {
+      applyThemeToggle();
     });
   };
 
@@ -270,38 +239,25 @@ function AppContent() {
       </Helmet>
 
       <GlobalStyles />
+      <ThemeTransitionStyles />
       {/* <LoadingScreen
         isLoading={loading}
         onLoadingComplete={() => setLoading(false)}
         screenSize={screenSize}
       /> */}
-      <StyledToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        limit={7}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
+      <Toaster position="top-right" richColors closeButton duration={3000} />
       <div
         className={`fixed inset-0 transition-all duration-700 delay-500 ease-in-out ${
           loading ? "opacity-0 scale-110" : "opacity-100 scale-100"
         }`}
         style={{
-          backgroundImage:
-            screenSize < 700 ? 'url("/BGM.webp")' : 'url("/BG.webp")',
-          backgroundBlendMode: "overlay",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          backgroundAttachment: "fixed",
+          background:
+            theme === "dark"
+              ? "radial-gradient(circle at top, rgba(120, 119, 198, 0.14), transparent 40%), linear-gradient(180deg, #020617 0%, #0f172a 38%, #111827 100%)"
+              : "radial-gradient(circle at top, rgba(15, 23, 42, 0.06), transparent 35%), linear-gradient(180deg, #ffffff 0%, #f8fafc 42%, #eef2ff 100%)",
           transformStyle: "preserve-3d",
           width: "100%",
-          height: "98vh",
+          height: "100vh",
         }}
       />
 
@@ -311,31 +267,34 @@ function AppContent() {
             ? "opacity-0 translate-z-[-50px]"
             : "opacity-100 translate-z-0"
         }`}
-        onClick={() => {
-          if (isMenuOpen) {
-            setIsMenuOpen(false);
-          }
-        }}
       >
         <Router>
           <AppContainer>
             <Analytics />
+            <RedesignFeedbackPrompt
+              user={user}
+              isAuthenticated={isAuthenticated}
+            />
 
             <div className="w-screen h-screen flex flex-col overflow-x-hidden">
               <Navigation
+                theme={theme}
                 toggleTheme={toggleTheme}
                 showTodoMenu={showTodoMenu}
                 setShowTodoMenu={setShowTodoMenu}
                 showAuthCard={showAuthCard}
                 setShowAuthCard={setShowAuthCard}
-                setIsMenuOpen={setIsMobileMenuOpen}
-                isMenuOpen={isMobileMenuOpen}
-                mobileMenuRef={mobileMenuRef}
               />
-              <div
+              <ReactLenis
                 className="flex-1 overflow-y-auto overflow-x-hidden"
                 id="main-scroll-container"
                 data-scroll-container
+                options={{
+                  duration: 1,
+                  smoothWheel: true,
+                  smoothTouch: false,
+                  wheelMultiplier: 0.95,
+                }}
               >
                 <Routes>
                   <Route
@@ -388,7 +347,7 @@ function AppContent() {
                   />
                   <Route path="/essentials" element={<Essentials />} />
                 </Routes>
-              </div>
+              </ReactLenis>
               <BottomBar
                 setShowAuthCard={setShowAuthCard}
                 showAuthCard={showAuthCard}
@@ -408,7 +367,7 @@ function AppContent() {
                   ) : (
                     <PopupCard
                       onClose={() => setShowAuthCard(false)}
-                      title={`Come Back Soon ${user.name}`}
+                      title={`Come Back Soon ${user?.name || ""}`.trim()}
                       description="You can logout from the portal"
                     >
                       <p>
@@ -421,6 +380,7 @@ function AppContent() {
                   <FileViewer
                     key="file-viewer"
                     url={viewerFile.webViewLink}
+                    title={viewerFile.name}
                     onClose={() => setViewerFile(null)}
                     initial={{ x: "100%" }}
                     animate={{ x: 0 }}
@@ -443,11 +403,7 @@ function AppContent() {
               </WorkspaceButton> */}
 
               {!disableWorkSpace && (
-                <FloatingDrawer
-                  setShowWorkspace={setShowWorkspace}
-                  isOpen={isMenuOpen}
-                  setIsOpen={setIsMenuOpen}
-                />
+                <FloatingDrawer setShowWorkspace={setShowWorkspace} />
               )}
             </div>
             <AnimatePresence mode="wait">

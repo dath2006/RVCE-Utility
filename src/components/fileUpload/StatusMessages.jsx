@@ -1,36 +1,36 @@
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Check, AlertCircle } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 const StatusMessages = ({ error, uploadStatus }) => {
   return (
     <AnimatePresence>
       {error && (
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.3 }}
-          className="flex items-center space-x-2 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400"
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.2 }}
+          className="flex items-start gap-2 rounded-xl border border-rose-500/25 bg-rose-500/10 p-3 text-sm text-rose-600"
         >
-          <AlertCircle size={20} />
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{error}</span>
         </motion.div>
       )}
 
       {uploadStatus && (
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.3 }}
-          className={`flex items-center space-x-2 p-4 rounded-lg ${
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.2 }}
+          className={`flex items-start gap-2 rounded-xl border p-3 text-sm ${
             uploadStatus.success
-              ? "bg-green-500/10 border border-green-500/20 text-green-400"
-              : "bg-yellow-500/10 border border-yellow-500/20 text-yellow-400"
+              ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700"
+              : "border-amber-500/25 bg-amber-500/10 text-amber-700"
           }`}
         >
-          <Check size={20} />
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{uploadStatus.message}</span>
         </motion.div>
       )}

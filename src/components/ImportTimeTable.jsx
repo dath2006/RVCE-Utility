@@ -1,363 +1,43 @@
-import React, { useState, useEffect } from "react";
-import styled from "styled-components";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
+import PropTypes from "prop-types";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowRight,
+  Download,
+  GraduationCap,
+  RefreshCcw,
+  Sparkles,
+  WandSparkles,
+} from "lucide-react";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { useAuth0 } from "@auth0/auth0-react";
 
-// Responsive breakpoints
-const breakpoints = {
-  xs: "480px",
-  sm: "640px",
-  md: "768px",
-  lg: "1024px",
-  xl: "1280px",
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { Separator } from "./ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+
+const modeMotion = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
 };
 
-// Styled Components
-const PageContainer = styled(motion.div)`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: calc(100vh - 10rem);
-  // background: ${(props) => props.theme.background || "#f5f7fa"};
-  padding: 1rem;
-  border-radius: 2rem;
-`;
-
-const ContentCard = styled(motion.div)`
-  background: ${(props) => props.theme.cardTheme || "#ffffff"};
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  width: 100%;
-  max-width: 600px;
-  color: ${(props) => props.theme.text || "#1a1d1f"};
-  border: 1px solid ${(props) => props.theme.border || "#e2e8f0"};
-  overflow: hidden;
-
-  @media (max-width: ${breakpoints.xs}) {
-    border-radius: 12px;
-  }
-`;
-
-const CardHeader = styled.div`
-  background: ${(props) =>
-    props.theme.gradient || "linear-gradient(135deg, #3b82f6, #6366f1)"};
-  padding: 1.5rem 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: white;
-
-  @media (max-width: ${breakpoints.md}) {
-    padding: 1rem 1.25rem;
-  }
-`;
-
-const CardTitle = styled.h1`
-  font-weight: 700;
-  font-size: 1.75rem;
-  margin: 0;
-  letter-spacing: -0.5px;
-
-  @media (max-width: ${breakpoints.md}) {
-    font-size: 1.25rem;
-  }
-`;
-
-const CardContent = styled.div`
-  padding: 2rem;
-
-  @media (max-width: ${breakpoints.md}) {
-    padding: 1.25rem;
-  }
-`;
-
-const TabContainer = styled.div`
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-
-  @media (max-width: ${breakpoints.sm}) {
-    flex-direction: column;
-    margin-bottom: 1.5rem;
-  }
-`;
-
-const TabOption = styled(motion.div)`
-  flex: 1;
-  padding: 1.5rem;
-  background: ${(props) =>
-    props.active
-      ? props.theme.primary || "#3b82f6"
-      : props.theme.secondary || "#f1f5f9"};
-  color: ${(props) =>
-    props.active ? "#ffffff" : props.theme.text || "#1a1d1f"};
-  border-radius: 12px;
-  cursor: pointer;
-  text-align: center;
-  box-shadow: ${(props) =>
-    props.active ? "0 4px 12px rgba(59, 130, 246, 0.2)" : "none"};
-  transition: all 0.2s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-  }
-
-  @media (max-width: ${breakpoints.md}) {
-    padding: 1rem 0.75rem;
-    border-radius: 8px;
-  }
-
-  @media (max-width: ${breakpoints.sm}) {
-    padding: 0.75rem 0.5rem;
-  }
-
-  @media (max-width: ${breakpoints.xs}) {
-    padding: 0.5rem 0.25rem;
-  }
-`;
-
-const TabIcon = styled.div`
-  font-size: 2rem;
-  margin-bottom: 1rem;
-
-  @media (max-width: ${breakpoints.md}) {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-  }
-
-  @media (max-width: ${breakpoints.sm}) {
-    font-size: 1.25rem;
-    margin-bottom: 0.25rem;
-  }
-`;
-
-const TabTitle = styled.h3`
-  margin: 0;
-  font-weight: 600;
-  font-size: 1.25rem;
-
-  @media (max-width: ${breakpoints.md}) {
-    font-size: 1rem;
-  }
-
-  @media (max-width: ${breakpoints.sm}) {
-    font-size: 0.875rem;
-  }
-`;
-
-const FormSection = styled(motion.div)`
-  margin-bottom: 1.5rem;
-`;
-
-const SectionTitle = styled.h2`
-  font-weight: 600;
-  font-size: 1.25rem;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: ${(props) => props.theme.text || "#1a1d1f"};
-
-  @media (max-width: ${breakpoints.md}) {
-    font-size: 1.1rem;
-    margin-bottom: 0.75rem;
-  }
-`;
-
-const SelectContainer = styled.div`
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-
-  @media (max-width: ${breakpoints.sm}) {
-    flex-direction: column;
-  }
-`;
-
-const SelectWrapper = styled.div`
-  flex: 1;
-  position: relative;
-`;
-
-const StyledSelect = styled.select`
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  border: 1px solid ${(props) => props.theme.border || "#e2e8f0"};
-  background: ${(props) => props.theme.background || "#ffffff"};
-  color: ${(props) => props.theme.text || "#ffffff"};
-  font-size: 1rem;
-  font-family: inherit;
-  appearance: none;
-  cursor: pointer;
-  transition: border-color 0.2s;
-
-  &:focus {
-    outline: none;
-    border-color: ${(props) => props.theme.primary || "#3b82f6"};
-    box-shadow: 0 0 0 2px
-      ${(props) => (props.theme.primary || "#3b82f6") + "33"};
-  }
-
-  /* Fix for dark mode: ensure option text is always readable */
-  option {
-    background-color: ${(props) => props.theme.cardTheme || "#ffffff"};
-    color: ${(props) => props.theme.text || "#1a1d1f"};
-  }
-
-  @media (max-width: ${breakpoints.md}) {
-    padding: 0.6rem 0.75rem;
-    font-size: 0.9rem;
-  }
-`;
-
-const SelectArrow = styled.div`
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  font-size: 1rem;
-  color: ${(props) => props.theme.text || "#1a1d1f"};
-`;
-
-const Divider = styled.hr`
-  border: none;
-  height: 1px;
-  background-color: ${(props) => props.theme.border || "#e2e8f0"};
-  margin: 2rem 0;
-
-  @media (max-width: ${breakpoints.sm}) {
-    margin: 1.5rem 0;
-  }
-`;
-
-const ActionButtons = styled.div`
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-
-  @media (max-width: ${breakpoints.xs}) {
-    flex-direction: column;
-  }
-`;
-
-const Button = styled(motion.button)`
-  padding: 0.8rem 1.5rem;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  border: none;
-  flex: 1;
-  transition: all 0.2s;
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  @media (max-width: ${breakpoints.md}) {
-    padding: 0.6rem 1.25rem;
-    font-size: 0.875rem;
-    border-radius: 8px;
-  }
-`;
-
-const PrimaryButton = styled(Button)`
-  background-color: ${(props) => props.theme.primary || "#3b82f6"};
-  color: white;
-  box-shadow: 0 4px 12px ${(props) => (props.theme.primary || "#3b82f6") + "33"};
-
-  &:hover:not(:disabled) {
-    background-color: ${(props) => props.theme.primaryDark || "#2563eb"};
-    transform: translateY(-2px);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-  }
-`;
-
-const SecondaryButton = styled(Button)`
-  background-color: transparent;
-  color: ${(props) => props.theme.primary || "#3b82f6"};
-  border: 1px solid ${(props) => props.theme.primary || "#3b82f6"};
-
-  &:hover:not(:disabled) {
-    background-color: ${(props) => props.theme.secondary || "#f1f5f9"};
-  }
-`;
-
-const CreateContainer = styled(motion.div)`
-  text-align: center;
-  padding: 2rem 1rem;
-
-  @media (max-width: ${breakpoints.sm}) {
-    padding: 1rem 0;
-  }
-`;
-
-const CreateTitle = styled.h3`
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-
-  @media (max-width: ${breakpoints.sm}) {
-    font-size: 1.25rem;
-  }
-`;
-
-const CreateDescription = styled.p`
-  font-size: 1rem;
-  color: ${(props) => props.theme.textSecondary || "#64748b"};
-  margin-bottom: 1.5rem;
-
-  @media (max-width: ${breakpoints.sm}) {
-    font-size: 0.875rem;
-  }
-`;
-
-const WarningNote = styled.div`
-  background-color: ${(props) => props.theme.warningBg || "#fff3cd"};
-  color: ${(props) => props.theme.warningText || "#856404"};
-  border: 1px solid ${(props) => props.theme.warningBorder || "#ffeeba"};
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  margin-bottom: 1.5rem;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-
-  @media (max-width: ${breakpoints.md}) {
-    padding: 0.6rem 0.75rem;
-    font-size: 0.8rem;
-    margin-bottom: 1rem;
-  }
-`;
-
-// Animation variants
-const pageVariants = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1, transition: { duration: 0.4 } },
-};
-
-const cardVariants = {
-  initial: { y: 20, opacity: 0 },
-  animate: {
-    y: 0,
-    opacity: 1,
-    transition: { delay: 0.1, duration: 0.5, ease: "easeOut" },
-  },
-};
-
-const sectionVariants = {
-  initial: { opacity: 0, y: 10 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-};
+const attendanceLevels = [75, 80, 85, 90, 95];
 
 // Semester options
 const semesterOptions = [
@@ -407,79 +87,6 @@ const departmentDataBySemester = {
   ],
 };
 
-// Icon components
-const ImportIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="1em"
-    height="1em"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-    <polyline points="17 8 12 3 7 8" />
-    <line x1="12" y1="3" x2="12" y2="15" />
-  </svg>
-);
-
-const CreateIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="1em"
-    height="1em"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <line x1="12" y1="8" x2="12" y2="16" />
-    <line x1="8" y1="12" x2="16" y2="12" />
-  </svg>
-);
-
-const SchoolIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="1em"
-    height="1em"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-    <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
-  </svg>
-);
-
-const WarningIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="1em"
-    height="1em"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-    <line x1="12" y1="9" x2="12" y2="13"></line>
-    <line x1="12" y1="17" x2="12.01" y2="17"></line>
-  </svg>
-);
-
-// Main Component
 const ImportTimeTable = ({
   onCreateClick,
   setActiveComponent,
@@ -497,64 +104,56 @@ const ImportTimeTable = ({
   const [selectedDept, setSelectedDept] = useState(null);
   const [availableDepartments, setAvailableDepartments] = useState([]);
 
-  // Update available departments when semester changes
   useEffect(() => {
     if (sem) {
       setAvailableDepartments(departmentDataBySemester[sem] || []);
-      // Reset department and section when semester changes
       setDept("");
       setSect("");
       setSelectedDept(null);
-    } else {
-      setAvailableDepartments([]);
+      return;
     }
+
+    setAvailableDepartments([]);
   }, [sem]);
 
-  // Validate form
   useEffect(() => {
-    if (activeTab === "import") {
-      // Require semester selection first
-      if (!sem) {
-        setIsValid(false);
-        return;
-      }
-
-      // Require department selection
-      if (!dept) {
-        setIsValid(false);
-        return;
-      }
-
-      // If the selected department has sections, require a section selection
-      const deptInfo = availableDepartments.find((d) => d.code === dept);
-      if (deptInfo) {
-        if (deptInfo.sections.length > 0) {
-          setIsValid(dept !== "" && sect !== "");
-        } else {
-          setIsValid(dept !== "");
-        }
-      } else {
-        setIsValid(false);
-      }
-    } else {
+    if (activeTab !== "import") {
       setIsValid(true);
+      return;
     }
+
+    if (!sem || !dept) {
+      setIsValid(false);
+      return;
+    }
+
+    const deptInfo = availableDepartments.find((d) => d.code === dept);
+    if (!deptInfo) {
+      setIsValid(false);
+      return;
+    }
+
+    setIsValid(deptInfo.sections.length > 0 ? sect !== "" : true);
   }, [sem, dept, sect, activeTab, availableDepartments]);
 
-  // Handle department change
-  const handleDeptChange = (e) => {
-    const selectedCode = e.target.value;
+  const handleDeptChange = (selectedCode) => {
     setDept(selectedCode);
-    setSect(""); // Reset section when department changes
-
-    // Find selected department info
+    setSect("");
     const deptInfo = availableDepartments.find((d) => d.code === selectedCode);
     setSelectedDept(deptInfo || null);
   };
 
-  // Handle form submission
+  const resetImportForm = () => {
+    setSem("");
+    setDept("");
+    setSect("");
+    setAttendancePercent(85);
+    setSelectedDept(null);
+    setAvailableDepartments([]);
+  };
+
   const handleSubmit = async () => {
-    if (!isValid) return;
+    if (!isValid || isSubmitting) return;
 
     try {
       if (!isLoading && isAuthenticated) {
@@ -581,15 +180,16 @@ const ImportTimeTable = ({
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
-        if (res.data.success) {
-          setActiveComponent("main");
-          setHasTimeTable(true);
-          toast.success("Timetable imported successfully!");
-        } else {
+        if (!res.data.success) {
           toast.error("Failed to import timetable. Please try again.");
+          return;
         }
+
+        setActiveComponent("main");
+        setHasTimeTable(true);
+        toast.success("Timetable imported successfully!");
       }
     } catch (err) {
       console.error(err);
@@ -600,212 +200,281 @@ const ImportTimeTable = ({
   };
 
   return (
-    <PageContainer initial="initial" animate="animate" variants={pageVariants}>
-      <ContentCard variants={cardVariants}>
-        <CardHeader>
-          <CardTitle>Class Schedule Manager</CardTitle>
-          <SchoolIcon />
-        </CardHeader>
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-1">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <Card className="overflow-hidden border-border/70 bg-card/95 shadow-sm">
+          <CardHeader className="border-b border-border/70 bg-muted/40">
+            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+              <div className="space-y-2">
+                <Badge
+                  variant="secondary"
+                  className="w-fit border border-border/70 bg-background/80 text-foreground hover:bg-background/80"
+                >
+                  <Sparkles className="mr-1 h-3.5 w-3.5" />
+                  Attendance Setup
+                </Badge>
+                <CardTitle className="text-2xl sm:text-3xl">
+                  Schedule Onboarding
+                </CardTitle>
+                <CardDescription className="max-w-2xl">
+                  Import a supported timetable or move into the custom builder.
+                  Both flows now follow the same shadcn-style workspace language
+                  used across the redesigned attendance area.
+                </CardDescription>
+              </div>
+              <div className="rounded-2xl border border-border/70 bg-background/80 p-3 text-muted-foreground">
+                <GraduationCap className="h-6 w-6" />
+              </div>
+            </div>
+          </CardHeader>
 
-        <CardContent>
-          {/* Tab Selection */}
-          <TabContainer>
-            <TabOption
-              active={activeTab === "import"}
-              onClick={() => setActiveTab("import")}
-              whilehover={{ scale: 1.02 }}
-              whiletap={{ scale: 0.98 }}
-            >
-              <TabIcon>
-                <ImportIcon />
-              </TabIcon>
-              <TabTitle>Import Timetable</TabTitle>
-            </TabOption>
-            <TabOption
-              active={activeTab === "create"}
-              onClick={() => setActiveTab("create")}
-              whilehover={{ scale: 1.02 }}
-              whiletap={{ scale: 0.98 }}
-            >
-              <TabIcon>
-                <CreateIcon />
-              </TabIcon>
-              <TabTitle>Create New</TabTitle>
-            </TabOption>
-          </TabContainer>
+          <CardContent className="space-y-6 p-4 sm:p-6">
+            <div className="grid gap-3 md:grid-cols-2">
+              {[
+                {
+                  id: "import",
+                  title: "Import Existing",
+                  description:
+                    "Fast setup for supported semester and department combinations.",
+                  icon: Download,
+                },
+                {
+                  id: "create",
+                  title: "Create Custom",
+                  description:
+                    "Build courses and timetable blocks manually from scratch.",
+                  icon: WandSparkles,
+                },
+              ].map((option) => {
+                const Icon = option.icon;
+                const active = activeTab === option.id;
 
-          <AnimatePresence mode="wait">
-            {activeTab === "import" ? (
-              <motion.div
-                key="import"
-                initial="initial"
-                animate="animate"
-                exit={{ opacity: 0, y: -10 }}
-                variants={sectionVariants}
-              >
-                <FormSection>
-                  {/* <WarningNote>
-                    <WarningIcon />
-                    <span>
-                      Note: Import attendance is available only for the 1st sem
-                      and 3rd sem.
-                    </span>
-                  </WarningNote> */}
-                  <SectionTitle>Step 1: Select Semester</SectionTitle>
-                  <SelectContainer>
-                    <SelectWrapper>
-                      <StyledSelect
-                        value={sem}
-                        onChange={(e) => setSem(e.target.value)}
-                      >
-                        <option value="">Select Semester</option>
-                        {semesterOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </StyledSelect>
-                      <SelectArrow>▼</SelectArrow>
-                    </SelectWrapper>
-                  </SelectContainer>
-                </FormSection>
-
-                {sem && (
-                  <FormSection>
-                    <SectionTitle>Step 2: Select Department</SectionTitle>
-                    <SelectContainer>
-                      <SelectWrapper>
-                        <StyledSelect
-                          value={dept}
-                          onChange={handleDeptChange}
-                          required
-                        >
-                          <option value="">Select Department</option>
-                          {availableDepartments.map((department) => (
-                            <option
-                              key={department.code}
-                              value={department.code}
-                            >
-                              {department.code} - {department.name}
-                            </option>
-                          ))}
-                        </StyledSelect>
-                        <SelectArrow>▼</SelectArrow>
-                      </SelectWrapper>
-                    </SelectContainer>
-                  </FormSection>
-                )}
-
-                {sem &&
-                  dept &&
-                  selectedDept &&
-                  selectedDept.sections.length > 0 && (
-                    <FormSection>
-                      <SectionTitle>Step 3: Select Section</SectionTitle>
-                      <SelectContainer>
-                        <SelectWrapper>
-                          <StyledSelect
-                            value={sect}
-                            onChange={(e) => setSect(e.target.value)}
-                            required
-                          >
-                            <option value="">Select Section</option>
-                            {selectedDept.sections.map((section) => (
-                              <option key={section} value={section}>
-                                Section {section}
-                              </option>
-                            ))}
-                          </StyledSelect>
-                          <SelectArrow>▼</SelectArrow>
-                        </SelectWrapper>
-                      </SelectContainer>
-                    </FormSection>
-                  )}
-
-                <FormSection>
-                  <SectionTitle>Set Minimum Attendance</SectionTitle>
-                  <SelectContainer>
-                    <SelectWrapper>
-                      <StyledSelect
-                        value={attendancePercent}
-                        onChange={(e) =>
-                          setAttendancePercent(parseInt(e.target.value))
-                        }
-                      >
-                        {[75, 80, 85, 90, 95].map((percent) => (
-                          <option key={percent} value={percent}>
-                            {percent}% Minimum Attendance
-                          </option>
-                        ))}
-                      </StyledSelect>
-                      <SelectArrow>▼</SelectArrow>
-                    </SelectWrapper>
-                  </SelectContainer>
-                </FormSection>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="create"
-                initial="initial"
-                animate="animate"
-                exit={{ opacity: 0, y: -10 }}
-                variants={sectionVariants}
-              >
-                <CreateContainer>
-                  <CreateTitle>Create a New Timetable</CreateTitle>
-                  <CreateDescription>
-                    Build a custom timetable from scratch by adding courses,
-                    setting schedules, and configuring attendance policies.
-                  </CreateDescription>
-                  <motion.div
-                    whilehover={{ scale: 1.05 }}
-                    whiletap={{ scale: 0.95 }}
+                return (
+                  <motion.button
+                    key={option.id}
+                    type="button"
+                    whileTap={{ scale: 0.985 }}
+                    onClick={() => setActiveTab(option.id)}
+                    className={`rounded-2xl border p-4 text-left transition ${
+                      active
+                        ? "border-primary/40 bg-primary/10 shadow-sm"
+                        : "border-border/70 bg-background hover:border-primary/20 hover:bg-accent"
+                    }`}
                   >
-                    <PrimaryButton
-                      onClick={() => {
-                        onCreateClick(true);
-                      }}
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`rounded-xl p-2 ${active ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}
+                      >
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="font-semibold">{option.title}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {option.description}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            <Separator />
+
+            <AnimatePresence mode="wait">
+              {activeTab === "import" ? (
+                <motion.div key="import" {...modeMotion} className="space-y-6">
+                  <div className="grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
+                    <Card className="border-border/70 bg-background/70 shadow-none">
+                      <CardHeader>
+                        <CardTitle className="text-lg">Guided Import</CardTitle>
+                        <CardDescription>
+                          Pick your academic setup and we will initialize
+                          attendance with the correct default date range.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2 sm:col-span-2">
+                          <label className="text-sm font-medium">
+                            Semester
+                          </label>
+                          <Select value={sem} onValueChange={setSem}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select semester" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {semesterOptions.map((option) => (
+                                <SelectItem
+                                  key={option.value}
+                                  value={option.value}
+                                >
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2 sm:col-span-2">
+                          <label className="text-sm font-medium">
+                            Department
+                          </label>
+                          <Select
+                            value={dept}
+                            onValueChange={handleDeptChange}
+                            disabled={!sem}
+                          >
+                            <SelectTrigger>
+                              <SelectValue
+                                placeholder={
+                                  sem
+                                    ? "Select department"
+                                    : "Choose semester first"
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {availableDepartments.map((department) => (
+                                <SelectItem
+                                  key={department.code}
+                                  value={department.code}
+                                >
+                                  {department.code} - {department.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {selectedDept?.sections?.length > 0 && (
+                          <div className="space-y-2 sm:col-span-2">
+                            <label className="text-sm font-medium">
+                              Section
+                            </label>
+                            <Select value={sect} onValueChange={setSect}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select section" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {selectedDept.sections.map((section) => (
+                                  <SelectItem key={section} value={section}>
+                                    Section {section}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-border/70 bg-background/70 shadow-none">
+                      <CardHeader>
+                        <CardTitle className="text-lg">
+                          Attendance Rule
+                        </CardTitle>
+                        <CardDescription>
+                          Set the default minimum percentage before attendance
+                          starts tracking.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex flex-wrap gap-2">
+                          {attendanceLevels.map((percent) => (
+                            <button
+                              key={percent}
+                              type="button"
+                              onClick={() => setAttendancePercent(percent)}
+                              className={`rounded-full border px-3 py-2 text-sm font-medium transition ${
+                                attendancePercent === percent
+                                  ? "border-primary bg-primary text-primary-foreground"
+                                  : "border-border bg-background hover:border-primary/30 hover:bg-accent"
+                              }`}
+                            >
+                              {percent}%
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="rounded-xl border border-dashed border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+                          Imported timetable will use{" "}
+                          <span className="font-semibold text-foreground">
+                            {attendancePercent}%
+                          </span>{" "}
+                          as the default minimum attendance threshold.
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {sem && <Badge variant="outline">Semester {sem}</Badge>}
+                    {dept && <Badge variant="outline">Department {dept}</Badge>}
+                    {sect && <Badge variant="outline">Section {sect}</Badge>}
+                    <Badge variant="secondary">
+                      Minimum {attendancePercent}%
+                    </Badge>
+                  </div>
+
+                  <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                    <Button
+                      variant="outline"
+                      onClick={resetImportForm}
+                      className="sm:min-w-32"
                     >
-                      Start Creating
-                    </PrimaryButton>
-                  </motion.div>
-                </CreateContainer>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <Divider />
-
-          {activeTab === "import" && (
-            <ActionButtons>
-              <SecondaryButton
-                onClick={() => {
-                  setSem("");
-                  setDept("");
-                  setSect("");
-                  setAttendancePercent(85);
-                  setSelectedDept(null);
-                  setAvailableDepartments([]);
-                }}
-                whilehover={{ scale: 1.02 }}
-                whiletap={{ scale: 0.98 }}
-              >
-                Reset
-              </SecondaryButton>
-              <PrimaryButton
-                disabled={!isValid || isSubmitting}
-                onClick={handleSubmit}
-                whilehover={{ scale: isValid && !isSubmitting ? 1.02 : 1 }}
-                whiletap={{ scale: isValid && !isSubmitting ? 0.98 : 1 }}
-              >
-                {isSubmitting ? "Processing..." : "Import Timetable"}
-              </PrimaryButton>
-            </ActionButtons>
-          )}
-        </CardContent>
-      </ContentCard>
-    </PageContainer>
+                      <RefreshCcw className="h-4 w-4" />
+                      Reset
+                    </Button>
+                    <Button
+                      onClick={handleSubmit}
+                      disabled={!isValid || isSubmitting}
+                      className="sm:min-w-40"
+                    >
+                      {isSubmitting ? "Importing..." : "Import Timetable"}
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div key="create" {...modeMotion}>
+                  <Card className="border-border/70 bg-background/70 shadow-none">
+                    <CardContent className="flex flex-col items-center gap-4 p-6 text-center sm:p-10">
+                      <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 text-primary">
+                        <WandSparkles className="h-8 w-8" />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-semibold">
+                          Build a custom timetable
+                        </h3>
+                        <p className="max-w-xl text-sm text-muted-foreground sm:text-base">
+                          Create courses, configure attendance rules, and assign
+                          timetable slots manually with the redesigned custom
+                          builder.
+                        </p>
+                      </div>
+                      <Button size="lg" onClick={() => onCreateClick(true)}>
+                        Start Creating
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </div>
   );
+};
+
+ImportTimeTable.propTypes = {
+  onCreateClick: PropTypes.func.isRequired,
+  setActiveComponent: PropTypes.func.isRequired,
+  setHasTimeTable: PropTypes.func.isRequired,
 };
 
 export default ImportTimeTable;

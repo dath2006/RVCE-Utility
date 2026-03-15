@@ -1,56 +1,148 @@
-import React, { useEffect, useState } from "react";
-import { Calendar, ArrowRight } from "lucide-react";
-import { Clock, GraduationCap, User } from "lucide-react";
+import React, { useCallback, useEffect, useState } from "react";
+import PropTypes from "prop-types";
+import {
+  ArrowRight,
+  CalendarDays,
+  Clock,
+  GraduationCap,
+  User,
+} from "lucide-react";
 import styled from "styled-components";
 import { motion } from "framer-motion";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { useAuth0 } from "@auth0/auth0-react";
 
-const TimetableContainer = styled.div`
-  padding: 1rem;
-  border-radius: 10px;
+const Shell = styled.div`
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: ${(props) => props.theme.cardTheme};
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+  overflow: visible;
+`;
+
+const Header = styled.div`
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  padding: 0.9rem 1rem;
+  background: rgba(241, 245, 249, 0.65);
+
+  @media (max-width: 768px) {
+    padding: 0.8rem;
+  }
+`;
+
+const HeaderTitle = styled.h2`
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
   color: ${(props) => props.theme.text};
-  min-width: 900px;
-  width: max-content;
-  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.48rem;
+`;
+
+const HeaderSub = styled.p`
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  color: ${(props) => props.theme.textLight};
+`;
+
+const ScrollHint = styled.div`
+  display: none;
+  margin-top: 0.6rem;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  color: ${(props) => props.theme.textLight};
+
+  @media (max-width: 1024px) {
+    display: inline-flex;
+  }
+`;
+
+const ScrollViewport = styled.div`
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x pan-y;
+  padding: 0;
+  scrollbar-width: thin;
+  position: relative;
+
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.5);
+    border-radius: 999px;
+  }
+`;
+
+const TimetableContainer = styled.div`
+  border-radius: 14px;
+  color: ${(props) => props.theme.text};
+  display: block;
+  width: 860px;
+  min-width: 860px;
+  max-width: none;
+  background: ${(props) => props.theme.background};
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  overflow: hidden;
+
+  @media (min-width: 1025px) {
+    width: 920px;
+    min-width: 920px;
+  }
 `;
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: 120px repeat(5, minmax(150px, 1fr));
+  grid-template-columns: 120px repeat(5, minmax(145px, 1fr));
   gap: 1px;
-  background: ${(props) => props.theme.background};
-  border-radius: 8px;
-  overflow: visible;
+  background: rgba(148, 163, 184, 0.2);
   width: 100%;
 
   @media (max-width: 1024px) {
-    grid-template-columns: 100px repeat(5, minmax(120px, 1fr));
+    grid-template-columns: 100px repeat(5, minmax(130px, 1fr));
   }
 `;
 
 const HeaderCell = styled.div`
-  background-color: #1e293b;
-  color: white;
-  padding: 1rem;
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 0.8rem;
   font-weight: 600;
+  font-size: 0.82rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
   text-align: center;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 6;
+
   &:first-child {
     left: 0;
-    z-index: 20;
-    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+    z-index: 8;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
   }
 `;
 
 const TimeCell = styled.div`
-  background-color: ${(props) => props.theme.cardTheme};
-  padding: 1rem 0.5rem;
-  border-right: 1px solid #e2e8f0;
-  font-size: 0.875rem;
+  background: ${(props) => props.theme.cardTheme};
+  padding: 0.8rem 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
   text-align: center;
   position: sticky;
   left: 0;
@@ -59,47 +151,38 @@ const TimeCell = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: ${(props) => props.theme.cardTheme};
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 2px 0 10px rgba(15, 23, 42, 0.1);
 `;
 
 const EmptyCell = styled.div`
-  background-color: white;
-  min-height: 100px;
+  background: ${(props) => props.theme.background};
+  min-height: 94px;
   grid-row: span 1;
 
   @media (max-width: 1024px) {
-    min-height: 80px;
+    min-height: 82px;
   }
 `;
 
 const StyledEventCard = styled(motion.div)`
-  background-color: ${({ $type }) =>
-    $type === "theory" ? "#dbeafe" : $type === "lab" ? "#dcfce7" : "#fef3c7"};
-  border-radius: 6px;
-  padding: 0.75rem;
+  background: ${({ $type }) =>
+    $type === "theory"
+      ? "rgba(226, 232, 240, 0.65)"
+      : $type === "lab"
+        ? "rgba(220, 252, 231, 0.58)"
+        : "rgba(254, 243, 199, 0.58)"};
+  border-radius: 8px;
+  padding: 0.62rem;
   grid-row: span ${({ $duration }) => $duration};
   height: 100%;
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.06);
   overflow: hidden;
 
   @media (max-width: 1024px) {
-    padding: 0.5rem;
-  }
-`;
-
-const ScrollIndicator = styled.div`
-  display: none;
-  text-align: center;
-  padding: 0.5rem;
-  color: #6b7280;
-  font-size: 0.875rem;
-
-  @media (max-width: 1024px) {
-    display: block;
+    padding: 0.54rem;
   }
 `;
 
@@ -137,17 +220,7 @@ function TimeTable() {
   const [timeSlotMatrix, setTimeSlotMatrix] = useState([]);
   const days = ["Time", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
-  useEffect(() => {
-    getTimeTable();
-  }, [isLoading, isAuthenticated]);
-
-  useEffect(() => {
-    if (timetable && timeSlots) {
-      createTimeSlotMatrix();
-    }
-  }, [timetable, timeSlots]);
-
-  const getTimeTable = async () => {
+  const getTimeTable = useCallback(async () => {
     try {
       if (!isLoading && isAuthenticated) {
         setLoading(true);
@@ -158,7 +231,7 @@ function TimeTable() {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (res.data.timeTable) {
@@ -167,7 +240,7 @@ function TimeTable() {
           });
           setTimeSlots(() => {
             const filteredSlots = res.data.timeTable.timeSlots.filter(
-              (slot) => !slot.slotId.includes("break")
+              (slot) => !slot.slotId.includes("break"),
             );
 
             return filteredSlots;
@@ -182,12 +255,11 @@ function TimeTable() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getAccessTokenSilently, isAuthenticated, isLoading, user?.email]);
 
   // Create a grid matrix for proper event placement
-  const createTimeSlotMatrix = () => {
+  const createTimeSlotMatrix = useCallback(() => {
     if (!timetable || !timeSlots) {
-      toast.info("No timetable or timeSlots data available");
       return [];
     }
 
@@ -216,59 +288,79 @@ function TimeTable() {
     });
 
     setTimeSlotMatrix(matrix);
-  };
+  }, [timeSlots, timetable]);
+
+  useEffect(() => {
+    getTimeTable();
+  }, [getTimeTable]);
+
+  useEffect(() => {
+    if (timetable && timeSlots) {
+      createTimeSlotMatrix();
+    }
+  }, [createTimeSlotMatrix, timetable, timeSlots]);
 
   return loading ? (
     <LoadingSpinner>
       <div className="spinner" />
     </LoadingSpinner>
   ) : (
-    <TimetableContainer>
-      <div className="flex items-center gap-3 mb-2 px-2">
-        <Calendar className="w-6 h-6 md:w-8 md:h-8 text-blue-600" />
-        <h1 className="text-xl md:text-2xl font-bold">Interactive Timetable</h1>
-      </div>
+    <Shell>
+      <Header>
+        <HeaderTitle>
+          <CalendarDays size={17} />
+          Weekly Timetable View
+        </HeaderTitle>
+        <HeaderSub>
+          Live schedule with period durations and course details.
+        </HeaderSub>
+        <ScrollHint>
+          <ArrowRight size={14} />
+          Swipe horizontally on mobile to view full table
+        </ScrollHint>
+      </Header>
 
-      <ScrollIndicator>
-        <div className="flex items-center gap-2 text-gray-600">
-          <ArrowRight size={16} />
-          <span>Scroll horizontally to view full timetable</span>
-        </div>
-      </ScrollIndicator>
+      <ScrollViewport>
+        <TimetableContainer>
+          <Grid>
+            {days.map((day) => (
+              <HeaderCell key={day}>{day}</HeaderCell>
+            ))}
 
-      <Grid>
-        {days.map((day) => (
-          <HeaderCell key={day}>{day}</HeaderCell>
-        ))}
+            {timeSlots.map((slot, rowIndex) => (
+              <React.Fragment key={slot.slotId}>
+                <TimeCell>{slot.display}</TimeCell>
+                {timeSlotMatrix[rowIndex]?.map((cell, dayIndex) => {
+                  if (!cell || cell.span === 0) return null;
 
-        {timeSlots.map((slot, rowIndex) => (
-          <React.Fragment key={slot.slotId}>
-            <TimeCell>{slot.display}</TimeCell>
-            {timeSlotMatrix[rowIndex]?.map((cell, dayIndex) => {
-              if (!cell || cell.span === 0) return null; // Skip cells that are part of a multi-period event
+                  if (!cell.event) {
+                    return <EmptyCell key={`empty-${dayIndex}-${slot.id}`} />;
+                  }
 
-              if (!cell.event) {
-                return <EmptyCell key={`empty-${dayIndex}-${slot.id}`} />;
-              }
+                  const course = timetable.courses.find(
+                    (c) => c.name === cell.event.courseId,
+                  );
 
-              const course = timetable.courses.find(
-                (c) => c.name === cell.event.courseId
-              );
-              if (!course)
-                return <EmptyCell key={`empty-${dayIndex}-${slot.slotId}`} />;
+                  if (!course) {
+                    return (
+                      <EmptyCell key={`empty-${dayIndex}-${slot.slotId}`} />
+                    );
+                  }
 
-              return (
-                <EventCard
-                  key={`${cell.event.day}-${cell.event.slotId}`}
-                  event={cell.event}
-                  course={course}
-                />
-              );
-            })}
-          </React.Fragment>
-        ))}
-      </Grid>
-    </TimetableContainer>
+                  return (
+                    <EventCard
+                      key={`${cell.event.day}-${cell.event.slotId}`}
+                      event={cell.event}
+                      course={course}
+                    />
+                  );
+                })}
+              </React.Fragment>
+            ))}
+          </Grid>
+        </TimetableContainer>
+      </ScrollViewport>
+    </Shell>
   );
 }
 
@@ -303,6 +395,18 @@ const EventCard = ({ event, course }) => {
       </div>
     </StyledEventCard>
   );
+};
+
+EventCard.propTypes = {
+  event: PropTypes.shape({
+    duration: PropTypes.number.isRequired,
+  }).isRequired,
+  course: PropTypes.shape({
+    type: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    fullName: PropTypes.string,
+    instructor: PropTypes.string,
+  }).isRequired,
 };
 
 export default TimeTable;

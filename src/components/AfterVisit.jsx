@@ -1,829 +1,598 @@
-import React, { useState, useRef, useEffect } from "react";
-import styled from "styled-components";
-import { NavLink } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquarePlus, ArrowRight, Users, BookOpen, Eye } from "lucide-react";
-import { Button } from "@mui/material";
-import FileViewer from "./FileViewer";
-import FeaturesSection from "./FeaturesSection";
+/* eslint-disable react/prop-types */
 
-import { useAuth0 } from "@auth0/auth0-react";
-import Help from "./Help";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { listenToHomeStats, incrementVisitCount, incrementVerifiedUserCount } from "../firebase";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
+import {
+  ArrowRight,
+  BookOpenText,
+  FolderOpen,
+  ExternalLink,
+  Github,
+  MessageSquarePlus,
+  Users,
+} from "lucide-react";
+import { motion } from "framer-motion";
 
-// --- Aurora styled for theme ---
-const AuroraBgStyled = styled.div`
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  .aurora__item {
-    position: absolute;
-    border-radius: 37% 29% 27% 27% / 28% 25% 41% 37%;
-    filter: blur(80px);
-    opacity: 0.4;
-    mix-blend-mode: lighten;
-    transition: background 0.3s, opacity 0.3s, filter 0.3s;
-  }
-  .aurora__item:nth-of-type(1) {
-    top: -20%;
-    left: -10%;
-    width: 40vw;
-    height: 40vw;
-    background: ${({ theme }) => theme.primary};
-    animation: aurora1 12s ease-in-out infinite alternate;
-  }
-  .aurora__item:nth-of-type(2) {
-    top: -10%;
-    right: -10%;
-    width: 30vw;
-    height: 30vw;
-    background: ${({ theme }) => theme.secondary};
-    animation: aurora2 14s ease-in-out infinite alternate;
-  }
-  .aurora__item:nth-of-type(3) {
-    bottom: -20%;
-    left: 0;
-    width: 35vw;
-    height: 35vw;
-    background: ${({ theme }) => theme.gradient};
-    animation: aurora3 10s ease-in-out infinite alternate;
-  }
-  .aurora__item:nth-of-type(4) {
-    bottom: -30%;
-    right: 0;
-    width: 45vw;
-    height: 45vw;
-    background: ${({ theme }) => theme.surface};
-    opacity: 0.2;
-    animation: aurora4 18s ease-in-out infinite alternate;
-  }
-  @media (max-width: 640px) {
-    .aurora__item {
-      filter: blur(120px);
-      opacity: 0.7;
-    }
-  }
-  @keyframes aurora1 {
-    0% {
-      top: -20%;
-      left: -10%;
-    }
-    100% {
-      top: 10%;
-      left: 10%;
-    }
-  }
-  @keyframes aurora2 {
-    0% {
-      top: -10%;
-      right: -10%;
-    }
-    100% {
-      top: 20%;
-      right: 20%;
-    }
-  }
-  @keyframes aurora3 {
-    0% {
-      bottom: -20%;
-      left: 0;
-    }
-    100% {
-      bottom: 10%;
-      left: 20%;
-    }
-  }
-  @keyframes aurora4 {
-    0% {
-      bottom: -30%;
-      right: 0;
-    }
-    100% {
-      bottom: 0;
-      right: 20%;
-    }
-  }
-`;
+import FeaturesSection from "./FeaturesSection";
+import SelectionPopup from "./SelectionPopup";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  incrementVerifiedUserCount,
+  incrementVisitCount,
+  listenToHomeStats,
+} from "../firebase";
 
-const HeroSection = styled.div`
-  background: ${({ theme }) =>
-    `linear-gradient(120deg, ${theme.surface}cc 60%, ${theme.background}ee 100%)`};
-  padding: 4rem 2rem;
-  border-radius: 20px;
-  margin-bottom: 4rem;
-  color: ${({ theme }) => theme.text};
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 8px 32px 0 ${({ theme }) => theme.shadow}22;
-`;
-
-const Section = styled(motion.section)`
-  padding: 1.5rem;
-  margin-bottom: 3rem;
-  position: relative;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      ${(props) => props.theme.border || "rgba(0,0,0,0.1)"},
-      transparent
-    );
-  }
-`;
-
-const NewsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-top: 1.5rem;
-`;
-
-const NewsCard = styled(motion.div)`
-  background: ${(props) => props.theme.surface};
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px ${(props) => props.theme.shadow}15;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid ${(props) => props.theme.border || "rgba(0,0,0,0.1)"};
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: ${(props) => props.theme.gradient};
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.4s ease;
+function sanitizeBulletinHtml(rawHtml) {
+  if (!rawHtml || typeof window === "undefined") {
+    return "";
   }
 
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 30px ${(props) => props.theme.shadow}25;
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(rawHtml, "text/html");
 
-    &::before {
-      transform: scaleX(1);
-    }
-  }
+  doc
+    .querySelectorAll("script, style, iframe, object, embed, link, meta")
+    .forEach((node) => {
+      node.remove();
+    });
 
-  h3 {
-    color: ${(props) => props.theme.text};
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-    line-height: 1.3;
-  }
+  doc.querySelectorAll("*").forEach((element) => {
+    [...element.attributes].forEach((attribute) => {
+      const name = attribute.name.toLowerCase();
+      const value = attribute.value;
 
-  .date {
-    color: ${(props) => props.theme.text}99;
-    font-size: 0.875rem;
-    margin-bottom: 1rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .content {
-    color: ${(props) => props.theme.text}CC;
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-    font-size: 0.95rem;
-  }
-`;
-
-const SuggestionsSection = styled(motion.div)`
-  background: linear-gradient(
-    135deg,
-    ${(props) => props.theme.surface} 0%,
-    ${(props) => props.theme.surface}ee 100%
-  );
-  padding: 3rem 1.5rem;
-  border-radius: 16px;
-  text-align: center;
-  box-shadow: 0 4px 20px ${(props) => props.theme.shadow}15;
-  border: 1px solid ${(props) => props.theme.border || "rgba(0,0,0,0.1)"};
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(
-      circle at top right,
-      ${(props) => props.theme.primary}10,
-      transparent 70%
-    );
-    pointer-events: none;
-  }
-`;
-
-const SuggestButton = styled(motion.a)`
-  display: inline-flex;
-  align-items: center;
-  padding: 0.875rem 2rem;
-  background: ${(props) => props.theme.gradient};
-  color: white;
-  font-weight: 600;
-  border-radius: 8px;
-  text-decoration: none;
-  gap: 0.75rem;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px ${(props) => props.theme.primary}30;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px ${(props) => props.theme.primary}50;
-  }
-`;
-
-const Resources = styled(NavLink)`
-  display: inline-flex;
-  align-items: center;
-  margin-top: 1.5rem;
-  padding: 0.875rem 2rem;
-  background: white;
-  color: ${(props) => props.theme.primary};
-  font-weight: 600;
-  border-radius: 8px;
-  text-decoration: none;
-  gap: 0.75rem;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: ${(props) => props.theme.primary}10;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-  }
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-
-    &::before {
-      transform: translateX(0);
-    }
-  }
-
-  @media (max-width: 726px) {
-    padding: 0.6rem 1rem;
-  }
-`;
-
-const StatsContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2rem;
-  margin: 2rem auto 4rem auto;
-  max-width: 900px;
-  width: 100%;
-
-  @media (min-width: 768px) {
-    flex-direction: row;
-    justify-content: space-around;
-    gap: 0;
-  }
-`;
-
-const StatItem = styled(motion.div)`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 1rem 2rem;
-
-  h3 {
-    font-size: 3rem;
-    font-weight: 700;
-    color: #0ea5e9; /* TechAstra inspired blue */
-    margin-bottom: 0.5rem;
-    line-height: 1;
-  }
-
-  p {
-    color: ${(props) => props.theme.text}99;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin: 0;
-  }
-`;
-
-const StatDivider = styled.div`
-  width: 80%;
-  height: 1px;
-  background: ${(props) => props.theme.border || "rgba(128,128,128,0.2)"};
-
-  @media (min-width: 768px) {
-    width: 1px;
-    height: 60px;
-  }
-`;
-
-const CarouselContainer = styled.div`
-  position: relative;
-  width: 100%;
-  max-width: 900px;
-  margin: 0 auto;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-`;
-const CarouselTrack = styled.div`
-  display: flex;
-  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-  width: 100%;
-`;
-const CarouselSlide = styled(motion.div)`
-  min-width: 100%;
-  padding: 0 0.5rem;
-  display: flex;
-  justify-content: center;
-`;
-// News card: solid bg in light, semi in dark
-const CarouselCard = styled.div`
-  border-radius: 2rem;
-  background: ${({ theme }) => theme.cardTheme};
-  box-shadow: 0 4px 24px ${({ theme }) => theme.shadow}18;
-  border: 1px solid ${({ theme }) => theme.border};
-  padding: 2rem 1.5rem;
-  margin: 0.5rem 0;
-  position: relative;
-  min-height: 220px;
-  max-width: 600px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-  box-sizing: border-box;
-`;
-const Badge = styled.span`
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: ${({ theme }) => theme.primary};
-  color: #fff;
-  font-size: 0.8rem;
-  padding: 0.3rem 0.9rem;
-  border-radius: 999px;
-  box-shadow: 0 2px 8px ${({ theme }) => theme.primary}44;
-  z-index: 10;
-`;
-const DatePill = styled.span`
-  display: inline-block;
-  background: ${({ theme }) => theme.secondary + "22"};
-  color: ${({ theme }) => theme.primary};
-  font-weight: 600;
-  font-size: 0.9rem;
-  padding: 0.3rem 1rem;
-  border-radius: 999px;
-  margin-bottom: 0.7rem;
-`;
-const CarouselDot = styled.button`
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: ${({ $active, theme }) => ($active ? theme.primary : theme.border)};
-  margin: 0 0.2rem;
-  border: none;
-  transition: background 0.3s, transform 0.3s;
-  transform: ${({ $active }) => ($active ? "scale(1.2)" : "scale(1)")};
-`;
-const CarouselArrow = styled.button`
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: ${({ theme }) => theme.surface + "cc"};
-  color: ${({ theme }) => theme.text};
-  border: none;
-  border-radius: 50%;
-  padding: 0.7rem;
-  box-shadow: 0 2px 8px ${({ theme }) => theme.shadow}22;
-  z-index: 10;
-  cursor: pointer;
-  &:hover {
-    background: ${({ theme }) => theme.primary + "cc"};
-    color: #fff;
-  }
-  @media (max-width: 640px) {
-    display: none;
-  }
-`;
-
-const newsItems = [
-  {
-    title: "New Essentials Page",
-    date: "April 06, 2025",
-    content:
-      "Here you will get all the necessities like quiz, grade calculator, holiday list and more",
-  },
-  {
-    title: "Resourse Contribution is Open !",
-    date: "April 06, 2025",
-    content:
-      "Goto contribute section and upload any notes, PYQ, etc.. which could be helpful for other.",
-  },
-  {
-    title: "Code Contribution is Open !",
-    date: "Febraury 06, 2025",
-    content: "Welcome developers to contribute to RVCE Utility Portal.",
-    url: "https://github.com/dath2006/RVCE-Utility",
-  },
-  {
-    title: "Campus Placement Updates",
-    date: "January 15, 2025",
-    content: "......",
-    url: "https://rvce-placements.vercel.app/placements/2025",
-  },
-];
-
-// --- Typewriter Effect ---
-function useTypewriter(text, speed = 50, delay = 0) {
-  const [displayed, setDisplayed] = useState("");
-  useEffect(() => {
-    setDisplayed("");
-    if (!text) return;
-    let timeout;
-    let i = 0;
-    const type = () => {
-      if (i <= text.length) {
-        setDisplayed(text.slice(0, i));
-        i++;
-        timeout = setTimeout(type, speed);
+      if (name.startsWith("on")) {
+        element.removeAttribute(attribute.name);
       }
-    };
-    timeout = setTimeout(type, delay);
-    return () => clearTimeout(timeout);
-  }, [text, speed, delay]);
-  return displayed;
+
+      if (
+        (name === "href" || name === "src") &&
+        /^\s*javascript:/i.test(value)
+      ) {
+        element.removeAttribute(attribute.name);
+      }
+    });
+  });
+
+  return doc.body.innerHTML;
 }
 
-// --- Aurora component using styled ---
-const AuroraBg = () => (
-  <AuroraBgStyled>
-    <div className="aurora__item" />
-    <div className="aurora__item" />
-    <div className="aurora__item" />
-    <div className="aurora__item" />
-  </AuroraBgStyled>
-);
+function StatCard({
+  value,
+  label,
+  suffix = "",
+  delay = 0,
+  accentClass = "",
+  isLoading = false,
+}) {
+  const [displayValue, setDisplayValue] = useState(0);
 
-// --- News Carousel using styled ---
-const NewsCarousel = ({ newsItems }) => {
-  const [current, setCurrent] = useState(0);
-  const intervalRef = useRef();
-  const carouselRef = useRef();
-  const isMobile = typeof window !== "undefined" && window.innerWidth <= 640;
-
-  // Auto-slide
   useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % newsItems.length);
-    }, 4000);
-    return () => clearInterval(intervalRef.current);
-  }, [newsItems.length]);
+    const target = Number.isFinite(value) ? value : 0;
+    const duration = 1100;
+    let animationFrame;
+    const start = performance.now();
 
-  // Swipe support (always enabled, but only arrows on desktop)
-  useEffect(() => {
-    const node = carouselRef.current;
-    if (!node) return;
-    let startX = null;
-    const onTouchStart = (e) => {
-      startX = e.touches[0].clientX;
+    const animate = (now) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayValue(Math.round(target * eased));
+
+      if (progress < 1) {
+        animationFrame = window.requestAnimationFrame(animate);
+      }
     };
-    const onTouchEnd = (e) => {
-      if (startX === null) return;
-      const dx = e.changedTouches[0].clientX - startX;
-      if (dx > 40)
-        setCurrent((prev) => (prev - 1 + newsItems.length) % newsItems.length);
-      if (dx < -40) setCurrent((prev) => (prev + 1) % newsItems.length);
-      startX = null;
-    };
-    node.addEventListener("touchstart", onTouchStart);
-    node.addEventListener("touchend", onTouchEnd);
-    return () => {
-      node.removeEventListener("touchstart", onTouchStart);
-      node.removeEventListener("touchend", onTouchEnd);
-    };
-  }, [newsItems.length]);
+
+    animationFrame = window.requestAnimationFrame(animate);
+
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [value]);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        width: "100%",
-        justifyContent: "center",
-        position: "relative",
-      }}
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay }}
     >
-      {!isMobile && (
-        <CarouselArrow
-          style={{ left: 0, position: "static", marginRight: 12 }}
-          onClick={() =>
-            setCurrent(
-              (prev) => (prev - 1 + newsItems.length) % newsItems.length
-            )
-          }
-          aria-label="Previous news"
-        >
-          <ArrowRight style={{ transform: "rotate(180deg)" }} />
-        </CarouselArrow>
-      )}
-      <CarouselContainer ref={carouselRef}>
-        <div className="overflow-hidden" style={{ width: "100%" }}>
-          <CarouselTrack
-            style={{ transform: `translateX(-${current * 100}%)` }}
-          >
-            {newsItems.map((news, idx) => (
-              <CarouselSlide
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 * idx }}
-              >
-                <CarouselCard>
-                  {idx === 0 && <Badge>New</Badge>}
-                  <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
-                    <span role="img" aria-label="news">
-                      📰
-                    </span>{" "}
-                    {news.title}
-                  </h3>
-                  <DatePill>{news.date}</DatePill>
-                  <p style={{ color: "inherit", marginBottom: "1.2rem" }}>
-                    {news.content}
-                  </p>
-                  {news.url && (
-                    <Button
-                      variant="contained"
-                      size="small"
-                      style={{ marginTop: 8 }}
-                      onClick={() => window.open(news.url)}
-                    >
-                      Learn More
-                    </Button>
-                  )}
-                </CarouselCard>
-              </CarouselSlide>
-            ))}
-          </CarouselTrack>
-        </div>
-      </CarouselContainer>
-      {!isMobile && (
-        <CarouselArrow
-          style={{ right: 0, position: "static", marginLeft: 12 }}
-          onClick={() => setCurrent((prev) => (prev + 1) % newsItems.length)}
-          aria-label="Next news"
-        >
-          <ArrowRight />
-        </CarouselArrow>
-      )}
-      {/* Carousel Dots below */}
-      <div
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: -28,
-          display: "flex",
-          justifyContent: "center",
-          gap: 4,
-        }}
+      <Card
+        className={`rounded-[1.6rem] border-border/70 bg-card/90 shadow-sm backdrop-blur-sm ${accentClass}`}
       >
-        {newsItems.map((_, idx) => (
-          <CarouselDot
-            key={idx}
-            $active={idx === current}
-            onClick={() => setCurrent(idx)}
-            aria-label={`Go to news ${idx + 1}`}
-          />
-        ))}
-      </div>
-    </div>
+        <CardContent className="p-6">
+          {isLoading ? (
+            <div className="flex h-9 items-center">
+              <span className="inline-flex h-6 w-6 animate-spin rounded-full border-2 border-primary/25 border-t-primary" />
+            </div>
+          ) : (
+            <p className="text-3xl font-semibold tracking-tight">
+              {displayValue.toLocaleString()}
+              {suffix}
+            </p>
+          )}
+          <p className="mt-2 text-sm text-muted-foreground">{label}</p>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
-};
+}
 
-export default function AfterVisit({ showAuthCard, setShowAuthCard }) {
-  const [viewerFile, setViewerFile] = useState(null);
+function AfterVisit({ showAuthCard, setShowAuthCard }) {
+  const navigate = useNavigate();
   const { isAuthenticated, isLoading, user } = useAuth0();
-  const [msgId, setMsgId] = useState(
-    localStorage.getItem("msgId") ? localStorage.getItem("msgId") : ""
-  );
-  const [data, setData] = useState(null);
-  const [isOpen, setIsOpen] = useState(true);
+  const [msgId, setMsgId] = useState(() => localStorage.getItem("msgId") || "");
+  const [announcement, setAnnouncement] = useState(null);
+  const [showAnnouncementPopup, setShowAnnouncementPopup] = useState(false);
+  const [showSelectionPopup, setShowSelectionPopup] = useState(false);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
   const [stats, setStats] = useState({
     totalVisits: 0,
     verifiedUsers: 0,
-    totalResources: 0
+    totalResources: 0,
   });
 
-  // Stats logic
   useEffect(() => {
-    // 1. Increment visitor count (ideally you'd add cookie checks to not over-count)
-    if (!sessionStorage.getItem('visited_v2')) {
+    if (!sessionStorage.getItem("visited_v2")) {
       incrementVisitCount();
-      sessionStorage.setItem('visited_v2', 'true');
+      sessionStorage.setItem("visited_v2", "true");
     }
 
-    // 2. Setup real-time listener for live updates
     const unsubscribe = listenToHomeStats((data) => {
-        setStats(data);
+      setStats(data);
+      setIsStatsLoading(false);
     });
 
-    // Cleanup listener on unmount
     return () => unsubscribe();
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated && !sessionStorage.getItem('verified_counted')) {
+    if (isAuthenticated && !sessionStorage.getItem("verified_counted")) {
       incrementVerifiedUserCount();
-      sessionStorage.setItem('verified_counted', 'true');
+      sessionStorage.setItem("verified_counted", "true");
     }
   }, [isAuthenticated]);
 
   useEffect(() => {
-    const getMsg = async () => {
-      const res = await axios.get(
-        "https://raw.githubusercontent.com/RVCE-Utility/rvce-utility-file/refs/heads/main/infoCard.json"
-      );
-      setData(res.data[0]);
-    };
-    getMsg();
+    async function getAnnouncement() {
+      try {
+        const response = await axios.get(
+          "https://raw.githubusercontent.com/RVCE-Utility/rvce-utility-file/refs/heads/main/infoCard.json",
+        );
+        setAnnouncement(response.data?.[0] || null);
+      } catch (error) {
+        console.error("Error fetching announcement:", error);
+      }
+    }
+
+    getAnnouncement();
   }, []);
 
-  const onClose = () => {
-    setIsOpen(false);
-    setMsgId(data.id);
-    localStorage.setItem("msgId", data.id);
+  const heroCopy = useMemo(() => {
+    if (isAuthenticated && user?.name) {
+      return `Welcome back, ${user.name.split(" ")[0]}.`;
+    }
+
+    return "A calmer home surface for RV Utility.";
+  }, [isAuthenticated, user]);
+
+  const announcementLink =
+    announcement?.url || announcement?.link || announcement?.webViewLink;
+  const announcementBody =
+    announcement?.content ||
+    announcement?.message ||
+    announcement?.description ||
+    "Latest campus and portal updates are shown here.";
+  const isAnnouncementHtml = /<\/?[a-z][\s\S]*>/i.test(announcementBody);
+  const safeAnnouncementHtml = useMemo(
+    () => sanitizeBulletinHtml(announcementBody),
+    [announcementBody],
+  );
+  const showAnnouncement = announcement && announcement?.id !== msgId;
+
+  const dismissAnnouncement = () => {
+    if (!announcement?.id) return;
+
+    localStorage.setItem("msgId", announcement.id);
+    setMsgId(announcement.id);
+    setShowAnnouncementPopup(false);
   };
 
-  // Typewriter for headline
-  const headline = useTypewriter(
-    isAuthenticated && user?.name
-      ? `Welcome back, ${user.name.split(" ")[0]}! 🚀`
-      : "Welcome Back to RVCE Utility Portal",
-    40,
-    200
-  );
+  useEffect(() => {
+    if (showAnnouncement && announcement?.id) {
+      setShowAnnouncementPopup(true);
+    }
+  }, [showAnnouncement, announcement?.id]);
 
   return (
-    <div className="max-w-7xl mx-auto mt-[6rem] px-4 py-6">
-      <HeroSection>
-        <AuroraBg />
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-4xl md:text-5xl font-bold mb-6 leading-tight relative z-10"
-        >
-          {headline}
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-lg md:text-xl mb-8 opacity-90 max-w-2xl mx-auto relative z-10"
-        >
-          Your one-stop destination for all college resources and information
-        </motion.p>
+    <div className="mx-auto flex max-w-7xl flex-col gap-10 px-4 pb-16 pt-28 sm:px-6 lg:px-8">
+      <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-stretch">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="flex gap-4 flex-wrap justify-center relative z-10"
+          transition={{ duration: 0.45 }}
         >
-          <Resources
-            to="/resources"
-            whilehover={{ scale: 1.05 }}
-            whiletap={{ scale: 0.95 }}
-          >
-            Get Resources
-            <ArrowRight size={20} />
-          </Resources>
+          <Card className="h-full overflow-hidden rounded-[2rem] border-border/70 bg-card/85 shadow-soft backdrop-blur-xl">
+            <CardContent className="p-8 sm:p-10">
+              <Badge
+                variant="secondary"
+                className="rounded-full px-4 py-1 uppercase tracking-[0.22em]"
+              >
+                WELCOME
+              </Badge>
+              <h1 className="mt-6 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
+                {heroCopy}
+              </h1>
+              <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+                Access resources, attendance, and community tools from one place
+                with quick paths to the features you use most.
+              </p>
 
-          <Resources
-            to={isAuthenticated && !isLoading && "/attendance"}
-            onClick={() => {
-              if (!isAuthenticated) {
-                setShowAuthCard(!showAuthCard);
-              }
-            }}
-            whilehover={{ scale: 1.05 }}
-            whiletap={{ scale: 0.95 }}
-          >
-            Attendance
-            <ArrowRight size={20} />
-          </Resources>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Button asChild size="lg" className="rounded-full px-7">
+                  <Link to="/resources">
+                    Open resources
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="rounded-full px-7"
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      setShowAuthCard(!showAuthCard);
+                      return;
+                    }
+                    window.location.assign("/attendance");
+                  }}
+                >
+                  Attendance
+                </Button>
+              </div>
+
+              <div className="mt-10 grid gap-4 sm:grid-cols-3">
+                <StatCard
+                  value={stats.totalResources}
+                  label="Resources indexed"
+                  suffix="+"
+                  delay={0.05}
+                  accentClass="bg-gradient-to-br from-cyan-500/10 to-transparent"
+                  isLoading={isStatsLoading}
+                />
+                <StatCard
+                  value={stats.totalVisits}
+                  label="Portal visits"
+                  suffix="+"
+                  delay={0.1}
+                  accentClass="bg-gradient-to-br from-emerald-500/10 to-transparent"
+                  isLoading={isStatsLoading}
+                />
+                <StatCard
+                  value={stats.verifiedUsers}
+                  label="Verified users"
+                  suffix="+"
+                  delay={0.15}
+                  accentClass="bg-gradient-to-br from-orange-500/10 to-transparent"
+                  isLoading={isStatsLoading}
+                />
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
-      </HeroSection>
 
-      <Section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <StatsContainer>
-          <StatItem whileHover={{ scale: 1.05 }}>
-            <h3>{stats.totalResources.toLocaleString()}+</h3>
-            <p>Total Resources</p>
-          </StatItem>
-          
-          <StatDivider />
-          
-          <StatItem whileHover={{ scale: 1.05 }}>
-            <h3>{stats.totalVisits.toLocaleString()}+</h3>
-            <p>Total Visits</p>
-          </StatItem>
-
-          <StatDivider />
-          
-          <StatItem whileHover={{ scale: 1.05 }}>
-            <h3>{stats.verifiedUsers.toLocaleString()}+</h3>
-            <p>Verified Users</p>
-          </StatItem>
-        </StatsContainer>
-      </Section>
-
-      <Section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-center mb-8"
+          transition={{ delay: 0.08, duration: 0.45 }}
+          className="grid gap-6"
         >
-          <h2 className="text-2xl md:text-3xl font-bold mb-3">
-            Latest Updates
-          </h2>
-          <p className="text-base md:text-lg text-gray-600 dark:text-gray-300">
-            Stay informed with the latest news and announcements
-          </p>
+          <Card className="rounded-[2rem] border-border/70 bg-card/90 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-xl">Campus bulletin</CardTitle>
+              <CardDescription className="leading-6">
+                Important announcements and resource updates for students.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 text-sm leading-6 text-muted-foreground">
+              <div>
+                {showAnnouncement ? (
+                  <Badge variant="outline" className="rounded-full px-3 py-1">
+                    Pinned update
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="rounded-full px-3 py-1">
+                    Latest update
+                  </Badge>
+                )}
+                {/* <h3 className="mt-3 text-lg font-semibold text-foreground">
+                  {announcement?.title ||
+                    announcement?.headline ||
+                    "Campus bulletin"}
+                </h3> */}
+                {isAnnouncementHtml ? (
+                  <div
+                    className="prose prose-sm mt-2 max-w-3xl text-foreground dark:prose-invert prose-headings:my-2 prose-p:my-2 prose-ul:my-2"
+                    dangerouslySetInnerHTML={{ __html: safeAnnouncementHtml }}
+                  />
+                ) : (
+                  <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+                    {announcementBody}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-3 pt-1">
+                {announcementLink && (
+                  <Button asChild>
+                    <a href={announcementLink} target="_blank" rel="noreferrer">
+                      Open update
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </Button>
+                )}
+                {showAnnouncement && announcement?.id && (
+                  <Button variant="outline" onClick={dismissAnnouncement}>
+                    Dismiss
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-[2rem] border-border/70 bg-card/90 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-xl">Next useful actions</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-3 sm:auto-rows-fr sm:grid-cols-2">
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.02 }}
+                whileHover={{ y: -2 }}
+                className="h-full"
+              >
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowSelectionPopup(true)}
+                  className="group h-full min-h-24 w-full justify-between rounded-2xl border-sky-500/30 bg-gradient-to-br from-sky-500/10 to-cyan-500/5 px-4 py-3 text-left hover:border-sky-500/50"
+                >
+                  <span className="flex items-center gap-3">
+                    <span className="rounded-xl bg-sky-500/15 p-2.5">
+                      <FolderOpen className="h-4 w-4" />
+                    </span>
+                    <span>
+                      <span className="block text-sm font-semibold text-foreground">
+                        Course filters
+                      </span>
+                      <span className="block text-xs text-muted-foreground">
+                        Quick setup
+                      </span>
+                    </span>
+                  </span>
+                  <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                </Button>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.08 }}
+                whileHover={{ y: -2 }}
+                className="h-full"
+              >
+                <Button
+                  asChild
+                  variant="outline"
+                  className="h-full min-h-24 w-full rounded-2xl border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-lime-500/5 p-0 hover:border-emerald-500/50"
+                >
+                  <Link to="/contributors">
+                    <span className="group flex w-full items-center justify-between px-4 py-3 text-left">
+                      <span className="flex items-center gap-3">
+                        <span className="rounded-xl bg-emerald-500/15 p-2.5">
+                          <Users className="h-4 w-4" />
+                        </span>
+                        <span>
+                          <span className="block text-sm font-semibold">
+                            Contribute
+                          </span>
+                          <span className="block text-xs text-muted-foreground">
+                            Share resources
+                          </span>
+                        </span>
+                      </span>
+                      <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                    </span>
+                  </Link>
+                </Button>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.14 }}
+                whileHover={{ y: -2 }}
+                className="h-full"
+              >
+                <Button
+                  asChild
+                  variant="outline"
+                  className="h-full min-h-24 w-full rounded-2xl border-violet-500/30 bg-gradient-to-br from-violet-500/10 to-indigo-500/5 p-0 hover:border-violet-500/50"
+                >
+                  <Link to="/essentials">
+                    <span className="group flex w-full items-center justify-between px-4 py-3 text-left">
+                      <span className="flex items-center gap-3">
+                        <span className="rounded-xl bg-violet-500/15 p-2.5">
+                          <BookOpenText className="h-4 w-4" />
+                        </span>
+                        <span>
+                          <span className="block text-sm font-semibold">
+                            Essentials
+                          </span>
+                          <span className="block text-xs text-muted-foreground">
+                            Daily quick tools
+                          </span>
+                        </span>
+                      </span>
+                      <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                    </span>
+                  </Link>
+                </Button>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.2 }}
+                whileHover={{ y: -2 }}
+                className="h-full"
+              >
+                <Button
+                  asChild
+                  variant="outline"
+                  className="h-full min-h-24 w-full rounded-2xl border-rose-500/30 bg-gradient-to-br from-rose-500/10 to-amber-500/5 p-0 hover:border-rose-500/50"
+                >
+                  <a
+                    href="https://github.com/dath2006/RVCE-Utility"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <span className="group flex w-full items-center justify-between px-4 py-3 text-left">
+                      <span className="flex items-center gap-3">
+                        <span className="rounded-xl bg-rose-500/15 p-2.5">
+                          <Github className="h-4 w-4" />
+                        </span>
+                        <span>
+                          <span className="block text-sm font-semibold">
+                            GitHub
+                          </span>
+                          <span className="block text-xs text-muted-foreground">
+                            Track updates
+                          </span>
+                        </span>
+                      </span>
+                      <ExternalLink className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                    </span>
+                  </a>
+                </Button>
+              </motion.div>
+            </CardContent>
+          </Card>
         </motion.div>
-        <NewsCarousel newsItems={newsItems} />
-      </Section>
+      </section>
 
-      <AnimatePresence>
-        {viewerFile && (
-          <FileViewer url={viewerFile} onClose={() => setViewerFile(null)} />
-        )}
-      </AnimatePresence>
-      <div className="container mx-auto px-4 py-6">
-        <FeaturesSection />
-      </div>
+      <FeaturesSection />
 
-      <SuggestionsSection
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
+      <Dialog
+        open={showAnnouncementPopup}
+        onOpenChange={setShowAnnouncementPopup}
       >
-        <h2 className="text-2xl md:text-3xl font-bold mb-4">Help Us Improve</h2>
-        <p className="mb-6 text-base md:text-lg opacity-75 max-w-2xl mx-auto">
-          We value your feedback! Help us make the RVCE Utility Portal better.
-        </p>
-        <SuggestButton
-          href="https://docs.google.com/forms/d/121pZXqbozy2gAB2wo7KoadCt5MHWC3yZ7ZxzQmgtI3M/preview"
-          target="_blank"
-          rel="noopener noreferrer"
-          whilehover={{ scale: 1.05 }}
-          whiletap={{ scale: 0.95 }}
-        >
-          <MessageSquarePlus size={20} />
-          Give Suggestions
-        </SuggestButton>
-      </SuggestionsSection>
+        <DialogContent className="max-h-[85vh] overflow-hidden rounded-2xl border-border/70 sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl">New campus update</DialogTitle>
+            <DialogDescription>
+              Important announcements and resource updates for students.
+            </DialogDescription>
+          </DialogHeader>
 
-      {data && msgId !== data.id && (
-        <Help text={data.content} isOpen={isOpen} onClose={onClose} />
+          <div className="max-h-[48vh] overflow-y-auto pr-1">
+            {isAnnouncementHtml ? (
+              <div
+                className="prose prose-sm max-w-none text-foreground dark:prose-invert prose-headings:my-2 prose-p:my-2 prose-ul:my-2"
+                dangerouslySetInnerHTML={{ __html: safeAnnouncementHtml }}
+              />
+            ) : (
+              <p className="text-sm leading-6 text-muted-foreground">
+                {announcementBody}
+              </p>
+            )}
+          </div>
+
+          <DialogFooter>
+            {announcementLink && (
+              <Button asChild>
+                <a
+                  href={announcementLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={dismissAnnouncement}
+                >
+                  Open update
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </Button>
+            )}
+            <Button variant="outline" onClick={dismissAnnouncement}>
+              Dismiss
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {showSelectionPopup && (
+        <SelectionPopup
+          onClose={() => setShowSelectionPopup(false)}
+          onSubmit={(selectedFilters) => {
+            localStorage.setItem("filters", JSON.stringify(selectedFilters));
+            navigate("/resources");
+          }}
+        />
       )}
+
+      <section className="grid gap-6">
+        <Card className="rounded-[2rem] border-border/70 bg-card/90 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-2xl">Feedback loop</CardTitle>
+            <CardDescription>
+              Keep improving the portal together.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="rounded-[1.5rem] border border-dashed border-border bg-muted/40 p-5 text-sm text-muted-foreground">
+              Report issues, suggest improvements, or add useful resources.
+            </div>
+            <Button asChild className="w-full rounded-full">
+              <a
+                href="https://forms.gle/wXMoTKkk1Lea8cMc6"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Suggest an improvement
+                <MessageSquarePlus className="h-4 w-4" />
+              </a>
+            </Button>
+            <Button asChild variant="outline" className="w-full rounded-full">
+              <Link to="/contributors">
+                Join the contributor page
+                <Users className="h-4 w-4" />
+              </Link>
+            </Button>
+            <p className="text-xs leading-6 text-muted-foreground">
+              {!isLoading && isAuthenticated
+                ? "You are signed in, so protected surfaces like attendance are ready to use from the new landing shell."
+                : "You are currently browsing as a guest. Use the avatar button in the header if you want to unlock attendance and account-linked flows."}
+            </p>
+          </CardContent>
+        </Card>
+      </section>
     </div>
   );
 }
+
+export default AfterVisit;

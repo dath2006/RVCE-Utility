@@ -19,85 +19,67 @@ const WindowControls = ({
 }) => {
   const { canOpenSplitView, setSplitView } = useWindowContext();
   const isSplitViewAvailable = canOpenSplitView();
-  const [isSplitView, setIsSplitView] = React.useState(false);
 
   const handleSplitView = () => {
+    if (!isSplitViewAvailable) return;
     setSplitView();
   };
 
   return (
-    <div className="flex flex-row flex-grow-0 items-center space-x-1">
-      {/* Split View Button */}
-      <div>
-        {/* Reload Button */}
-        <button
-          onClick={onReload}
-          className="p-1.5 text-gray-500 hover:text-blue-500 rounded"
-          title="Reload"
-        >
-          <RotateCcw size={20} />
-        </button>
-        <button
-          onClick={handleSplitView}
-          onMouseEnter={() => setIsSplitView(true)}
-          onMouseLeave={() => setIsSplitView(false)}
-          className={`p-1.5 rounded hover:text-indigo-600 ${
-            isSplitViewAvailable
-              ? "text-blue-500"
-              : "text-gray-400 cursor-not-allowed"
-          }`}
-          title={
-            isSplitViewAvailable
-              ? "Open in Split View"
-              : "Open only two windows for split view"
-          }
-        >
-          <LayoutSplit size={20} />
-          {isSplitView && (
-            <div
-              className="absolute transform -translate-x-1/2 
-                        bg-gray-900 text-white text-xs py-2 px-2 rounded 
-                        group-hover:opacity-100 transition-opacity
-                        whitespace-nowrap pointer-events-none z-50"
-            >
-              {isSplitViewAvailable
-                ? "Open in Split View"
-                : "Keep only two windows open for split view"}
-            </div>
-          )}
-        </button>
+    <div className="flex items-center gap-1">
+      <button
+        type="button"
+        onClick={onReload}
+        className="rounded-full p-1.5 text-muted-foreground transition hover:bg-accent hover:text-blue-500"
+        title="Reload"
+      >
+        <RotateCcw size={18} />
+      </button>
 
-        {/* Minimize Button */}
-        <button
-          onClick={onMinimize}
-          className="p-1.5 text-gray-500 hover:text-yellow-400 rounded"
-          title="Minimize"
-        >
-          <CircleMinus size={20} />
-        </button>
+      <button
+        type="button"
+        onClick={handleSplitView}
+        disabled={!isSplitViewAvailable}
+        className="rounded-full p-1.5 text-muted-foreground transition hover:bg-accent hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-45"
+        title={
+          isSplitViewAvailable
+            ? "Open in split view"
+            : "Keep exactly two active windows for split view"
+        }
+      >
+        <LayoutSplit size={18} />
+      </button>
 
-        {/* Maximize Button */}
-        <button
-          onClick={onMaximize}
-          className="p-1.5 text-gray-500 hover:text-indigo-600 rounded"
-          title={currentState === "maximized" ? "Restore" : "Maximize"}
-        >
-          {currentState === "maximized" ? (
-            <Minimize2 size={20} />
-          ) : (
-            <Maximize2 size={20} />
-          )}
-        </button>
+      <button
+        type="button"
+        onClick={onMinimize}
+        className="rounded-full p-1.5 text-muted-foreground transition hover:bg-accent hover:text-amber-500"
+        title="Minimize"
+      >
+        <CircleMinus size={18} />
+      </button>
 
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="p-1.5 text-gray-500  hover:text-red-500 rounded"
-          title="Close"
-        >
-          <X size={20} />
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={onMaximize}
+        className="rounded-full p-1.5 text-muted-foreground transition hover:bg-accent hover:text-indigo-600"
+        title={currentState === "maximized" ? "Restore" : "Maximize"}
+      >
+        {currentState === "maximized" ? (
+          <Minimize2 size={18} />
+        ) : (
+          <Maximize2 size={18} />
+        )}
+      </button>
+
+      <button
+        type="button"
+        onClick={onClose}
+        className="rounded-full p-1.5 text-muted-foreground transition hover:bg-red-50 hover:text-red-500"
+        title="Close"
+      >
+        <X size={18} />
+      </button>
     </div>
   );
 };

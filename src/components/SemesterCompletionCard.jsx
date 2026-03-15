@@ -1,187 +1,15 @@
-import React from "react";
-import styled from "styled-components";
-import { Award, BarChart3, Download } from "lucide-react";
+import PropTypes from "prop-types";
+import { Award, BarChart3, Download, Sparkles } from "lucide-react";
 
-const Container = styled.div`
-  background: ${(props) => props.theme.cardTheme};
-  color: ${(props) => props.theme.text};
-  border-radius: 12px;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  border: 1px solid ${(props) => props.theme.border};
-  padding: 24px;
-  max-width: 672px;
-  margin: 0 auto;
-`;
-
-const Header = styled.div`
-  text-align: center;
-  margin-bottom: 24px;
-`;
-
-const IconWrapper = styled.div`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  background: ${(props) => props.theme.gradient};
-  border-radius: 50%;
-  margin-bottom: 12px;
-`;
-
-const Title = styled.h2`
-  font-size: 24px;
-  font-weight: bold;
-  color: ${(props) => props.theme.text};
-  margin: 0 0 8px 0;
-`;
-
-const Subtitle = styled.p`
-  color: ${(props) => props.theme.text};
-  opacity: 0.7;
-  margin: 0;
-`;
-
-const PendingWarning = styled.div`
-  text-align: center;
-  margin-bottom: 16px;
-
-  p {
-    font-size: 14px;
-    color: #f59e0b;
-    margin: 0;
-
-    span {
-      font-weight: 600;
-    }
-  }
-`;
-
-const StatsGrid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  margin-bottom: 24px;
-
-  @media (min-width: 640px) {
-    grid-template-columns: 1fr 1fr;
-  }
-`;
-
-const StatCard = styled.div`
-  background: ${(props) => props.theme.secondary};
-  border: 1px solid ${(props) => props.theme.border};
-  border-radius: 8px;
-  padding: 16px;
-  text-align: center;
-`;
-
-const StatValue = styled.div`
-  font-size: 24px;
-  font-weight: bold;
-  color: ${(props) => props.color || props.theme.text};
-  margin-bottom: 4px;
-`;
-
-const StatLabel = styled.div`
-  font-size: 14px;
-  color: ${(props) => props.theme.text};
-  opacity: 0.7;
-`;
-
-const ProgressBar = styled.div`
-  width: 100%;
-  background: ${(props) => props.theme.border};
-  border-radius: 9999px;
-  height: 8px;
-  margin-top: 8px;
-  overflow: hidden;
-`;
-
-const ProgressFill = styled.div`
-  height: 100%;
-  background: ${(props) => props.color};
-  border-radius: 9999px;
-  transition: width 0.3s ease;
-  width: ${(props) => props.width}%;
-`;
-
-const Summary = styled.div`
-  text-center;
-  margin-bottom: 24px;
-  
-  p {
-    color: ${(props) => props.theme.text};
-    opacity: 0.8;
-    margin: 0;
-    line-height: 1.6;
-  }
-`;
-
-const Badge = styled.span`
-  font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 6px;
-  color: white;
-  background: ${(props) => props.color};
-`;
-
-const ActionButtons = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  text-align: center;
-
-  @media (min-width: 640px) {
-    flex-direction: row;
-  }
-`;
-
-const PrimaryButton = styled.span`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 16px;
-  background: ${(props) => props.theme.primary};
-  color: white;
-  font-weight: 500;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-
-  &:hover {
-    background: ${(props) => props.theme.shadowHover};
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    transform: translateY(-1px);
-  }
-`;
-
-const SecondaryButton = styled.span`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 16px;
-  background: ${(props) => props.theme.secondary};
-  color: ${(props) => props.theme.primary};
-  font-weight: 500;
-  border-radius: 8px;
-  border: 1px solid ${(props) => props.theme.primary};
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-
-  &:hover {
-    background: ${(props) => props.theme.border};
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    transform: translateY(-1px);
-  }
-`;
-
-const IconSpacing = styled.span`
-  margin-right: 8px;
-`;
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
 
 export default function SemesterCompletionCard({
   overallAttendance,
@@ -195,90 +23,133 @@ export default function SemesterCompletionCard({
   };
 
   return (
-    <Container>
-      <Header>
-        <IconWrapper>
-          <Award size={24} color="white" />
-        </IconWrapper>
-        <Title>Congratulations! 🎉</Title>
-        <Subtitle>You have reached the end of the semester!</Subtitle>
-      </Header>
+    <Card className="mx-auto max-w-3xl overflow-hidden border-border/70 bg-card/95 shadow-sm">
+      <CardHeader className="border-b border-border/70 bg-[linear-gradient(145deg,rgba(2,6,23,0.98),rgba(30,41,59,0.94))] text-primary-foreground">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="rounded-full border border-white/10 bg-white/10 p-3 text-white">
+            <Award className="h-6 w-6" />
+          </div>
+          <div className="space-y-2">
+            <Badge
+              variant="secondary"
+              className="bg-white/10 text-white hover:bg-white/10"
+            >
+              <Sparkles className="mr-1 h-3.5 w-3.5" />
+              Semester Complete
+            </Badge>
+            <CardTitle className="text-2xl text-white sm:text-3xl">
+              Congratulations
+            </CardTitle>
+            <CardDescription className="text-slate-300">
+              You have reached the end of the semester. Your attendance summary
+              is ready.
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
 
-      {overallAttendance?.pending > 0 && (
-        <PendingWarning>
-          <p>
-            Attendance may not be correct due to{" "}
-            <span>{overallAttendance.pending} pending classes</span>
-          </p>
-        </PendingWarning>
-      )}
+      <CardContent className="space-y-6 p-4 sm:p-6">
+        {overallAttendance?.pending > 0 && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+            Attendance may still shift because{" "}
+            <span className="font-semibold">
+              {overallAttendance.pending} classes
+            </span>{" "}
+            are still pending.
+          </div>
+        )}
 
-      <StatsGrid>
-        <StatCard>
-          <StatValue>
-            {overallAttendance?.present || 0}/
-            {overallAttendance?.totalClasses - overallAttendance?.ignore || 0}
-          </StatValue>
-          <StatLabel>Classes Attended</StatLabel>
-        </StatCard>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="rounded-2xl border border-border bg-background p-5">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              Classes Attended
+            </p>
+            <div className="mt-2 text-3xl font-bold text-foreground">
+              {overallAttendance?.present || 0}/
+              {overallAttendance?.totalClasses - overallAttendance?.ignore || 0}
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Completed classes across the semester timeline.
+            </p>
+          </div>
 
-        <StatCard>
-          <StatValue
-            color={getAttendanceColor(
-              overallAttendance?.attendancePercent || 0
-            )}
-          >
-            {overallAttendance?.attendancePercent || 0}%
-          </StatValue>
-          <StatLabel>Attendance Rate</StatLabel>
-          <ProgressBar>
-            <ProgressFill
-              color={getAttendanceColor(
-                overallAttendance?.attendancePercent || 0
-              )}
-              width={overallAttendance?.attendancePercent || 0}
-            />
-          </ProgressBar>
-        </StatCard>
-      </StatsGrid>
+          <div className="rounded-2xl border border-border bg-background p-5">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              Attendance Rate
+            </p>
+            <div
+              className="mt-2 text-3xl font-bold"
+              style={{
+                color: getAttendanceColor(
+                  overallAttendance?.attendancePercent || 0,
+                ),
+              }}
+            >
+              {overallAttendance?.attendancePercent || 0}%
+            </div>
+            <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${overallAttendance?.attendancePercent || 0}%`,
+                  backgroundColor: getAttendanceColor(
+                    overallAttendance?.attendancePercent || 0,
+                  ),
+                }}
+              />
+            </div>
+          </div>
+        </div>
 
-      <Summary>
-        <p>
-          You have attended{" "}
-          <Badge
-            color={getAttendanceColor(
-              overallAttendance?.attendancePercent || 0
-            )}
-          >
+        <div className="rounded-2xl border border-border bg-muted/40 p-4 text-sm leading-6 text-muted-foreground">
+          You finished the semester with{" "}
+          <span className="font-semibold text-foreground">
             {overallAttendance?.present || 0} /{" "}
             {overallAttendance?.totalClasses - overallAttendance?.ignore || 0}
-          </Badge>{" "}
-          classes with an overall attendance of{" "}
-          <Badge
-            color={getAttendanceColor(
-              overallAttendance?.attendancePercent || 0
-            )}
+          </span>{" "}
+          attended classes and an overall attendance of{" "}
+          <span
+            className="font-semibold"
+            style={{
+              color: getAttendanceColor(
+                overallAttendance?.attendancePercent || 0,
+              ),
+            }}
           >
             {overallAttendance?.attendancePercent || 0}%
-          </Badge>
-        </p>
-      </Summary>
+          </span>
+          .
+        </div>
 
-      <ActionButtons>
-        <PrimaryButton onClick={() => setActiveComponent("statistics")}>
-          <IconSpacing>
-            <BarChart3 size={16} />
-          </IconSpacing>
-          View Statistics
-        </PrimaryButton>
-
-        <SecondaryButton onClick={() => setActiveComponent("import")}>
-          <IconSpacing>
-            <Download size={16} />
-          </IconSpacing>
-          Import New Semester
-        </SecondaryButton>
-      </ActionButtons>
-    </Container>
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+          <Button
+            onClick={() => setActiveComponent("statistics")}
+            className="sm:min-w-44"
+          >
+            <BarChart3 className="h-4 w-4" />
+            View Statistics
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setActiveComponent("import")}
+            className="sm:min-w-44"
+          >
+            <Download className="h-4 w-4" />
+            Import New Semester
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
+
+SemesterCompletionCard.propTypes = {
+  overallAttendance: PropTypes.shape({
+    present: PropTypes.number,
+    totalClasses: PropTypes.number,
+    ignore: PropTypes.number,
+    attendancePercent: PropTypes.number,
+    pending: PropTypes.number,
+  }),
+  setActiveComponent: PropTypes.func.isRequired,
+};

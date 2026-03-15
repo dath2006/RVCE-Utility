@@ -1,6 +1,23 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { FiSearch, FiX, FiEye, FiClock, FiUpload } from "react-icons/fi";
+import { Clock3, Eye, Upload, X } from "lucide-react";
+
+import ContributionModalPortal from "./ContributionModalPortal";
+
+const typeStyles = {
+  Notes: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  QP: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+  Textbook: "bg-violet-500/10 text-violet-700 border-violet-500/20",
+  Lab: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  Other: "bg-slate-500/10 text-slate-700 border-slate-500/20",
+};
+
+const semesterLabel = (semester) => {
+  const value = Number(semester);
+  if (value === 1) return "C Cycle";
+  if (value === 2) return "P Cycle";
+  return `Sem ${semester}`;
+};
 
 const ViewRequestModal = ({
   modalVariants,
@@ -8,221 +25,149 @@ const ViewRequestModal = ({
   selectedRequest,
   setActiveUpload,
 }) => {
+  const pendingDocuments = (selectedRequest.documents || []).filter(
+    (item) =>
+      !item.files ||
+      !item.files.some((file) =>
+        ["reviewing", "approved"].includes(file.status),
+      ),
+  );
+
   return (
-    <motion.div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
+    <ContributionModalPortal>
       <motion.div
-        className="bg-slate-900/50 backdrop-blur-lg rounded-lg shadow-lg border border-slate-800 w-full max-w-2xl lg:max-w-5xl max-h-[85vh] overflow-y-auto mt-6"
-        variants={modalVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
+        className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-black/60 p-2 backdrop-blur-sm sm:items-center sm:p-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
       >
-        <div className="p-4 sm:p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-              <FiEye className="text-indigo-400" />
-              Request Details
-            </h2>
-            <button
-              onClick={() => setIsViewModalOpen(false)}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-            >
-              <FiX className="w-5 h-5" />
-            </button>
+        <motion.div
+          className="flex max-h-[calc(100dvh-1rem)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-xl sm:max-h-[calc(100dvh-2rem)]"
+          variants={modalVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+        >
+          <div className="border-b border-border/70 px-4 py-4 sm:px-6">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="flex items-center gap-2 text-xl font-semibold sm:text-2xl">
+                <Eye className="h-5 w-5 text-primary" />
+                Request Details
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsViewModalOpen(false)}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border/70 transition hover:bg-accent"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
-          <div className="space-y-6">
-            {/* Request Info */}
-            <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 p-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <div>
-                  <p className="text-slate-400 text-sm">Subject Code</p>
-                  <p className="text-white font-medium break-all">
-                    {selectedRequest.subjectCode || "Untitled Request"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-slate-400 text-sm">User</p>
-                  <p className="text-indigo-400 font-medium">
-                    {"@"}
-                    {selectedRequest.user.split(".")[0]}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-slate-400 text-sm">Branch</p>
-                  <p className="text-white font-medium">
-                    {selectedRequest.branch}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-slate-400 text-sm">Semester</p>
-                  <p className="text-white font-medium">
-                    {parseInt(selectedRequest.semester) === 1
-                      ? "C Cycle"
-                      : parseInt(selectedRequest.semester) === 2
-                      ? "P Cycle"
-                      : `Sem ${selectedRequest.semester}`}
-                  </p>
-                </div>
+          <div className="min-h-0 space-y-6 overflow-y-auto p-4 sm:p-6">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              <div className="rounded-xl border border-border/70 bg-background/80 p-3">
+                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                  Subject Code
+                </p>
+                <p className="mt-1 font-medium break-all">
+                  {selectedRequest.subjectCode || "Untitled Request"}
+                </p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-slate-400 text-sm">Subject</p>
-                  <p className="text-white font-medium">
-                    {selectedRequest.subject || "N/A"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-slate-400 text-sm flex items-center gap-1">
-                    <FiClock className="w-3 h-3" />
-                    Posted
-                  </p>
-                  <p className="text-white font-medium">
-                    {new Date(selectedRequest.postedAt).toLocaleDateString()}{" "}
-                  </p>
-                </div>
+              <div className="rounded-xl border border-border/70 bg-background/80 p-3">
+                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                  Subject
+                </p>
+                <p className="mt-1 font-medium">
+                  {selectedRequest.subject || "N/A"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-border/70 bg-background/80 p-3">
+                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                  User
+                </p>
+                <p className="mt-1 font-medium text-primary">
+                  @{selectedRequest.user.split(".")[0]}
+                </p>
+              </div>
+              <div className="rounded-xl border border-border/70 bg-background/80 p-3">
+                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                  Branch
+                </p>
+                <p className="mt-1 font-medium">{selectedRequest.branch}</p>
+              </div>
+              <div className="rounded-xl border border-border/70 bg-background/80 p-3">
+                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                  Semester
+                </p>
+                <p className="mt-1 font-medium">
+                  {semesterLabel(selectedRequest.semester)}
+                </p>
               </div>
             </div>
 
-            {/* Requested Items */}
-            <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 p-4">
-              <h3 className="text-white font-medium mb-4 flex items-center gap-2">
-                <FiUpload className="text-slate-400" />
-                Requested Items ({selectedRequest.documents.length})
-              </h3>{" "}
-              <div className="space-y-4">
-                {selectedRequest.documents.map((item, index) => {
-                  if (
-                    !item.files ||
-                    !item.files.some((file) =>
-                      ["reviewing", "approved"].includes(file.status)
-                    )
-                  ) {
-                    return (
-                      <div
-                        key={item._id || item.name || index}
-                        className="relative"
-                      >
-                        <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/50 hover:bg-slate-700/50 transition-colors">
-                          {/* Mobile Layout */}
-                          <div className="block sm:hidden">
-                            <div className="flex items-center gap-3 mb-3">
-                              <div
-                                className={`h-3 w-3 rounded-full flex-shrink-0 ${
-                                  item.type === "Notes"
-                                    ? "bg-blue-500"
-                                    : item.type === "QP"
-                                    ? "bg-green-500"
-                                    : item.type === "Textbook"
-                                    ? "bg-purple-500"
-                                    : "bg-amber-500"
-                                }`}
-                              ></div>
-                              <h4 className="text-slate-200 font-medium flex-1 min-w-0">
-                                {item.name}
-                              </h4>
-                              <span
-                                className={`text-xs font-medium px-2 py-1 rounded-full flex-shrink-0 ${
-                                  item.type === "Notes"
-                                    ? "bg-blue-900/30 text-blue-400"
-                                    : item.type === "QP"
-                                    ? "bg-green-900/30 text-green-400"
-                                    : item.type === "Textbook"
-                                    ? "bg-purple-900/30 text-purple-400"
-                                    : "bg-amber-900/30 text-amber-400"
-                                }`}
-                              >
-                                {item.type}
-                              </span>
-                            </div>
-                            <p className="text-slate-400 text-sm mb-3 leading-relaxed">
-                              {item.description || selectedRequest.description}
-                            </p>
-                            <button
-                              onClick={() => setActiveUpload(index)}
-                              className="w-full px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 flex items-center justify-center gap-2"
-                            >
-                              <FiUpload className="w-4 h-4" />
-                              Contribute File
-                            </button>
-                          </div>
+            <div className="rounded-xl border border-border/70 bg-background/80 p-4">
+              <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock3 className="h-4 w-4" />
+                Posted {new Date(selectedRequest.postedAt).toLocaleDateString()}
+              </div>
 
-                          {/* Desktop Layout */}
-                          <div className="hidden sm:block">
-                            <div className="flex items-start gap-4">
-                              <div
-                                className={`h-3 w-3 rounded-full flex-shrink-0 mt-1 ${
-                                  item.type === "Notes"
-                                    ? "bg-blue-500"
-                                    : item.type === "QP"
-                                    ? "bg-green-500"
-                                    : item.type === "Textbook"
-                                    ? "bg-purple-500"
-                                    : "bg-amber-500"
-                                }`}
-                              ></div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between gap-4 mb-2">
-                                  <h4 className="text-slate-200 font-medium">
-                                    {item.name}
-                                  </h4>
-                                  <div className="flex items-center gap-3 flex-shrink-0">
-                                    <span
-                                      className={`text-xs font-medium px-3 py-1 rounded-full ${
-                                        item.type === "Notes"
-                                          ? "bg-blue-900/30 text-blue-400"
-                                          : item.type === "QP"
-                                          ? "bg-green-900/30 text-green-400"
-                                          : item.type === "Textbook"
-                                          ? "bg-purple-900/30 text-purple-400"
-                                          : "bg-amber-900/30 text-amber-400"
-                                      }`}
-                                    >
-                                      {item.type}
-                                    </span>
-                                    <button
-                                      onClick={() => setActiveUpload(index)}
-                                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 flex items-center gap-2"
-                                    >
-                                      <FiUpload className="w-4 h-4" />
-                                      Contribute
-                                    </button>
-                                  </div>
-                                </div>
-                                <p className="text-slate-400 text-sm leading-relaxed">
-                                  {item.description ||
-                                    selectedRequest.description}
-                                </p>
-                              </div>
-                            </div>{" "}
-                          </div>
+              <h3 className="mb-3 text-base font-semibold">
+                Requested Items ({pendingDocuments.length})
+              </h3>
+
+              <div className="space-y-3">
+                {pendingDocuments.map((item, index) => (
+                  <div
+                    key={item._id || `${item.name}-${index}`}
+                    className="rounded-xl border border-border/70 bg-muted/35 p-4"
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h4 className="text-sm font-medium sm:text-base">
+                            {item.name}
+                          </h4>
+                          <span
+                            className={`rounded-full border px-2 py-0.5 text-[11px] ${typeStyles[item.type] || typeStyles.Other}`}
+                          >
+                            {item.type}
+                          </span>
                         </div>
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                          {item.description ||
+                            selectedRequest.description ||
+                            "No extra description provided."}
+                        </p>
                       </div>
-                    );
-                  }
-                  return null;
-                })}
+
+                      <button
+                        type="button"
+                        onClick={() => setActiveUpload(index)}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+                      >
+                        <Upload className="h-4 w-4" />
+                        Contribute
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Action Button */}
-            <div className="flex justify-center pt-2">
+            <div className="flex justify-center">
               <button
+                type="button"
                 onClick={() => setIsViewModalOpen(false)}
-                className="px-6 py-3 text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500"
+                className="rounded-xl border border-border/70 bg-background/85 px-6 py-3 text-sm font-medium transition hover:bg-accent"
               >
                 Close
               </button>
             </div>
           </div>
-        </div>
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </ContributionModalPortal>
   );
 };
 

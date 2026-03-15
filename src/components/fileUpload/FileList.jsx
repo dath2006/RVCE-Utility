@@ -1,30 +1,30 @@
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import FileItem from "./FileItem";
 
 const FileList = ({ files, onRemoveFile, isUploading }) => {
+  const uploadedCount = files.filter((file) => file.uploaded).length;
+
   return (
     <motion.div
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: "auto" }}
       exit={{ opacity: 0, height: 0 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-2 sm:space-y-3"
+      transition={{ duration: 0.2 }}
+      className="space-y-2"
     >
-      <div className="flex items-center justify-between flex-wrap gap-1 sm:gap-2">
-        <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-white flex-shrink-0">
-          Files ({files.length})
-        </h3>
-        <div className="px-1.5 sm:px-2 lg:px-3 py-0.5 sm:py-1 bg-slate-700/50 rounded-full text-xs sm:text-sm text-slate-300 flex-shrink-0">
-          {files.filter((f) => f.uploaded).length}/{files.length}
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold">Files ({files.length})</h3>
+        <div className="rounded-full border border-border/70 bg-muted/50 px-2.5 py-0.5 text-xs text-muted-foreground">
+          {uploadedCount}/{files.length}
         </div>
       </div>
 
-      <div className="max-h-40 sm:max-h-48 lg:max-h-64 overflow-y-auto space-y-1.5 sm:space-y-2 pr-1 sm:pr-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 overflow-x-hidden">
+      <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
         <AnimatePresence>
           {files.map((fileItem, index) => (
             <FileItem
-              key={`${fileItem.id}kkkd${index}`}
+              key={`${fileItem.id}-${index}`}
               fileItem={fileItem}
               onRemove={onRemoveFile}
               isUploading={isUploading}

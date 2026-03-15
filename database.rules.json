@@ -1,25 +1,25 @@
 {
   "rules": {
     "stats": {
-      // Anyone can read the stats to display on the Home Page
       ".read": true,
-
       "totalVisits": {
-        // Allow anyone to write, but only strictly increment by 1
         ".write": "!data.exists() || (newData.isNumber() && newData.val() == data.val() + 1)"
       },
-
       "verifiedUsers": {
-        // Allow anyone to write, but only strictly increment by 1
         ".write": "!data.exists() || (newData.isNumber() && newData.val() == data.val() + 1)"
       },
-      
       "totalResources": {
-        // Allow anyone to write, but only strictly increment
         ".write": "!data.exists() || (newData.isNumber() && newData.val() >= data.val())"
+      }
+    },
+    "feedback": {
+      "redesign": {
+        ".read": false,
+        "$entryId": {
+          ".write": true,
+          ".validate": "newData.hasChildren(['rating','createdAt','version']) && newData.child('rating').isNumber() && newData.child('rating').val() >= 1 && newData.child('rating').val() <= 5 && (!newData.child('suggestion').exists() || (newData.child('suggestion').isString() && newData.child('suggestion').val().length <= 500)) && newData.child('createdAt').isNumber() && newData.child('version').isString()"
+        }
       }
     }
   }
 }
-
-

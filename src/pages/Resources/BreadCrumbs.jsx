@@ -1,28 +1,13 @@
 import React from "react";
-import styled from "styled-components";
-import { NavigateNext } from "@mui/icons-material";
-
-const Container = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  overflow-x: auto;
-  padding: 0.5rem 0;
-`;
-
-const Crumb = styled.button`
-  background: none;
-  border: none;
-  color: ${(props) => (props.islast ? props.theme.primary : props.theme.text)};
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-
-  &:hover {
-    background: ${(props) => props.theme.secondary};
-  }
-`;
+import { Button } from "@/components/ui/button";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 const BreadCrumbs = ({ path, onNavigate }) => {
   const handleClick = (index) => {
@@ -30,20 +15,52 @@ const BreadCrumbs = ({ path, onNavigate }) => {
   };
 
   return (
-    <Container>
-      <Crumb onClick={() => onNavigate([])}>Home</Crumb>
-      {path.map((item, index) => (
-        <React.Fragment key={index}>
-          <NavigateNext />
-          <Crumb
-            islast={index === path.length - 1}
-            onClick={() => handleClick(index)}
-          >
-            {item}
-          </Crumb>
-        </React.Fragment>
-      ))}
-    </Container>
+    <div className="overflow-x-auto py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <Breadcrumb>
+        <BreadcrumbList className="flex-nowrap whitespace-nowrap">
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2"
+                onClick={() => onNavigate([])}
+              >
+                Home
+              </Button>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+
+          {path.map((item, index) => {
+            const isLast = index === path.length - 1;
+
+            return (
+              <React.Fragment key={`${item}-${index}`}>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  {isLast ? (
+                    <BreadcrumbPage className="rounded-md px-2 py-1 text-sm font-medium">
+                      {item}
+                    </BreadcrumbPage>
+                  ) : (
+                    <BreadcrumbLink asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2"
+                        onClick={() => handleClick(index)}
+                      >
+                        {item}
+                      </Button>
+                    </BreadcrumbLink>
+                  )}
+                </BreadcrumbItem>
+              </React.Fragment>
+            );
+          })}
+        </BreadcrumbList>
+      </Breadcrumb>
+    </div>
   );
 };
 

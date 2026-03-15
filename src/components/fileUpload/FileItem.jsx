@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { FileText, X, Check, AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Check, FileText, Loader2, X } from "lucide-react";
 
 const formatFileSize = (bytes) => {
   if (bytes === 0) return "0 Bytes";
@@ -10,65 +10,71 @@ const formatFileSize = (bytes) => {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 };
 
-// Helper function to truncate filename for mobile
 const truncateFileName = (fileName, isMobile = false) => {
   if (!fileName) return "";
-  const maxLength = isMobile ? 20 : 40;
+  const maxLength = isMobile ? 20 : 38;
   if (fileName.length <= maxLength) return fileName;
 
   const extension = fileName.split(".").pop();
   const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf("."));
   const truncatedName = nameWithoutExt.substring(
     0,
-    maxLength - extension.length - 4
+    maxLength - extension.length - 4,
   );
 
   return `${truncatedName}...${extension}`;
 };
 
-const FileItem = ({ fileItem, onRemove, isUploading }) => {
-  const getStatusColor = () => {
-    if (fileItem.error) return "text-red-400";
-    if (fileItem.uploaded) return "text-green-400";
-    if (fileItem.uploading) return "text-blue-400";
-    return "text-slate-400";
-  };
+const FileItem = ({ fileItem, onRemove }) => {
+  const statusMeta = (() => {
+    if (fileItem.error) {
+      return {
+        icon: <AlertCircle className="h-4 w-4" />,
+        text: "Failed",
+        className: "text-rose-500",
+      };
+    }
 
-  const getStatusIcon = () => {
-    if (fileItem.error) return <AlertCircle size={16} />;
-    if (fileItem.uploaded) return <Check size={16} />;
-    if (fileItem.uploading)
-      return <Loader2 size={16} className="animate-spin" />;
-    return null;
-  };
+    if (fileItem.uploaded) {
+      return {
+        icon: <Check className="h-4 w-4" />,
+        text: "Uploaded",
+        className: "text-emerald-600",
+      };
+    }
 
-  const getStatusText = () => {
-    if (fileItem.error) return "Failed";
-    if (fileItem.uploaded) return "Uploaded";
-    if (fileItem.uploading) return `${fileItem.progress}%`;
-    return "Pending";
-  };
+    if (fileItem.uploading) {
+      return {
+        icon: <Loader2 className="h-4 w-4 animate-spin" />,
+        text: `${fileItem.progress}%`,
+        className: "text-primary",
+      };
+    }
+
+    return {
+      icon: null,
+      text: "Pending",
+      className: "text-muted-foreground",
+    };
+  })();
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      transition={{ duration: 0.3 }}
-      className="bg-slate-800/50 rounded-lg border border-slate-700/50 p-2 sm:p-3 lg:p-4 transition-all duration-200 hover:border-slate-600/50 relative overflow-hidden"
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -6 }}
+      transition={{ duration: 0.2 }}
+      className="relative overflow-hidden rounded-xl border border-border/70 bg-background/85 p-3"
     >
-      <div className="flex items-center justify-between gap-1 sm:gap-2 lg:gap-3">
-        <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0 overflow-hidden">
-          <motion.div
-            whilehover={{ scale: 1.1 }}
-            className="flex-shrink-0 p-1.5 sm:p-2 bg-blue-500/20 rounded-lg"
-          >
-            <FileText size={16} className="text-blue-400 sm:w-5 sm:h-5" />
-          </motion.div>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-muted/55 text-muted-foreground">
+            <FileText className="h-4 w-4" />
+          </span>
 
-          <div className="flex-1 min-w-0 overflow-hidden">
+          <div className="min-w-0">
             <p
-              className="text-xs sm:text-sm font-medium text-white truncate max-w-full"
+              className="truncate text-sm font-medium"
               title={fileItem.file.name}
             >
               <span className="sm:hidden">
@@ -78,65 +84,46 @@ const FileItem = ({ fileItem, onRemove, isUploading }) => {
                 {truncateFileName(fileItem.file.name, false)}
               </span>
             </p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-muted-foreground">
               {formatFileSize(fileItem.file.size)}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3 flex-shrink-0">
-          <div
-            className={`flex items-center space-x-1 text-xs font-medium ${getStatusColor()}`}
+        <div className="flex items-center gap-2">
+          <span
+            className={`inline-flex items-center gap-1 text-xs font-medium ${statusMeta.className}`}
           >
-            {getStatusIcon()}
-            <span className="hidden sm:inline whitespace-nowrap">
-              {getStatusText()}
-            </span>
-            <span className="sm:hidden whitespace-nowrap text-xs">
-              {fileItem.uploading
-                ? `${fileItem.progress}%`
-                : fileItem.error
-                ? "❌"
-                : fileItem.uploaded
-                ? "✅"
-                : "⏳"}
-            </span>
-          </div>
+            {statusMeta.icon}
+            {statusMeta.text}
+          </span>
 
           {!fileItem.uploaded && !fileItem.uploading && (
-            <motion.button
-              whilehover={{ scale: 1.1 }}
-              whiletap={{ scale: 0.9 }}
+            <button
+              type="button"
               onClick={() => onRemove(fileItem.id)}
-              className="p-0.5 sm:p-1 text-slate-400 hover:text-red-400 transition-colors duration-200 flex-shrink-0"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
+              aria-label="Remove file"
             >
-              <X size={12} className="sm:w-4 sm:h-4" />
-            </motion.button>
+              <X className="h-4 w-4" />
+            </button>
           )}
         </div>
       </div>
 
-      {/* Progress Bar */}
       {fileItem.uploading && (
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-700">
+        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-muted">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${fileItem.progress}%` }}
-            transition={{ duration: 0.3 }}
-            className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
+            transition={{ duration: 0.2 }}
+            className="h-full bg-primary"
           />
         </div>
       )}
 
-      {/* Error message */}
       {fileItem.error && (
-        <motion.p
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          className="text-xs text-red-400 mt-2"
-        >
-          {fileItem.error}
-        </motion.p>
+        <p className="mt-2 text-xs text-rose-500">{fileItem.error}</p>
       )}
     </motion.div>
   );

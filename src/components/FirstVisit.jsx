@@ -1,136 +1,175 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { BookOpen, Compass, MoonStar, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
 import SelectionPopup from "./SelectionPopup";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useOverlay } from "../contexts/NavigationContext";
 
-const FirstVisit = () => {
+const highlights = [
+  {
+    icon: Compass,
+    title: "Personalized resource path",
+    description:
+      "Choose your year, cycle, and basket courses once and get a cleaner resource experience.",
+  },
+  {
+    icon: BookOpen,
+    title: "Fast access",
+    description:
+      "Jump into notes, files, and tools without digging through folders every visit.",
+  },
+  {
+    icon: MoonStar,
+    title: "Light and dark ready",
+    description:
+      "Switch between light and dark themes anytime from the top navigation bar.",
+  },
+];
+
+function FirstVisit() {
   const navigate = useNavigate();
   const [showPopup, setShowPopup] = useState(false);
-  const [filters, setFilters] = useState(() => {
-    const saved = localStorage.getItem("filters");
-    return saved ? JSON.parse(saved) : null;
-  });
   const [mounted, setMounted] = useState(false);
 
   useOverlay("firstVisit", true);
 
   useEffect(() => {
     setMounted(true);
+
     return () => setMounted(false);
   }, []);
 
-  const handleFeaturesComplete = () => {
-    setShowPopup(true);
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        delayChildren: 0.3,
-        staggerChildren: 0.2,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-    },
-  };
-
   return (
-    <div className="h-screen flex flex-col justify-center items-center bg-gradient-to-br from-blue-600 to-purple-700 overflow-hidden px-4">
+    <section className="relative min-h-screen overflow-hidden px-4 pb-16 pt-28 sm:px-6 lg:px-8">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-1/2 top-16 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute bottom-10 right-10 h-64 w-64 rounded-full bg-foreground/5 blur-3xl" />
+      </div>
+
       <motion.div
-        className="max-w-4xl w-full mx-auto text-center relative z-10"
-        variants={containerVariants}
-        initial="hidden"
-        animate={mounted ? "visible" : "hidden"}
+        initial={{ opacity: 0, y: 24 }}
+        animate={mounted ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.55, ease: "easeOut" }}
+        className="relative mx-auto flex min-h-[calc(100vh-9rem)] max-w-7xl flex-col justify-center"
       >
-        {/* Decorative elements */}
-        <motion.div
-          className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white opacity-5 -mt-32 -mr-32"
-          animate={{
-            scale: [1, 1.2, 1],
-            rotate: [0, 90, 180, 270, 360],
-          }}
-          transition={{
-            duration: 20,
-            ease: "linear",
-            repeat: Infinity,
-          }}
-        />
-        <motion.div
-          className="absolute bottom-0 left-0 w-40 h-40 rounded-full bg-white opacity-5 -mb-20 -ml-20"
-          animate={{
-            scale: [1, 1.1, 1],
-            rotate: [360, 270, 180, 90, 0],
-          }}
-          transition={{
-            duration: 15,
-            ease: "linear",
-            repeat: Infinity,
-          }}
-        />
+        <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <Badge
+                variant="secondary"
+                className="rounded-full px-4 py-1 text-xs uppercase tracking-[0.22em]"
+              >
+                Welcome
+              </Badge>
+              <h1 className="max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+                Start with a cleaner setup for the RVCE resource portal.
+              </h1>
+              <p className="max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+                Pick your academic context once and jump straight into the most
+                relevant resources for your semester and courses.
+              </p>
+            </div>
 
-        {/* Main content */}
-        <motion.div
-          className="relative z-20 backdrop-blur-sm bg-white/10 p-4 md:p-8 rounded-2xl shadow-2xl"
-          variants={itemVariants}
-        >
-          <motion.h1
-            className="text-3xl sm:text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-100 mb-4 md:mb-6"
-            variants={itemVariants}
-          >
-            Welcome to RVCE Resource Portal
-          </motion.h1>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                size="lg"
+                className="rounded-full px-7"
+                onClick={() => setShowPopup(true)}
+              >
+                Get started
+                <Sparkles className="h-4 w-4" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="rounded-full px-7"
+                onClick={() => navigate("/contributors")}
+              >
+                Explore community updates
+              </Button>
+            </div>
 
-          <motion.div
-            className="w-24 md:w-32 h-1 bg-gradient-to-r from-blue-300 to-purple-300 mx-auto mb-4 md:mb-8 rounded-full"
-            variants={itemVariants}
-          />
+            <div className="grid gap-3 sm:grid-cols-3">
+              {highlights.map((item) => {
+                const Icon = item.icon;
 
-          <motion.p
-            className="text-sm sm:text-base md:text-lg text-white/90 max-w-2xl mx-auto mb-6 md:mb-8 leading-relaxed"
-            variants={itemVariants}
-          >
-            Access RVCE college resources in one place. Browse through study
-            materials, notes, and more with our easy-to-use interface.
-          </motion.p>
+                return (
+                  <Card
+                    key={item.title}
+                    className="rounded-[1.5rem] border-border/70 bg-card/80 shadow-sm backdrop-blur-sm"
+                  >
+                    <CardContent className="p-5">
+                      <div className="mb-4 inline-flex rounded-2xl bg-secondary p-3 text-secondary-foreground">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <h2 className="text-base font-semibold">{item.title}</h2>
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                        {item.description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
 
-          <motion.button
-            className="px-6 py-3 md:px-8 md:py-4 text-base md:text-lg font-medium rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl transform transition-all duration-300 ease-in-out"
-            variants={itemVariants}
-            whilehover={{
-              scale: 1.05,
-              boxShadow: "0 0 20px rgba(120, 120, 255, 0.5)",
-            }}
-            whiletap={{ scale: 0.98 }}
-            onClick={handleFeaturesComplete}
-          >
-            Get Started
-          </motion.button>
-        </motion.div>
+          <Card className="overflow-hidden rounded-[2rem] border-border/70 bg-card/90 shadow-soft backdrop-blur-xl">
+            <CardContent className="p-0">
+              <div className="border-b border-border/70 px-6 py-5">
+                <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
+                  Getting started
+                </p>
+              </div>
+              <div className="space-y-6 p-6">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    1. Pick your branch
+                  </p>
+                  <p className="mt-2 text-lg font-semibold">
+                    Year, cycle, and course filters
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    2. Save your preferences
+                  </p>
+                  <p className="mt-2 text-lg font-semibold">
+                    Stored locally for future visits
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    3. Enter the resources view
+                  </p>
+                  <p className="mt-2 text-lg font-semibold">
+                    Straight into the materials that match you
+                  </p>
+                </div>
+                <div className="rounded-[1.5rem] border border-dashed border-border bg-muted/40 p-5 text-sm leading-6 text-muted-foreground">
+                  You can update these preferences later anytime by clearing and
+                  re-selecting your filters.
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </motion.div>
 
-      <AnimatePresence>
-        {showPopup && (
-          <SelectionPopup
-            onClose={() => setShowPopup(false)}
-            onSubmit={(selectedFilters) => {
-              setFilters(selectedFilters);
-              localStorage.setItem("filters", JSON.stringify(selectedFilters));
-              navigate("/resources");
-            }}
-          />
-        )}
-      </AnimatePresence>
-    </div>
+      {showPopup && (
+        <SelectionPopup
+          onClose={() => setShowPopup(false)}
+          onSubmit={(selectedFilters) => {
+            localStorage.setItem("filters", JSON.stringify(selectedFilters));
+            navigate("/resources");
+          }}
+        />
+      )}
+    </section>
   );
-};
+}
 
 export default FirstVisit;

@@ -11,7 +11,7 @@ const GlobalStyles = createGlobalStyle`
     font-family: 'Inter', sans-serif;
     background: ${(props) => props.theme.background};
     color: ${(props) => props.theme.text};
-    transition: all 0.3s ease;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   }
 
   button {
@@ -20,3 +20,4 @@ const GlobalStyles = createGlobalStyle`
 `;
 
 export default GlobalStyles;
+
