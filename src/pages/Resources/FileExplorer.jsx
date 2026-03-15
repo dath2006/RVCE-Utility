@@ -205,6 +205,7 @@ const FileExplorer = ({
           <FileCard
             key={item.id}
             item={item}
+            isSearchResult={Boolean(searchQuery)}
             onNavigate={() => onPathChange([...currentPath, item.name])}
             onAddToWorkspace={onAddToWorkspace}
             onDownload={() => onDownload(item)}

@@ -224,11 +224,11 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
 
   useEffect(() => {
     if (searchQuery) {
-      setFilteredFiles([...searchFiles(searchQuery, jsonData)]);
+      setFilteredFiles([...searchFiles(searchQuery, filteredFolders)]);
     } else {
       setFilteredFiles([]);
     }
-  }, [searchQuery, jsonData]);
+  }, [searchQuery, filteredFolders]);
 
   useEffect(() => {
     if (!showRecentPopup) {
