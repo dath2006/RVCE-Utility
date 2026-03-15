@@ -36,6 +36,12 @@ const majorContributors = [
       "Curated and organized second-year resources, significantly improving content quality and accessibility.",
     github: "https://github.com/Hitme02",
   },
+   {
+    name: "Ananth M Athreya",
+    description:
+      "Curated and organized third-year resources, significantly improving content quality and accessibility.",
+    github: "https://github.com/AnanthMAthreya",
+  },
 ];
 
 const fileTypeLabels = {
