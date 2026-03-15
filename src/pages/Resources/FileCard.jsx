@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 
 const FileCard = ({
   item,
+  isSearchResult = false,
   onNavigate,
   onAddToWorkspace,
   onView,
@@ -21,18 +22,63 @@ const FileCard = ({
   const showActions = activeCardId === item.id;
 
   const getSubjectTag = () => {
-    if (!item.path || item.path.length < 3) {
+    if (!isSearchResult || !item.path || item.path.length === 0) {
       return "";
     }
 
-    const segment = item.path[2] || "";
-    const prefix = segment.split(" ")[0];
+    const normalize = (name = "") =>
+      name
+        .toLowerCase()
+        .replace(/[()'._-]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
 
-    if (["ESC", "PLC", "ETC", "Basket"].includes(prefix)) {
-      return item.path[3] || segment;
+    const isContainerFolder = (name = "") =>
+      /(cycle|sem|semester|question papers?|resources?)/i.test(name);
+
+    const isTrackFolder = (name = "") => {
+      const prefix = name.split(" ")[0];
+      return ["ESC", "PLC", "ETC", "Basket"].includes(prefix);
+    };
+
+    const isGenericLeafFolder = (name = "") => {
+      const normalized = normalize(name);
+      return [
+        "qp",
+        "qps",
+        "paper",
+        "papers",
+        "question paper",
+        "question papers",
+        "previous year question papers",
+        "pyq",
+        "resource",
+        "resources",
+        "extra resources",
+        "notes",
+        "assignments",
+      ].includes(normalized);
+    };
+
+    // Walk upward from nearest folder to find the first meaningful subject label.
+    for (let i = item.path.length - 1; i >= 0; i -= 1) {
+      const candidate = item.path[i];
+      if (!candidate) {
+        continue;
+      }
+
+      if (
+        isTrackFolder(candidate) ||
+        isContainerFolder(candidate) ||
+        isGenericLeafFolder(candidate)
+      ) {
+        continue;
+      }
+
+      return candidate;
     }
 
-    return segment;
+    return "";
   };
 
   const subjectTag = getSubjectTag();
