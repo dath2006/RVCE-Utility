@@ -156,6 +156,52 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
           );
         }
       });
+    } else if (filters.cycle === "4-Sem-ECE") {
+      const semScope = searchFolderStructure("4-Sem-ECE", jsonData);
+      [
+        "UHV",
+        "TL & EMW",
+        "Signals And Systems",
+        "NPTEL DBMS",
+        "MCP",
+        "Maths",
+        "Extra Resources",
+        "BIOSAFETY",
+      ].forEach((sub) => {
+        if (sub) {
+          searchFolderStructure(
+            sub,
+            semScope.length ? semScope : jsonData,
+          ).forEach((data) => arr.push(data));
+        }
+      });
+    } else if (filters.cycle === "5-Sem-CSE") {
+      const semScope = searchFolderStructure("5-Sem-CSE", jsonData);
+      ["TOC", "POME", "DBMS", "CC", "AIML"].forEach((sub) => {
+        if (sub) {
+          searchFolderStructure(
+            sub,
+            semScope.length ? semScope : jsonData,
+          ).forEach((data) => arr.push(data));
+        }
+      });
+    } else if (filters.cycle === "6-Sem-AIML-CSE") {
+      const semScope = searchFolderStructure("6-Sem-AIML-CSE", jsonData);
+      [
+        "HS361TA-(EIPR)",
+        "AI365TDD-(GenAI)",
+        "AI364TA-Cloud Computing",
+        "AI363IA-(NLP)",
+        "AI362IA-(BDT)",
+        filters.selectedInstitutionalElective,
+      ].forEach((sub) => {
+        if (sub) {
+          searchFolderStructure(
+            sub,
+            semScope.length ? semScope : jsonData,
+          ).forEach((data) => arr.push(data));
+        }
+      });
     }
     setFilteredFolders(arr);
   }, [jsonData, filters]);

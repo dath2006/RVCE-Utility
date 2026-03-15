@@ -91,8 +91,10 @@ function Navigation({
   const [showStarPrompt, setShowStarPrompt] = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   const [isMobileUtilityOpen, setIsMobileUtilityOpen] = useState(false);
+  const [isMobileNavDocked, setIsMobileNavDocked] = useState(false);
   const headerRef = useRef(null);
   const mobilePromptAutoOpenedRef = useRef(false);
+  const lastScrollTopRef = useRef(0);
 
   useEffect(() => {
     const promptDone = localStorage.getItem(GITHUB_STAR_PROMPT_KEY) === "true";
@@ -165,12 +167,46 @@ function Navigation({
     }
   }, [shouldShowMobileStarPrompt]);
 
+  useEffect(() => {
+    const scrollContainer = document.getElementById("main-scroll-container");
+
+    if (!isMobile || !scrollContainer) {
+      setIsMobileNavDocked(false);
+      lastScrollTopRef.current = 0;
+      return;
+    }
+
+    const handleScroll = () => {
+      const scrollTop = scrollContainer.scrollTop;
+      const delta = scrollTop - lastScrollTopRef.current;
+
+      if (scrollTop <= 8) {
+        setIsMobileNavDocked(false);
+      } else if (delta > 1.5 && scrollTop > 24) {
+        setIsMobileNavDocked(true);
+      }
+
+      lastScrollTopRef.current = scrollTop;
+    };
+
+    handleScroll();
+    scrollContainer.addEventListener("scroll", handleScroll, {
+      passive: true,
+    });
+
+    return () => {
+      scrollContainer.removeEventListener("scroll", handleScroll);
+    };
+  }, [isMobile, currentPath]);
+
   const handleProtectedNavigation = (item, event) => {
     if (item.auth && !isAuthenticated) {
       event.preventDefault();
       setShowAuthCard(!showAuthCard);
     }
   };
+
+  const shouldUseDockedMobileNav = isMobile && isMobileNavDocked;
 
   return (
     <>
@@ -180,9 +216,19 @@ function Navigation({
 
       <header
         ref={headerRef}
-        className="fixed inset-x-0 top-0 z-[90] px-3 pt-3 sm:px-6"
+        className={cn(
+          "fixed inset-x-0 top-0 z-[90] transition-all duration-300 ease-out sm:px-6",
+          shouldUseDockedMobileNav ? "px-0 pt-0" : "px-3 pt-3",
+        )}
       >
-        <div className="mx-auto flex max-w-7xl items-center justify-between rounded-2xl border border-border/70 bg-background/80 px-3 py-2 shadow-lg shadow-black/5 backdrop-blur-xl sm:px-5">
+        <div
+          className={cn(
+            "mx-auto flex items-center justify-between border border-border/70 bg-background/80 py-2 backdrop-blur-xl transition-all duration-300 ease-out",
+            shouldUseDockedMobileNav
+              ? "max-w-none rounded-none border-x-0 border-t-0 px-3 shadow-md shadow-black/10"
+              : "max-w-7xl rounded-2xl px-3 shadow-lg shadow-black/5 sm:px-5",
+          )}
+        >
           <div className="flex items-center gap-3">
             <Link
               to="/"

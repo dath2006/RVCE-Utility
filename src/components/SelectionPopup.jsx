@@ -36,7 +36,20 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useOverlay } from "../contexts/NavigationContext";
 
-function ChoiceCard({ title, description, selected, disabled, onClick }) {
+const institutionalElectives = [
+  "MA266TEU-Mathematical Modelling",
+  "IM266TEQ-Elements of Financial Management",
+  "CV266TEE-Intelligence Transport Systems",
+];
+
+function ChoiceCard({
+  title,
+  description,
+  selected,
+  disabled,
+  onClick,
+  isNew = false,
+}) {
   return (
     <button
       type="button"
@@ -51,7 +64,21 @@ function ChoiceCard({ title, description, selected, disabled, onClick }) {
           "cursor-not-allowed opacity-45 hover:border-border hover:bg-card",
       )}
     >
-      <p className="font-medium">{title}</p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="font-medium">{title}</p>
+        {isNew && (
+          <span
+            className={cn(
+              "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+              selected
+                ? "bg-primary-foreground/20 text-primary-foreground"
+                : "bg-primary/10 text-primary",
+            )}
+          >
+            New
+          </span>
+        )}
+      </div>
       {description && (
         <p
           className={cn(
@@ -104,6 +131,7 @@ function SelectionPopup({ onClose, onSubmit }) {
     selectedKannada: "",
     selectedSem3: "",
     selectedSem4: "",
+    selectedInstitutionalElective: "",
   });
   const [escCourses, setEscCourses] = useState([]);
   const [plcCourses, setPlcCourses] = useState([]);
@@ -256,6 +284,15 @@ function SelectionPopup({ onClose, onSubmit }) {
         if (selection.cycle === "4-Sem-CSE") {
           return Boolean(selection.selectedSem4);
         }
+        if (selection.cycle === "4-Sem-ECE") {
+          return true;
+        }
+        if (selection.cycle === "5-Sem-CSE") {
+          return true;
+        }
+        if (selection.cycle === "6-Sem-AIML-CSE") {
+          return Boolean(selection.selectedInstitutionalElective);
+        }
         return false;
       default:
         return false;
@@ -294,8 +331,11 @@ function SelectionPopup({ onClose, onSubmit }) {
           />
           <ChoiceCard
             title="3rd Year"
-            description="Not available yet"
-            disabled
+            description="5th / 6th semester"
+            selected={selection.year === "3 Year"}
+            onClick={() =>
+              setSelection((prev) => ({ ...prev, year: "3 Year", cycle: "" }))
+            }
           />
           <ChoiceCard
             title="4th Year"
@@ -350,9 +390,41 @@ function SelectionPopup({ onClose, onSubmit }) {
               <ChoiceCard
                 title="4th Sem CSE"
                 description="Basket course required"
+                isNew
                 selected={selection.cycle === "4-Sem-CSE"}
                 onClick={() =>
                   setSelection((prev) => ({ ...prev, cycle: "4-Sem-CSE" }))
+                }
+              />
+              <ChoiceCard
+                title="4th Sem ECE"
+                description="Core subjects"
+                isNew
+                selected={selection.cycle === "4-Sem-ECE"}
+                onClick={() =>
+                  setSelection((prev) => ({ ...prev, cycle: "4-Sem-ECE" }))
+                }
+              />
+            </>
+          )}
+          {selection.year === "3 Year" && (
+            <>
+              <ChoiceCard
+                title="5th Sem CSE"
+                description="Core subjects"
+                isNew
+                selected={selection.cycle === "5-Sem-CSE"}
+                onClick={() =>
+                  setSelection((prev) => ({ ...prev, cycle: "5-Sem-CSE" }))
+                }
+              />
+              <ChoiceCard
+                title="6th Sem AIML CSE"
+                description="Institutional elective required"
+                isNew
+                selected={selection.cycle === "6-Sem-AIML-CSE"}
+                onClick={() =>
+                  setSelection((prev) => ({ ...prev, cycle: "6-Sem-AIML-CSE" }))
                 }
               />
             </>
@@ -448,6 +520,37 @@ function SelectionPopup({ onClose, onSubmit }) {
               No extra course filter is needed for 3rd sem ECE.
             </CardContent>
           </Card>
+        )}
+
+        {selection.cycle === "4-Sem-ECE" && (
+          <Card className="rounded-[1.35rem] border-border/70 bg-muted/40 shadow-none">
+            <CardContent className="p-5 text-sm leading-6 text-muted-foreground">
+              4th sem ECE uses fixed subject filters.
+            </CardContent>
+          </Card>
+        )}
+
+        {selection.cycle === "5-Sem-CSE" && (
+          <Card className="rounded-[1.35rem] border-border/70 bg-muted/40 shadow-none">
+            <CardContent className="p-5 text-sm leading-6 text-muted-foreground">
+              5th sem CSE uses fixed subject filters.
+            </CardContent>
+          </Card>
+        )}
+
+        {selection.cycle === "6-Sem-AIML-CSE" && (
+          <CourseSelect
+            label="Institutional Elective"
+            value={selection.selectedInstitutionalElective}
+            onValueChange={(value) =>
+              setSelection((prev) => ({
+                ...prev,
+                selectedInstitutionalElective: value,
+              }))
+            }
+            options={institutionalElectives}
+            onHelp={() => {}}
+          />
         )}
       </div>
     );

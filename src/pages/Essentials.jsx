@@ -215,17 +215,17 @@ function Essentials() {
                           key={chapter.slug}
                           className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-card p-3"
                         >
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex-1">
                             <p className="text-xs text-muted-foreground">
                               Chapter {index + 1}
                             </p>
-                            <p className="truncate text-sm font-medium">
+                            <p className="text-sm font-medium leading-5 break-words">
                               {chapter.title}
                             </p>
                           </div>
                           <Button
                             size="sm"
-                            className="rounded-full"
+                            className="shrink-0 rounded-full"
                             onClick={() =>
                               handleAttempt(
                                 subjects[selectedSubject].slug,

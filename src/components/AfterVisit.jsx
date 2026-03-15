@@ -75,7 +75,14 @@ function sanitizeBulletinHtml(rawHtml) {
   return doc.body.innerHTML;
 }
 
-function StatCard({ value, label, suffix = "", delay = 0, accentClass = "" }) {
+function StatCard({
+  value,
+  label,
+  suffix = "",
+  delay = 0,
+  accentClass = "",
+  isLoading = false,
+}) {
   const [displayValue, setDisplayValue] = useState(0);
 
   useEffect(() => {
@@ -109,10 +116,16 @@ function StatCard({ value, label, suffix = "", delay = 0, accentClass = "" }) {
         className={`rounded-[1.6rem] border-border/70 bg-card/90 shadow-sm backdrop-blur-sm ${accentClass}`}
       >
         <CardContent className="p-6">
-          <p className="text-3xl font-semibold tracking-tight">
-            {displayValue.toLocaleString()}
-            {suffix}
-          </p>
+          {isLoading ? (
+            <div className="flex h-9 items-center">
+              <span className="inline-flex h-6 w-6 animate-spin rounded-full border-2 border-primary/25 border-t-primary" />
+            </div>
+          ) : (
+            <p className="text-3xl font-semibold tracking-tight">
+              {displayValue.toLocaleString()}
+              {suffix}
+            </p>
+          )}
           <p className="mt-2 text-sm text-muted-foreground">{label}</p>
         </CardContent>
       </Card>
@@ -127,6 +140,7 @@ function AfterVisit({ showAuthCard, setShowAuthCard }) {
   const [announcement, setAnnouncement] = useState(null);
   const [showAnnouncementPopup, setShowAnnouncementPopup] = useState(false);
   const [showSelectionPopup, setShowSelectionPopup] = useState(false);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
   const [stats, setStats] = useState({
     totalVisits: 0,
     verifiedUsers: 0,
@@ -141,6 +155,7 @@ function AfterVisit({ showAuthCard, setShowAuthCard }) {
 
     const unsubscribe = listenToHomeStats((data) => {
       setStats(data);
+      setIsStatsLoading(false);
     });
 
     return () => unsubscribe();
@@ -258,6 +273,7 @@ function AfterVisit({ showAuthCard, setShowAuthCard }) {
                   suffix="+"
                   delay={0.05}
                   accentClass="bg-gradient-to-br from-cyan-500/10 to-transparent"
+                  isLoading={isStatsLoading}
                 />
                 <StatCard
                   value={stats.totalVisits}
@@ -265,6 +281,7 @@ function AfterVisit({ showAuthCard, setShowAuthCard }) {
                   suffix="+"
                   delay={0.1}
                   accentClass="bg-gradient-to-br from-emerald-500/10 to-transparent"
+                  isLoading={isStatsLoading}
                 />
                 <StatCard
                   value={stats.verifiedUsers}
@@ -272,6 +289,7 @@ function AfterVisit({ showAuthCard, setShowAuthCard }) {
                   suffix="+"
                   delay={0.15}
                   accentClass="bg-gradient-to-br from-orange-500/10 to-transparent"
+                  isLoading={isStatsLoading}
                 />
               </div>
             </CardContent>

@@ -11,7 +11,7 @@ import GlobalStyles from "./styles/GlobalStyles";
 import FileViewer from "./components/FileViewer";
 import { motion, AnimatePresence } from "framer-motion";
 import Todo from "./components/Todo";
-import LocomotiveScroll from "locomotive-scroll";
+import { ReactLenis } from "lenis/react";
 import { Analytics } from "@vercel/analytics/react";
 import FloatingDrawer from "./components/FloatingDrawer";
 import MainContribution from "./pages/MainContribution";
@@ -23,6 +23,7 @@ import { Helmet } from "react-helmet";
 import Essentials from "./pages/Essentials";
 import BottomBar from "./components/BottomBar";
 import { NavigationProvider, useOverlay } from "./contexts/NavigationContext";
+import RedesignFeedbackPrompt from "./components/RedesignFeedbackPrompt";
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -30,7 +31,10 @@ const AppContainer = styled.div`
   margin: 0;
 
   color: ${(props) => props.theme.text};
-  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
   position: relative;
   overflow-x: hidden;
 
@@ -194,14 +198,6 @@ function AppContent() {
   useOverlay("fileViewer", !!viewerFile);
 
   useEffect(() => {
-    const scrollInstance = new LocomotiveScroll();
-
-    return () => {
-      scrollInstance.destroy?.();
-    };
-  }, []);
-
-  useEffect(() => {
     // Syncs DOM dark class on initial mount / hydration.
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, []);
@@ -210,7 +206,7 @@ function AppContent() {
     const applyThemeToggle = () => {
       const newTheme = theme === "light" ? "dark" : "light";
       // Synchronously flip the Tailwind dark-class AND React state in the same
-      // tick — View Transition must never capture a frame where one system has
+      // tick ï¿½ View Transition must never capture a frame where one system has
       // flipped but the other has not (that gap is the visible blink).
       document.documentElement.classList.toggle("dark", newTheme === "dark");
       localStorage.setItem("theme", newTheme);
@@ -275,6 +271,10 @@ function AppContent() {
         <Router>
           <AppContainer>
             <Analytics />
+            <RedesignFeedbackPrompt
+              user={user}
+              isAuthenticated={isAuthenticated}
+            />
 
             <div className="w-screen h-screen flex flex-col overflow-x-hidden">
               <Navigation
@@ -285,10 +285,16 @@ function AppContent() {
                 showAuthCard={showAuthCard}
                 setShowAuthCard={setShowAuthCard}
               />
-              <div
+              <ReactLenis
                 className="flex-1 overflow-y-auto overflow-x-hidden"
                 id="main-scroll-container"
                 data-scroll-container
+                options={{
+                  duration: 1,
+                  smoothWheel: true,
+                  smoothTouch: false,
+                  wheelMultiplier: 0.95,
+                }}
               >
                 <Routes>
                   <Route
@@ -341,7 +347,7 @@ function AppContent() {
                   />
                   <Route path="/essentials" element={<Essentials />} />
                 </Routes>
-              </div>
+              </ReactLenis>
               <BottomBar
                 setShowAuthCard={setShowAuthCard}
                 showAuthCard={showAuthCard}
@@ -461,6 +467,3 @@ function App() {
 }
 
 export default App;
-
-
-
