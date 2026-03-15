@@ -1,763 +1,580 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useCallback, useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Bell,
-  Award,
   AlertTriangle,
-  ChevronDown,
-  ChevronUp,
-  Percent,
+  Award,
+  Bell,
   Calendar,
   Check,
-  X,
+  ChevronDown,
+  ChevronUp,
   Clock,
   Edit2,
+  Percent,
+  X,
 } from "lucide-react";
-import {
-  Box,
-  Typography,
-  Slider,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
-import styled from "styled-components";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { useAuth0 } from "@auth0/auth0-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import WaveLoader from "./Loading";
 
-// Styled Components
-const DashboardContainer = styled.div`
-  padding: 20px;
-  font-family: "Inter", sans-serif;
-  @media (max-width: 640px) {
-    padding: 1rem;
-  }
-`;
+const toneFromSubject = (subject) => {
+  if (subject.pending > 0) return "warning";
+  if (!subject.isEligible) return "danger";
+  return "safe";
+};
 
-const OverallStatsCard = styled(motion.div)`
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  border-radius: 16px;
-  padding: 20px;
-  color: white;
-  margin-bottom: 24px;
-  box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+const chipClassesByTone = {
+  safe: "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/80 dark:bg-emerald-950/50 dark:text-emerald-300",
+  warning:
+    "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-300",
+  danger:
+    "border-red-200 bg-red-50 text-red-700 dark:border-red-900/70 dark:bg-red-950/40 dark:text-red-300",
+};
 
-  @media (max-width: 640px) {
-    padding: 16px;
-    border-radius: 12px;
-    /* Remove scale: 1.1 to prevent the card from being too large */
-  }
-`;
+const warningBlockClassesByTone = {
+  warning:
+    "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/35 dark:text-amber-300",
+  danger:
+    "border-red-200 bg-red-50 text-red-700 dark:border-red-900/70 dark:bg-red-950/35 dark:text-red-300",
+};
 
-const StatsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-top: 16px;
-
-  @media (max-width: 640px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-`;
-
-const StatBox = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
-  padding: 12px;
-  text-align: center;
-
-  h3 {
-    font-size: 28px;
-    font-weight: 700;
-    margin: 8px 0 4px;
-
-    @media (max-width: 640px) {
-      font-size: 20px;
-      margin: 4px 0 2px;
-    }
-  }
-
-  p {
-    font-size: 12px;
-    margin: 0;
-    opacity: 0.8;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-
-    @media (max-width: 640px) {
-      font-size: 10px;
-    }
-  }
-`;
-
-const MainHeading = styled.h1`
-  font-size: 24px;
-  font-weight: 600;
-  margin-bottom: 24px;
-
-  @media (max-width: 640px) {
-    font-size: 20px;
-    margin-bottom: 16px;
-  }
-`;
-
-const SubjectsList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-
-  @media (max-width: 640px) {
-    gap: 16px; /* Reduced from 30px to 16px */
-  }
-`;
-
-const SubjectCard = styled(motion.div)`
-  background-color: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-
-  @media (max-width: 640px) {
-    /* Remove scale: 1.06 to prevent the card from being too large */
-    border-radius: 8px;
-  }
-`;
-
-const SubjectHeader = styled.div`
-  padding: 16px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  border-bottom: ${(props) => (props.expanded ? "1px solid #e5e7eb" : "none")};
-
-  @media (max-width: 640px) {
-    padding: 12px 16px;
-    flex-wrap: wrap; /* Allow wrapping for smaller screens */
-  }
-`;
-
-const SubjectTitle = styled.h2`
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0;
-  color: #111827;
-
-  @media (max-width: 640px) {
-    font-size: 14px;
-    flex: 1; /* Take available space */
-    min-width: 0; /* Allow text truncation if needed */
-  }
-`;
-
-const AttendanceIndicator = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  @media (max-width: 640px) {
-    gap: 6px;
-  }
-`;
-
-const PercentBadge = styled.span`
-  font-size: 14px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 12px;
-  background-color: ${(props) => {
-    if (props.pending > 0) return "#f59e0b";
-    if (props.percentage >= props.minimum) return "#10b981";
-    return "#ef4444";
-  }};
-  color: white;
-
-  @media (max-width: 640px) {
-    font-size: 12px;
-    padding: 3px 8px;
-    border-radius: 8px;
-  }
-`;
-
-const WarningBadge = styled.span`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  border-radius: 12px;
-  padding: 4px 8px;
-  background-color: ${(props) =>
-    props.type === "warning" ? "#fef3c7" : "#fee2e2"};
-  color: ${(props) => (props.type === "warning" ? "#d97706" : "#b91c1c")};
-
-  @media (max-width: 640px) {
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 8px;
-  }
-`;
-
-const SubjectDetails = styled(motion.div)`
-  padding: 0;
-  overflow: hidden;
-`;
-
-const DetailContent = styled.div`
-  padding: 16px 20px;
-
-  @media (max-width: 640px) {
-    padding: 12px 16px;
-  }
-`;
-
-const StatsRow = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
-
-  @media (max-width: 500px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-`;
-
-const StatItem = styled.div`
-  background-color: #f9fafb;
-  border-radius: 8px;
-  padding: 12px;
-  text-align: center;
-
-  h4 {
-    font-size: 20px;
-    font-weight: 600;
-    margin: 4px 0;
-    color: #111827;
-
-    @media (max-width: 640px) {
-      font-size: 16px;
-      margin: 2px 0;
-    }
-  }
-
-  p {
-    font-size: 12px;
-    color: #6b7280;
-    margin: 0;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-
-    @media (max-width: 640px) {
-      font-size: 10px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    padding: 8px;
-    border-radius: 6px;
-  }
-`;
-
-const WarningText = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 8px;
-  background-color: ${(props) =>
-    props.type === "warning" ? "#fef3c7" : "#fee2e2"};
-  color: ${(props) => (props.type === "warning" ? "#d97706" : "#b91c1c")};
-  font-size: 14px;
-
-  @media (max-width: 640px) {
-    font-size: 12px;
-    padding: 8px;
-    gap: 6px;
-  }
-`;
-
-const MinAttendanceSetter = styled.div`
-  margin-top: 20px;
-  border-top: 1px solid #e5e7eb;
-  padding-top: 16px;
-
-  @media (max-width: 640px) {
-    margin-top: 16px;
-    padding-top: 12px;
-  }
-`;
-
-const ButtonStyle = styled.button`
-  background-color: #4f46e5;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #4338ca;
-  }
-
-  @media (max-width: 640px) {
-    padding: 6px 12px;
-    font-size: 12px;
-    gap: 4px;
-  }
-`;
-
-const LoadingContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  gap: 1rem;
-`;
-
-const LoadingText = styled.p`
-  color: #6b7280;
-  font-size: 0.875rem;
-  font-weight: 500;
-`;
-
-const LoadingSpinner = styled(motion.div)`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 400px;
-`;
-
-// Main Component
 const Statistics = () => {
-  const theme = useTheme();
-  const isSmallMobile = useMediaQuery("(max-width:480px)");
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { user, isAuthenticated, isLoading, getAccessTokenSilently } =
     useAuth0();
+
   const [attendanceData, setAttendanceData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [expandedSubject, setExpandedSubject] = useState(null);
   const [customMinAttendance, setCustomMinAttendance] = useState({});
 
-  // Fetch data
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!isLoading && isAuthenticated) {
-        try {
-          setLoading(true);
-          const data = await handleGetStats();
+  const hydrateData = (data) => {
+    if (!data || !data.attendanceState) {
+      setAttendanceData(null);
+      return;
+    }
 
-          if (data && data.attendanceState) {
-            const initialMinAttendance = {};
-            data.attendanceState.forEach((subject) => {
-              initialMinAttendance[subject.courseId] = subject.minAttendance;
-            });
+    const initialMinAttendance = {};
+    data.attendanceState.forEach((subject) => {
+      initialMinAttendance[subject.courseId] = subject.minAttendance;
+    });
 
-            setAttendanceData(data); // Simplified - just pass the data directly
-            setCustomMinAttendance(initialMinAttendance);
-          } else {
-            setAttendanceData(null);
-          }
-        } catch (error) {
-          toast.error("Error fetching statistics");
-          console.error("Error in fetchData:", error);
-          setAttendanceData(null);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
+    setAttendanceData(data);
+    setCustomMinAttendance(initialMinAttendance);
+  };
 
-    fetchData();
-  }, [isLoading, isAuthenticated]);
-
-  const handleGetStats = async () => {
+  const handleGetStats = useCallback(async () => {
     try {
       const token = await getAccessTokenSilently();
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/attendance/statistics?email=${
-          user.email
-        }`,
+        `${import.meta.env.VITE_API_URL}/attendance/statistics?email=${user.email}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
+
       if (res.data.success) {
         return res.data.data;
-      } else {
-        toast.error("Error fetching Stats");
       }
+
+      toast.error("Error fetching stats");
+      return null;
     } catch (error) {
-      toast.error("Error fetching Stats");
+      toast.error("Error fetching stats");
       console.error("Error fetching stats:", error);
       return null;
     }
-  };
+  }, [getAccessTokenSilently, user?.email]);
 
-  // Function to handle custom min attendance update
+  useEffect(() => {
+    const fetchData = async () => {
+      if (isLoading || !isAuthenticated) return;
+
+      setLoading(true);
+      try {
+        const data = await handleGetStats();
+        hydrateData(data);
+      } catch (error) {
+        toast.error("Error fetching statistics");
+        console.error("Error in fetchData:", error);
+        setAttendanceData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [isLoading, isAuthenticated, handleGetStats]);
+
   const handleMinAttendanceUpdate = async (courseId) => {
     try {
-      setLoading(true); // Use the existing loading state
-      if (!isLoading && isAuthenticated) {
-        const token = await getAccessTokenSilently();
-        const res = await axios.post(
-          `${import.meta.env.VITE_API_URL}/attendance/updatePercent`, // Fixed the backtick
-          {
-            email: user.email,
-            courseId,
-            percentage: customMinAttendance[courseId],
+      setLoading(true);
+      const token = await getAccessTokenSilently();
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/attendance/updatePercent`,
+        {
+          email: user.email,
+          courseId,
+          percentage: customMinAttendance[courseId],
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        },
+      );
 
-        if (res.data.success) {
-          toast.success("Minimum Attendance Updated");
-          const data = await handleGetStats();
-          if (data && data.attendanceState) {
-            const initialMinAttendance = {};
-            data.attendanceState.forEach((subject) => {
-              initialMinAttendance[subject.courseId] = subject.minAttendance;
-            });
-            setAttendanceData(data);
-            setCustomMinAttendance(initialMinAttendance);
-          }
-        } else {
-          toast.error("Error updating minimum attendance!");
-        }
+      if (!res.data.success) {
+        toast.error("Error updating minimum attendance");
+        return;
       }
+
+      toast.success("Minimum attendance updated");
+      const data = await handleGetStats();
+      hydrateData(data);
     } catch (error) {
       console.error(error);
-      toast.error("Error updating minimum attendance!");
+      toast.error("Error updating minimum attendance");
     } finally {
       setLoading(false);
     }
   };
 
-  // Toggle expanded subject
-  const toggleSubject = (courseId) => {
-    setExpandedSubject(expandedSubject === courseId ? null : courseId);
-  };
+  if (loading) {
+    return (
+      <div className="flex min-h-[350px] items-center justify-center">
+        <WaveLoader
+          size="7em"
+          primaryColor="hsl(220,90%,50%)"
+          secondaryColor="hsl(300,90%,50%)"
+        />
+      </div>
+    );
+  }
 
-  return loading ? (
-    <LoadingSpinner>
-      <WaveLoader
-        size="7em"
-        primaryColor="hsl(220,90%,50%)"
-        secondaryColor="hsl(300,90%,50%)"
+  if (!attendanceData) {
+    return (
+      <div className="grid min-h-[260px] place-items-center text-center text-muted-foreground">
+        <p>No attendance data available.</p>
+      </div>
+    );
+  }
+
+  const overall = attendanceData.overallAttendanceState;
+  const effectiveTotalClasses = overall.totalClasses - overall.ignore;
+
+  return (
+    <div className="relative p-1">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(148,163,184,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.15) 1px, transparent 1px)",
+          backgroundSize: "26px 26px",
+          maskImage:
+            "radial-gradient(circle at center, black 36%, transparent 82%)",
+        }}
       />
-    </LoadingSpinner>
-  ) : attendanceData ? (
-    <DashboardContainer>
-      <MainHeading>Attendance Dashboard</MainHeading>
 
-      {/* Overall Stats */}
-      <OverallStatsCard
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <h2 className="text-xl font-bold mb-2">Overall Attendance</h2>
-        <div className="flex items-center gap-2 mb-4">
-          <div className="text-3xl font-bold">
-            {attendanceData.overallAttendanceState.attendancePercent}%
-          </div>
-          {attendanceData.overallAttendanceState.attendancePercent < 85 && (
-            <WarningBadge type="error">
-              <AlertTriangle size={12} />
-              Below required
-            </WarningBadge>
-          )}
-          {attendanceData.overallAttendanceState.pending > 0 && (
-            <WarningBadge type="warning">
-              <Clock size={12} />
-              {attendanceData.overallAttendanceState.pending} pending
-            </WarningBadge>
-          )}
-        </div>
+      <div className="relative flex flex-col gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Card className="border-border/80 shadow-md">
+            <CardHeader className="gap-4 p-4 sm:p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <CardTitle className="text-lg">
+                    Attendance Analytics
+                  </CardTitle>
+                  <CardDescription>
+                    Track your trend, risk zones, and eligibility.
+                  </CardDescription>
+                </div>
 
-        <StatsGrid>
-          <StatBox>
-            <Check size={16} />
-            <h3>{attendanceData.overallAttendanceState.present}</h3>
-            <p>Present</p>
-          </StatBox>
-          <StatBox>
-            <X size={16} />
-            <h3>{attendanceData.overallAttendanceState.absent}</h3>
-            <p>Absent</p>
-          </StatBox>
-          <StatBox>
-            <Clock size={16} />
-            <h3>{attendanceData.overallAttendanceState.pending}</h3>
-            <p>Pending</p>
-          </StatBox>
-          <StatBox>
-            <Calendar size={16} />
-            <h3>
-              {attendanceData.overallAttendanceState.totalClasses -
-                attendanceData.overallAttendanceState.ignore}
-            </h3>
-            <p>Total Classes</p>
-          </StatBox>
-        </StatsGrid>
-      </OverallStatsCard>
-
-      {/* Subject-wise Stats */}
-      <SubjectsList>
-        {attendanceData.attendanceState.map((subject, index) => {
-          const effectiveTotalClasses = subject.totalClasses - subject.ignore;
-
-          return (
-            <motion.div
-              key={subject.courseId}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
-            >
-              <SubjectCard>
-                <SubjectHeader
-                  expanded={expandedSubject === subject.courseId}
-                  onClick={() => toggleSubject(subject.courseId)}
+                <Badge
+                  variant="outline"
+                  className="rounded-full px-3 py-1 text-sm font-bold"
                 >
-                  <SubjectTitle>{subject.courseId}</SubjectTitle>
-                  <AttendanceIndicator>
-                    {subject.pending > 0 && (
-                      <WarningBadge type="warning">
-                        <Clock size={12} />
-                        {subject.pending} pending
-                      </WarningBadge>
-                    )}
+                  {overall.attendancePercent}% overall
+                </Badge>
+              </div>
 
-                    {!subject.isEligible && subject.pending === 0 && (
-                      <WarningBadge type="error">
-                        <AlertTriangle size={12} />
-                        Not eligible
-                      </WarningBadge>
-                    )}
+              {overall.pending > 0 && (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "w-fit gap-1.5 rounded-full border-amber-300 bg-amber-100/70 px-3 py-1 text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/35 dark:text-amber-300",
+                  )}
+                >
+                  <Clock size={14} />
+                  {overall.pending} pending entries can affect final percentage.
+                </Badge>
+              )}
 
-                    <PercentBadge
-                      percentage={subject.attendancePercentage}
-                      minimum={subject.minAttendance}
-                      pending={subject.pending}
-                    >
-                      {subject.attendancePercentage}%
-                    </PercentBadge>
+              {overall.pending === 0 && overall.attendancePercent < 85 && (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "w-fit gap-1.5 rounded-full border-red-300 bg-red-100/70 px-3 py-1 text-red-900 dark:border-red-900/70 dark:bg-red-950/35 dark:text-red-300",
+                  )}
+                >
+                  <AlertTriangle size={14} />
+                  Overall attendance is below recommended threshold.
+                </Badge>
+              )}
+            </CardHeader>
 
-                    {expandedSubject === subject.courseId ? (
-                      <ChevronUp size={20} />
-                    ) : (
-                      <ChevronDown size={20} />
-                    )}
-                  </AttendanceIndicator>
-                </SubjectHeader>
+            <CardContent className="grid grid-cols-2 gap-2 p-4 pt-0 sm:grid-cols-4 sm:p-5 sm:pt-0">
+              <div className="rounded-xl border bg-muted/40 p-3 text-center">
+                <Check size={15} className="mx-auto" />
+                <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                  Present
+                </p>
+                <p className="mt-1 text-2xl font-extrabold leading-none">
+                  {overall.present}
+                </p>
+              </div>
 
-                <AnimatePresence>
-                  {expandedSubject === subject.courseId && (
-                    <SubjectDetails
-                      initial={{ height: 0 }}
-                      animate={{ height: "auto" }}
-                      exit={{ height: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <DetailContent>
-                        <StatsRow>
-                          <StatItem>
-                            <Check
-                              size={16}
-                              className="mx-auto text-green-500"
-                            />
-                            <h4>{subject.present}</h4>
-                            <p>Present</p>
-                          </StatItem>
-                          <StatItem>
-                            <X size={16} className="mx-auto text-red-500" />
-                            <h4>{subject.absent}</h4>
-                            <p>Absent</p>
-                          </StatItem>
-                          <StatItem>
-                            <Calendar
-                              size={16}
-                              className="mx-auto text-blue-500"
-                            />
-                            <h4>{effectiveTotalClasses}</h4>
-                            <p>Total Classes</p>
-                          </StatItem>
-                        </StatsRow>
+              <div className="rounded-xl border bg-muted/40 p-3 text-center">
+                <X size={15} className="mx-auto" />
+                <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                  Absent
+                </p>
+                <p className="mt-1 text-2xl font-extrabold leading-none">
+                  {overall.absent}
+                </p>
+              </div>
 
-                        <StatsRow>
-                          <StatItem>
-                            <Percent
-                              size={16}
-                              className="mx-auto text-purple-500"
-                            />
-                            <h4>{subject.minAttendance}%</h4>
-                            <p>Required</p>
-                          </StatItem>
-                          <StatItem>
-                            <Award
-                              size={16}
-                              className={`mx-auto ${
-                                subject.isEligible
-                                  ? "text-green-500"
-                                  : "text-gray-400"
-                              }`}
-                            />
-                            <h4>{subject.isEligible ? "Yes" : "No"}</h4>
-                            <p>Eligible</p>
-                          </StatItem>
-                          {subject.classCount.requiredPresent !== undefined && (
-                            <StatItem>
-                              <Bell
-                                size={16}
-                                className="mx-auto text-yellow-500"
-                              />
-                              <h4>{subject.classCount.requiredPresent}</h4>
-                              <p>Required Present</p>
-                            </StatItem>
+              <div className="rounded-xl border bg-muted/40 p-3 text-center">
+                <Clock size={15} className="mx-auto" />
+                <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                  Pending
+                </p>
+                <p className="mt-1 text-2xl font-extrabold leading-none">
+                  {overall.pending}
+                </p>
+              </div>
+
+              <div className="rounded-xl border bg-muted/40 p-3 text-center">
+                <Calendar size={15} className="mx-auto" />
+                <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                  Classes
+                </p>
+                <p className="mt-1 text-2xl font-extrabold leading-none">
+                  {effectiveTotalClasses}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <div className="flex flex-col gap-3.5">
+          {attendanceData.attendanceState.map((subject, index) => {
+            const subjectTotal = subject.totalClasses - subject.ignore;
+            const tone = toneFromSubject(subject);
+            const isOpen = expandedSubject === subject.courseId;
+
+            return (
+              <motion.div
+                key={subject.courseId}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: index * 0.04 }}
+              >
+                <Card className="overflow-hidden border-border/80 shadow-sm">
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between gap-3 p-3.5 text-left transition-colors hover:bg-muted/40 sm:p-4"
+                    onClick={() =>
+                      setExpandedSubject(isOpen ? null : subject.courseId)
+                    }
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-[0.98rem] font-semibold">
+                        {subject.courseId}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Minimum target: {subject.minAttendance}%
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      {subject.pending > 0 && (
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "gap-1 rounded-full",
+                            chipClassesByTone.warning,
                           )}
-                          {subject.classCount.allowedAbsent !== undefined && (
-                            <StatItem>
+                        >
+                          <Clock size={12} />
+                          {subject.pending} pending
+                        </Badge>
+                      )}
+
+                      {!subject.isEligible && subject.pending === 0 && (
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "gap-1 rounded-full",
+                            chipClassesByTone.danger,
+                          )}
+                        >
+                          <AlertTriangle size={12} />
+                          Not eligible
+                        </Badge>
+                      )}
+
+                      {tone === "safe" && (
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "gap-1 rounded-full",
+                            chipClassesByTone.safe,
+                          )}
+                        >
+                          <Award size={12} />
+                          Eligible
+                        </Badge>
+                      )}
+
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "gap-1 rounded-full",
+                          chipClassesByTone[tone],
+                        )}
+                      >
+                        <Percent size={12} />
+                        {subject.attendancePercentage}%
+                      </Badge>
+
+                      {isOpen ? (
+                        <ChevronUp size={18} className="shrink-0" />
+                      ) : (
+                        <ChevronDown size={18} className="shrink-0" />
+                      )}
+                    </div>
+                  </button>
+
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        key="details"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.22 }}
+                        className="overflow-hidden border-t"
+                      >
+                        <div className="p-3.5 sm:p-4">
+                          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                            <div className="rounded-lg border bg-muted/40 p-3">
+                              <Check size={14} className="text-emerald-600" />
+                              <p className="mt-1 text-base font-bold leading-none">
+                                {subject.present}
+                              </p>
+                              <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                                Present
+                              </p>
+                            </div>
+
+                            <div className="rounded-lg border bg-muted/40 p-3">
+                              <X size={14} className="text-red-600" />
+                              <p className="mt-1 text-base font-bold leading-none">
+                                {subject.absent}
+                              </p>
+                              <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                                Absent
+                              </p>
+                            </div>
+
+                            <div className="rounded-lg border bg-muted/40 p-3">
+                              <Calendar size={14} className="text-blue-600" />
+                              <p className="mt-1 text-base font-bold leading-none">
+                                {subjectTotal}
+                              </p>
+                              <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                                Total Classes
+                              </p>
+                            </div>
+
+                            <div className="rounded-lg border bg-muted/40 p-3">
+                              <Percent size={14} className="text-violet-600" />
+                              <p className="mt-1 text-base font-bold leading-none">
+                                {subject.minAttendance}%
+                              </p>
+                              <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                                Required
+                              </p>
+                            </div>
+
+                            <div className="rounded-lg border bg-muted/40 p-3">
+                              <Award
+                                size={14}
+                                className={cn(
+                                  subject.isEligible
+                                    ? "text-emerald-600"
+                                    : "text-slate-400",
+                                )}
+                              />
+                              <p className="mt-1 text-base font-bold leading-none">
+                                {subject.isEligible ? "Yes" : "No"}
+                              </p>
+                              <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                                Eligible
+                              </p>
+                            </div>
+
+                            {subject.classCount?.requiredPresent !==
+                              undefined && (
+                              <div className="rounded-lg border bg-muted/40 p-3">
+                                <Bell size={14} className="text-amber-600" />
+                                <p className="mt-1 text-base font-bold leading-none">
+                                  {subject.classCount.requiredPresent}
+                                </p>
+                                <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                                  Required Present
+                                </p>
+                              </div>
+                            )}
+
+                            {subject.classCount?.allowedAbsent !==
+                              undefined && (
+                              <div className="rounded-lg border bg-muted/40 p-3">
+                                <AlertTriangle
+                                  size={14}
+                                  className="text-orange-600"
+                                />
+                                <p className="mt-1 text-base font-bold leading-none">
+                                  {subject.classCount.allowedAbsent}
+                                </p>
+                                <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                                  Allowed Absent
+                                </p>
+                              </div>
+                            )}
+                          </div>
+
+                          {subject.pending > 0 && (
+                            <div
+                              className={cn(
+                                "mt-3.5 flex items-start gap-2 rounded-lg border px-3 py-2 text-sm",
+                                warningBlockClassesByTone.warning,
+                              )}
+                            >
+                              <Clock size={16} className="mt-0.5 shrink-0" />
+                              <span>
+                                Attendance percentage may change after pending
+                                classes are updated.
+                              </span>
+                            </div>
+                          )}
+
+                          {!subject.isEligible && subject.pending === 0 && (
+                            <div
+                              className={cn(
+                                "mt-3.5 flex items-start gap-2 rounded-lg border px-3 py-2 text-sm",
+                                warningBlockClassesByTone.danger,
+                              )}
+                            >
                               <AlertTriangle
                                 size={16}
-                                className="mx-auto text-orange-500"
+                                className="mt-0.5 shrink-0"
                               />
-                              <h4>{subject.classCount.allowedAbsent}</h4>
-                              <p>Allowed Absent</p>
-                            </StatItem>
-                          )}
-                        </StatsRow>
-
-                        {/* Warnings Section */}
-                        {subject.pending > 0 && (
-                          <WarningText type="warning">
-                            <Clock size={16} />
-                            Attendance percentage may not be accurate. Please
-                            clear the pending attendance.
-                          </WarningText>
-                        )}
-
-                        {!subject.isEligible && subject.pending === 0 && (
-                          <WarningText type="error">
-                            <AlertTriangle size={16} />
-                            Your attendance is below the minimum requirement of{" "}
-                            {subject.minAttendance}%.
-                            {subject.classCount.requiredPresent !=
-                              undefined && (
                               <span>
-                                {" "}
-                                You need to attend at least{" "}
-                                {subject.classCount.requiredPresent} more
-                                classes to be eligible.
+                                Attendance is below minimum requirement (
+                                {subject.minAttendance}%).
+                                {subject.classCount?.requiredPresent !==
+                                  undefined && (
+                                  <>
+                                    {" "}
+                                    Attend {
+                                      subject.classCount.requiredPresent
+                                    }{" "}
+                                    more class(es) to recover eligibility.
+                                  </>
+                                )}
                               </span>
-                            )}
-                          </WarningText>
-                        )}
+                            </div>
+                          )}
 
-                        {/* Custom Min Attendance Setter */}
-                        <MinAttendanceSetter>
-                          <h4 className="text-sm font-medium mb-2 text-gray-700">
-                            Set Custom Minimum Attendance (
-                            {customMinAttendance[subject.courseId]}%)
-                          </h4>
-                          <Box
-                            sx={{
-                              width: "100%",
-                              px: isSmallMobile ? 1 : 2,
-                              py: 1,
-                            }}
-                          >
-                            <Slider
-                              value={customMinAttendance[subject.courseId]}
-                              onChange={(e) =>
-                                setCustomMinAttendance({
-                                  ...customMinAttendance,
-                                  [subject.courseId]:
-                                    parseInt(e.target.value) || 0,
-                                })
-                              }
-                              aria-labelledby="attendance-slider"
-                              valueLabelDisplay="auto"
-                              step={2}
-                              marks
+                          <div className="mt-4 border-t border-dashed pt-3.5">
+                            <div className="mb-1.5 flex items-center justify-between gap-3">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                Custom minimum attendance
+                              </p>
+                              <span className="text-sm font-bold text-primary">
+                                {customMinAttendance[subject.courseId]}%
+                              </span>
+                            </div>
+
+                            <input
+                              type="range"
                               min={50}
                               max={100}
-                              color="primary"
-                              size={isMobile ? "small" : "medium"}
-                            />
-                            <Box
-                              sx={{
-                                display: "flex",
-                                justifyContent: "space-between",
+                              step={1}
+                              value={
+                                customMinAttendance[subject.courseId] ?? 75
+                              }
+                              onChange={(event) => {
+                                const numericValue = Number.parseInt(
+                                  event.target.value,
+                                  10,
+                                );
+                                setCustomMinAttendance((prev) => ({
+                                  ...prev,
+                                  [subject.courseId]: Number.isNaN(numericValue)
+                                    ? prev[subject.courseId]
+                                    : numericValue,
+                                }));
                               }}
+                              className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-muted accent-primary"
+                            />
+
+                            <div className="mt-1.5 flex items-center justify-between text-[0.68rem] text-muted-foreground">
+                              <span>50%</span>
+                              <span>100%</span>
+                            </div>
+
+                            <Button
+                              type="button"
+                              className="mt-3 inline-flex h-9 items-center gap-1.5 px-3 text-xs"
+                              onClick={() =>
+                                handleMinAttendanceUpdate(subject.courseId)
+                              }
                             >
-                              <Typography
-                                variant="caption"
-                                color="text.secondary"
-                                sx={{
-                                  fontSize: isSmallMobile
-                                    ? "0.65rem"
-                                    : "inherit",
-                                }}
-                              >
-                                50%
-                              </Typography>
-                              <Typography
-                                variant="caption"
-                                color="text.secondary"
-                                sx={{
-                                  fontSize: isSmallMobile
-                                    ? "0.65rem"
-                                    : "inherit",
-                                }}
-                              >
-                                100%
-                              </Typography>
-                            </Box>
-                          </Box>
-                          <ButtonStyle
-                            onClick={() =>
-                              handleMinAttendanceUpdate(subject.courseId)
-                            }
-                          >
-                            <Edit2 size={14} />
-                            Update
-                          </ButtonStyle>
-                        </MinAttendanceSetter>
-                      </DetailContent>
-                    </SubjectDetails>
-                  )}
-                </AnimatePresence>
-              </SubjectCard>
-            </motion.div>
-          );
-        })}
-      </SubjectsList>
-    </DashboardContainer>
-  ) : (
-    <LoadingContainer>
-      <LoadingText>No attendance data available.</LoadingText>
-    </LoadingContainer>
+                              <Edit2 size={13} />
+                              Update Threshold
+                            </Button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 };
 

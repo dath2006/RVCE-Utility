@@ -1,359 +1,63 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Download,
-  Eye,
-  Check,
-  X,
-  Clock,
+  Book,
   BookOpenText,
   Calendar,
-  Book,
+  Check,
   ChevronDown,
   ChevronUp,
-  Filter,
-  RotateCcw,
+  Clock,
+  Download,
+  Eye,
   Info,
+  Plus,
+  Trash2,
   User,
+  X,
 } from "lucide-react";
-import {
-  FiPlus,
-  FiX,
-  FiTag,
-  FiCalendar,
-  FiBook,
-  FiFileText,
-  FiUpload,
-  FiTrash2,
-  FiAlertCircle,
-} from "react-icons/fi";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useAuth0 } from "@auth0/auth0-react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import axios from "axios";
+
 import WaveLoader from "../../components/Loading";
 import FileViewer from "../FileViewer";
 import AddRequest from "./AddRequest";
+import ContributionModalPortal from "./ContributionModalPortal";
 import useBottomBarVisibility from "../../hooks/useBottomBarVisibility";
 
 const modalVariants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: { opacity: 1, scale: 1 },
-  exit: { opacity: 0, scale: 0.95 },
+  hidden: { opacity: 0, scale: 0.96, y: 8 },
+  visible: { opacity: 1, scale: 1, y: 0 },
+  exit: { opacity: 0, scale: 0.96, y: 8 },
 };
 
-const useOptimisticUpdate = (requests, setRequests) => {
-  const updateRequestOptimistically = useCallback(
-    (requestId, documentId, fileId, action, comment) => {
-      const updatedRequests = structuredClone(requests); // Deep clone for immutability
-      const targetFile = updatedRequests
-        .find((req) => req._id === requestId)
-        ?.documents.find((doc) => doc._id === documentId)
-        ?.files.find((file) => file.fileId === fileId);
-
-      if (targetFile) {
-        targetFile.status = action === "approved" ? "reviewing" : action;
-        if (comment && action === "rejected") {
-          targetFile.rejectionComment = comment;
-        }
-
-        // Update other files in the same document if one is approved
-        if (
-          action === "approved" &&
-          updatedRequests
-            .find((req) => req._id === requestId)
-            ?.documents.find((doc) => doc._id === documentId)?.files.length > 1
-        ) {
-          updatedRequests
-            .find((req) => req._id === requestId)
-            ?.documents.find((doc) => doc._id === documentId)
-            ?.files.filter((file) => file.fileId !== fileId)
-            .forEach((file) => {
-              file.status = "rejected";
-              file.rejectionComment = "Not satisfied requirement";
-            });
-        }
-
-        // Update request status based on all documents
-        const allDocuments = updatedRequests.find(
-          (req) => req._id === requestId
-        )?.documents;
-        const allFilesAccepted = allDocuments.every((doc) =>
-          doc.files.some(
-            (file) => file.status === "approved" || file.status === "reviewing"
-          )
-        );
-        const allFilesReviewing = allDocuments.every((doc) =>
-          doc.files.some((file) => file.status === "reviewing")
-        );
-
-        if (allFilesAccepted) {
-          updatedRequests.find((req) => req._id === requestId).status =
-            "completed";
-        } else if (allFilesReviewing) {
-          updatedRequests.find((req) => req._id === requestId).status =
-            "reviewing";
-        }
-      }
-
-      return updatedRequests;
-    },
-    [requests]
-  );
-  const revertOptimisticUpdate = useCallback(
-    (originalRequests) => {
-      setRequests([...originalRequests]);
-    },
-    [setRequests]
-  );
-
-  return { updateRequestOptimistically, revertOptimisticUpdate };
+const semesterLabel = (semester) => {
+  const value = Number(semester);
+  if (value === 1) return "C Cycle";
+  if (value === 2) return "P Cycle";
+  return `Sem ${semester}`;
 };
 
-const handleApiError = (error, action) => {
-  if (error.response?.data?.message) {
-    return error.response.data.message;
-  }
-
-  if (error.response?.status === 404) {
-    return "Resource not found. Please refresh the page.";
-  }
-
-  if (error.response?.status === 400) {
-    return "Invalid request. Please check your input.";
-  }
-
-  if (error.response?.status >= 500) {
-    return "Server error. Please try again later.";
-  }
-
-  if (error.code === "NETWORK_ERROR") {
-    return "Network error. Please check your connection.";
-  }
-
-  return `Failed to ${action} file. Please try again.`;
+const requestStatusClass = {
+  completed: "border-emerald-500/30 bg-emerald-500/10 text-emerald-600",
+  reviewing: "border-sky-500/30 bg-sky-500/10 text-sky-600",
+  pending: "border-amber-500/30 bg-amber-500/10 text-amber-600",
 };
 
-const validatePreviewAction = (previewAction, previewFile) => {
-  if (!previewAction || !previewFile) {
-    console.warn("Missing preview action or file");
-    return false;
-  }
-
-  const { type, requestId, documentId, fileId } = previewAction;
-
-  if (!["approved", "rejected", "reviewing"].includes(type)) {
-    console.error("Invalid action type:", type);
-    return false;
-  }
-
-  if (!requestId || typeof requestId !== "string") {
-    console.error("Invalid request ID:", requestId);
-    return false;
-  }
-
-  if (!documentId || typeof documentId !== "string") {
-    console.error("Invalid document ID:", documentId);
-    return false;
-  }
-
-  if (!fileId || typeof fileId !== "string") {
-    console.error("Invalid file ID:", fileId);
-    return false;
-  }
-
-  return true;
+const fileStatusClass = {
+  approved: "border-emerald-500/30 bg-emerald-500/10 text-emerald-600",
+  rejected: "border-rose-500/30 bg-rose-500/10 text-rose-600",
+  reviewing: "border-sky-500/30 bg-sky-500/10 text-sky-600",
+  pending: "border-amber-500/30 bg-amber-500/10 text-amber-600",
 };
 
-const validateRequestStructure = (requests, requestId, documentId, fileId) => {
-  const request = requests.find((req) => req._id === requestId);
-  if (!request) {
-    console.error("Request not found with ID:", requestId);
-    return false;
-  }
-
-  const document = request.documents.find((doc) => doc._id === documentId);
-  if (!document) {
-    console.error("Document not found with ID:", documentId);
-    return false;
-  }
-
-  const file = document.files.find((file) => file.fileId === fileId);
-
-  if (!file) {
-    console.error("File not found with ID:", fileId);
-    return false;
-  }
-
-  return true;
-};
-
-const debounce = (func, wait) => {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-};
-
-const RequestActionHandler = ({
-  requests,
-  setRequests,
-  previewAction,
-  previewFile,
-  rejectComment,
-  setRejectComment,
-  setActiveRejection,
-  setShowPreviewModal,
-  setPreviewFile,
-  setPreviewAction,
-  token, // <-- accept token as parameter
-}) => {
-  const [isLoading, setIsLoading] = useState(false);
-
-  const { updateRequestOptimistically, revertOptimisticUpdate } =
-    useOptimisticUpdate(requests, setRequests);
-
-  // Main enhanced handler function
-  const handleActionAfterPreview = useCallback(async () => {
-    // Early validation
-    if (!validatePreviewAction(previewAction, previewFile)) {
-      toast.error("Invalid action or file data");
-      return;
-    }
-
-    const { type: action, requestId, documentId, fileId } = previewAction;
-
-    // Validate request structure
-    if (!validateRequestStructure(requests, requestId, documentId, fileId)) {
-      toast.error("Invalid request structure. Please refresh the page.");
-      return;
-    }
-
-    // Validate rejection comment if needed
-    if (action === "rejected" && !rejectComment?.trim()) {
-      toast.error("Please provide a rejection comment");
-      return;
-    }
-
-    setIsLoading(true);
-
-    // Store original state for potential rollback
-    const originalRequests = [...requests];
-
-    try {
-      // Optimistic update
-      const optimisticRequests = updateRequestOptimistically(
-        requestId,
-        documentId,
-        fileId,
-        action,
-        rejectComment
-      );
-      setRequests(optimisticRequests);
-
-      // Prepare API request
-      const request = requests.find((req) => req._id === requestId);
-      const document = request.documents.find((doc) => doc._id === documentId);
-
-      const payload = {
-        requestId: request._id,
-        documentId: document._id,
-        fileId: fileId,
-        action,
-        comment: action === "rejected" ? rejectComment.trim() : undefined,
-      };
-
-      // Make API call with timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/requests/action`,
-        payload,
-        {
-          signal: controller.signal,
-          timeout: 30000,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      clearTimeout(timeoutId);
-
-      if (response.data.success) {
-        // Update with server response if available
-        if (response.data.data) {
-          const serverUpdatedRequests = [...optimisticRequests];
-          const targetFile = serverUpdatedRequests
-            .find((req) => req._id === requestId)
-            ?.documents.find((doc) => doc._id === documentId)
-            ?.files.find((file) => file.fileId === fileId);
-
-          if (targetFile) {
-            targetFile.status = response.data.data.fileStatus;
-          }
-
-          serverUpdatedRequests.find((req) => req._id === requestId).status =
-            response.data.data.requestStatus;
-          setRequests(serverUpdatedRequests);
-        }
-
-        // Success feedback
-        const actionText = action === "approved" ? "approved" : "rejected";
-        toast.success(`File ${actionText} successfully`);
-      } else {
-        // Revert optimistic update and show error
-        revertOptimisticUpdate(originalRequests);
-        throw new Error(response.data.message || "Unknown server error");
-      }
-    } catch (error) {
-      // Revert optimistic update
-      revertOptimisticUpdate(originalRequests);
-
-      // Handle different error types
-      const errorMessage = handleApiError(error, action);
-      console.error("Error performing action:", error);
-      toast.error(errorMessage);
-    } finally {
-      // Cleanup
-      setIsLoading(false);
-      setRejectComment("");
-      setActiveRejection(null);
-      setShowPreviewModal(false);
-      setPreviewFile(null);
-      setPreviewAction(null);
-    }
-  }, [
-    previewAction,
-    previewFile,
-    requests,
-    rejectComment,
-    updateRequestOptimistically,
-    revertOptimisticUpdate,
-    setRequests,
-    setRejectComment,
-    setActiveRejection,
-    setShowPreviewModal,
-    setPreviewFile,
-    setPreviewAction,
-    token, // <-- pass token here
-  ]);
-
-  // Debounced version for rapid clicks
-  const debouncedHandleActionAfterPreview = useMemo(
-    () => debounce(handleActionAfterPreview, 300),
-    [handleActionAfterPreview]
-  );
-
-  return {
-    handleActionAfterPreview,
-    debouncedHandleActionAfterPreview,
-    isLoading,
-  };
+const fileTypeClass = {
+  Notes: "border-blue-500/30 bg-blue-500/10 text-blue-600",
+  QP: "border-violet-500/30 bg-violet-500/10 text-violet-600",
+  Textbook: "border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-600",
+  Lab: "border-emerald-500/30 bg-emerald-500/10 text-emerald-600",
+  Other: "border-slate-400/40 bg-slate-500/10 text-slate-600",
 };
 
 const ViewRequests = () => {
@@ -363,67 +67,23 @@ const ViewRequests = () => {
     isLoading: authLoading,
     getAccessTokenSilently,
   } = useAuth0();
+
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewerFile, setViewerFile] = useState(null);
   const [token, setToken] = useState("");
 
-  useEffect(() => {
-    const fetchRequests = async () => {
-      if (authLoading || !isAuthenticated) return;
+  const [currentPage, setCurrentPage] = useState(1);
+  const requestsPerPage = 5;
 
-      try {
-        setLoading(true);
-        setError(null);
-        const t = await getAccessTokenSilently();
-        setToken(t);
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/requests/all`,
-          {
-            params: { email: user?.email },
-            headers: {
-              Authorization: `Bearer ${t}`,
-            },
-          }
-        );
-
-        if (response.data.success) {
-          setRequests(response.data.requests);
-        } else {
-          throw new Error(response.data.message || "Failed to fetch requests");
-        }
-      } catch (err) {
-        console.error("Error fetching requests:", err);
-        setError(
-          err.response?.data?.message ||
-            "Failed to load requests. Please try again later."
-        );
-        toast.error("Error loading requests");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRequests();
-  }, [user?.email, isAuthenticated, authLoading, getAccessTokenSilently]);
-
-  useEffect(() => {
-    const fetchToken = async () => {
-      if (!authLoading && isAuthenticated) {
-        const t = await getAccessTokenSilently();
-        setToken(t);
-      }
-    };
-    fetchToken();
-  }, [authLoading, isAuthenticated, getAccessTokenSilently]);
-
-  const [rejectComment, setRejectComment] = useState("");
-  const [activeRejection, setActiveRejection] = useState(null);
   const [expandedRequests, setExpandedRequests] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [expandedFiles, setExpandedFiles] = useState({});
+
+  const [viewerFile, setViewerFile] = useState(null);
   const [deleteRequestId, setDeleteRequestId] = useState(null);
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isAddingRequest, setIsAddingRequest] = useState(false);
   const [newRequest, setNewRequest] = useState({
     branch: "",
     semester: "",
@@ -431,86 +91,108 @@ const ViewRequests = () => {
     subjectCode: "",
     items: [{ name: "", type: "Notes", description: "" }],
   });
+
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewFile, setPreviewFile] = useState(null);
   const [previewAction, setPreviewAction] = useState(null);
-  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [rejectComment, setRejectComment] = useState("");
+  const [isActionLoading, setIsActionLoading] = useState(false);
 
-  // Use bottom bar visibility hooks for modals
   useBottomBarVisibility(!!viewerFile, "file-viewer-requests");
+  useBottomBarVisibility(!!deleteRequestId, "delete-request-modal");
   useBottomBarVisibility(isAddModalOpen, "add-request-modal");
   useBottomBarVisibility(showPreviewModal, "preview-modal");
-  useBottomBarVisibility(!!deleteRequestId, "delete-request-modal");
 
-  // Pagination and sorting state
-  const [currentPage, setCurrentPage] = useState(1);
-  const requestsPerPage = 5; // You can adjust this number
+  const fetchRequests = useCallback(async () => {
+    if (authLoading || !isAuthenticated || !user?.email) {
+      return;
+    }
 
-  // Track expanded files for each document (by requestId and documentIndex)
-  const [expandedFiles, setExpandedFiles] = useState({});
+    try {
+      setLoading(true);
+      setError(null);
 
-  // Sort requests by postedAt (latest first)
+      const accessToken = await getAccessTokenSilently();
+      setToken(accessToken);
+
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/requests/all`,
+        {
+          params: { email: user.email },
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      if (response.data.success) {
+        setRequests(response.data.requests || []);
+      } else {
+        throw new Error(response.data.message || "Failed to fetch requests");
+      }
+    } catch (requestError) {
+      console.error("Error fetching requests:", requestError);
+      setError(
+        requestError.response?.data?.message ||
+          "Failed to load your requests. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [authLoading, getAccessTokenSilently, isAuthenticated, user?.email]);
+
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
+
   const sortedRequests = useMemo(() => {
     return [...requests].sort(
-      (a, b) => new Date(b.postedAt) - new Date(a.postedAt)
+      (a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime(),
     );
   }, [requests]);
 
-  // Pagination logic
-  const totalPages = Math.ceil(sortedRequests.length / requestsPerPage);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(sortedRequests.length / requestsPerPage),
+  );
+
   const paginatedRequests = useMemo(() => {
-    const startIdx = (currentPage - 1) * requestsPerPage;
-    return sortedRequests.slice(startIdx, startIdx + requestsPerPage);
-  }, [sortedRequests, currentPage, requestsPerPage]);
+    const start = (currentPage - 1) * requestsPerPage;
+    return sortedRequests.slice(start, start + requestsPerPage);
+  }, [currentPage, sortedRequests]);
 
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) setCurrentPage(page);
-  };
-
-  // Toggle expanded files for a document
-  const toggleFilesExpansion = (requestId, documentId) => {
-    setExpandedFiles((prev) => {
-      const key = `${requestId}-${documentId}`;
-      return {
-        ...prev,
-        [key]: !prev[key],
-      };
-    });
-  };
-
-  const {
-    handleActionAfterPreview,
-    debouncedHandleActionAfterPreview,
-    isLoading: isItLoading,
-  } = RequestActionHandler({
-    requests,
-    setRequests,
-    previewAction,
-    previewFile,
-    rejectComment,
-    setRejectComment,
-    setActiveRejection,
-    setShowPreviewModal,
-    setPreviewFile,
-    setPreviewAction,
-    token, // <-- pass token here
-  });
-
-  const handleAccept = () => {
-    // Use debounced version to prevent rapid clicks
-    debouncedHandleActionAfterPreview();
-  };
-
-  const handleReject = () => {
-    if (!rejectComment.trim()) {
-      toast.error("Please provide a rejection comment");
-      return;
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
     }
-    debouncedHandleActionAfterPreview();
-  };
+  }, [currentPage, totalPages]);
+
+  const stats = useMemo(() => {
+    return requests.reduce(
+      (acc, request) => {
+        const status = request.status || "pending";
+        if (status === "completed") acc.completed += 1;
+        else if (status === "reviewing") acc.reviewing += 1;
+        else acc.pending += 1;
+        acc.total += 1;
+        return acc;
+      },
+      { pending: 0, reviewing: 0, completed: 0, total: 0 },
+    );
+  }, [requests]);
 
   const toggleRequestExpansion = (requestId) => {
     setExpandedRequests((prev) => ({
+      ...prev,
       [requestId]: !prev[requestId],
+    }));
+  };
+
+  const toggleFilesExpansion = (requestId, documentId) => {
+    const key = `${requestId}-${documentId}`;
+    setExpandedFiles((prev) => ({
+      ...prev,
+      [key]: !prev[key],
     }));
   };
 
@@ -520,25 +202,25 @@ const ViewRequests = () => {
       return;
     }
 
-    const request = requests.find((r) => r._id === requestId);
-    if (!request) {
+    const targetRequest = requests.find((request) => request._id === requestId);
+    if (!targetRequest) {
       toast.error("Request not found");
       return;
     }
 
-    // Check if there are any contributions
-    const hasContributions = request.documents.some(
-      (doc) => doc.files.length > 0
+    const hasContributions = targetRequest.documents?.some(
+      (document) => (document.files || []).length > 0,
     );
+
     if (hasContributions) {
-      toast.error("Cannot delete request with existing contributions");
+      toast.error("Cannot delete a request that already has contributions");
       setDeleteRequestId(null);
       return;
     }
 
     try {
-      const token = await getAccessTokenSilently();
-      const response = await axios.delete(
+      const accessToken = token || (await getAccessTokenSilently());
+      await axios.delete(
         `${import.meta.env.VITE_API_URL}/requests/${requestId}`,
         {
           data: {
@@ -547,36 +229,36 @@ const ViewRequests = () => {
             },
           },
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${accessToken}`,
           },
-        }
+        },
       );
 
-      if (response.data.success) {
-        setRequests((prev) =>
-          prev.filter((request) => request._id !== requestId)
-        );
-        toast.success("Request deleted successfully");
-      } else {
-        throw new Error(response.data.message);
-      }
-    } catch (err) {
-      console.error("Error deleting request:", err);
-      toast.error(err.response?.data?.message || "Failed to delete request");
+      setRequests((prev) =>
+        prev.filter((request) => request._id !== requestId),
+      );
+      toast.success("Request deleted successfully");
+    } catch (deleteError) {
+      console.error("Error deleting request:", deleteError);
+      toast.error(
+        deleteError.response?.data?.message || "Failed to delete request",
+      );
+    } finally {
+      setDeleteRequestId(null);
     }
-    setDeleteRequestId(null);
   };
 
-  const handleAddRequest = async (e) => {
-    e.preventDefault();
+  const handleAddRequest = async (event) => {
+    event.preventDefault();
+
     if (!isAuthenticated) {
       toast.error("Please sign in to perform this action");
       return;
     }
 
     try {
-      setIsLoading(true);
-      const token = await getAccessTokenSilently();
+      setIsAddingRequest(true);
+      const accessToken = token || (await getAccessTokenSilently());
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/requests`,
         {
@@ -587,9 +269,9 @@ const ViewRequests = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${accessToken}`,
           },
-        }
+        },
       );
 
       if (response.data.success) {
@@ -604,741 +286,521 @@ const ViewRequests = () => {
         });
         toast.success("Request created successfully");
       } else {
-        throw new Error(response.data.message);
+        throw new Error(response.data.message || "Failed to create request");
       }
-    } catch (err) {
-      console.error("Error creating request:", err);
-      toast.error(err.response?.data?.message || "Failed to create request");
+    } catch (addError) {
+      console.error("Error creating request:", addError);
+      toast.error(
+        addError.response?.data?.message || "Failed to create request",
+      );
     } finally {
-      setIsLoading(false);
+      setIsAddingRequest(false);
     }
-  };
-
-  const handleAction = async (requestId, documentId, fileId, action) => {
-    if (!isAuthenticated) {
-      toast.error("Please sign in to perform this action");
-      return;
-    }
-
-    if (action === "rejected" && !rejectComment.trim()) {
-      toast.error("Please provide a reason for rejection");
-      return;
-    }
-
-    const request = requests.find((req) => req._id === requestId);
-    const file = request.documents
-      .find((doc) => doc._id === documentId)
-      .files.find((f) => f.fileId === fileId);
-
-    setPreviewFile(file);
-    setPreviewAction({
-      type: action,
-      requestId,
-      documentId,
-      fileId,
-    });
-    setShowPreviewModal(true);
   };
 
   const addNewItem = () => {
     setNewRequest((prev) => ({
       ...prev,
-      items: [...prev.items, { name: "", type: "Notes" }],
-    }));
-  };
-
-  const removeItem = (index) => {
-    setNewRequest((prev) => ({
-      ...prev,
-      items: prev.items.filter((_, i) => i !== index),
+      items: [...prev.items, { name: "", type: "Notes", description: "" }],
     }));
   };
 
   const updateItem = (index, field, value) => {
     setNewRequest((prev) => ({
       ...prev,
-      items: prev.items.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item
+      items: prev.items.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, [field]: value } : item,
       ),
     }));
   };
 
-  const startRejection = (requestId, documentId, fileId) => {
-    setActiveRejection(`${requestId}-${documentId}-${fileId}`);
+  const removeItem = (index) => {
+    setNewRequest((prev) => ({
+      ...prev,
+      items: prev.items.filter((_, itemIndex) => itemIndex !== index),
+    }));
   };
 
-  const cancelRejection = () => {
-    setActiveRejection(null);
+  const openPreview = (type, requestId, documentId, file) => {
+    setPreviewAction({
+      type,
+      requestId,
+      documentId,
+      fileId: file.fileId,
+    });
+    setPreviewFile(file);
+    setShowPreviewModal(true);
+  };
+
+  const closePreview = () => {
+    setShowPreviewModal(false);
+    setPreviewFile(null);
+    setPreviewAction(null);
     setRejectComment("");
   };
 
-  const getStatusBadge = (status) => {
-    const statusConfig = {
-      completed: {
-        bg: "bg-green-500/20",
-        text: "text-green-400",
-        label: "Completed",
-      },
-      reviewing: {
-        bg: "bg-blue-500/20",
-        text: "text-blue-400",
-        label: "Reviewing",
-      },
-      pending: {
-        bg: "bg-amber-500/20",
-        text: "text-amber-400",
-        label: "Pending",
-      },
-    };
+  const submitPreviewAction = async () => {
+    if (!previewAction || !previewFile) return;
 
-    const config = statusConfig[status] || statusConfig.pending;
+    if (previewAction.type === "rejected" && !rejectComment.trim()) {
+      toast.error("Please provide a rejection comment");
+      return;
+    }
 
+    try {
+      setIsActionLoading(true);
+      const accessToken = token || (await getAccessTokenSilently());
+
+      const payload = {
+        requestId: previewAction.requestId,
+        documentId: previewAction.documentId,
+        fileId: previewAction.fileId,
+        action: previewAction.type,
+        comment:
+          previewAction.type === "rejected" ? rejectComment.trim() : undefined,
+      };
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/requests/action`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      if (!response.data.success) {
+        throw new Error(
+          response.data.message || "Failed to update file status",
+        );
+      }
+
+      toast.success(
+        previewAction.type === "approved"
+          ? "Contribution accepted successfully"
+          : "Contribution rejected successfully",
+      );
+
+      await fetchRequests();
+      closePreview();
+    } catch (actionError) {
+      console.error("Error performing action:", actionError);
+      toast.error(
+        actionError.response?.data?.message || "Failed to process action",
+      );
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  if (loading) {
     return (
-      <div
-        className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs font-medium ${config.bg} ${config.text} `}
-      >
-        {config.label}
+      <div className="flex min-h-[360px] items-center justify-center py-10">
+        <WaveLoader
+          size="7em"
+          primaryColor="hsl(220,90%,50%)"
+          secondaryColor="hsl(300,90%,50%)"
+        />
       </div>
     );
-  };
+  }
 
-  const getFileTypeBadge = (type) => {
-    const typeConfig = {
-      Notes: { bg: "bg-blue-500/20", text: "text-blue-400" },
-      Textbook: { bg: "bg-purple-500/20", text: "text-purple-400" },
-      "Lab Manual": { bg: "bg-emerald-500/20", text: "text-emerald-400" },
-    };
-
-    const config = typeConfig[type] || typeConfig.Notes;
-
+  if (error) {
     return (
-      <span
-        className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs font-medium ${config.bg} ${config.text} `}
-      >
-        {type}
-      </span>
+      <div className="flex min-h-[360px] flex-col items-center justify-center gap-3 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-6 text-center">
+        <h3 className="text-lg font-semibold text-rose-700">
+          Unable to load requests
+        </h3>
+        <p className="text-sm text-rose-700/90">{error}</p>
+        <button
+          type="button"
+          onClick={fetchRequests}
+          className="rounded-lg border border-rose-500/40 bg-background/85 px-4 py-2 text-sm font-medium text-rose-700"
+        >
+          Retry
+        </button>
+      </div>
     );
-  };
-
-  const getFileStatusIndicator = (status) => {
-    const statusConfig = {
-      approved: "bg-green-500",
-      rejected: "bg-red-500",
-      reviewing: "bg-blue-500",
-      pending: "bg-amber-500",
-    };
-
-    return `h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full  flex-shrink-0 ${
-      statusConfig[status] || statusConfig.pending
-    }`;
-  };
+  }
 
   return (
-    <>
-      {loading ? (
-        <div className="flex justify-center items-center min-h-[400px]">
-          <WaveLoader
-            size="7em"
-            primaryColor="hsl(220,90%,50%)"
-            secondaryColor="hsl(300,90%,50%)"
-          />
+    <div className="w-full rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm sm:p-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+            Request Control
+          </p>
+          <h2 className="mt-1 text-2xl font-semibold">Your Requests</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Review incoming contributions, approve the best file, or reject with
+            feedback.
+          </p>
         </div>
-      ) : error ? (
-        <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 text-red-500">
-          <div className="text-xl font-semibold">Error loading requests</div>
-          <div className="text-sm">{error}</div>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-          >
-            Retry
-          </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setExpandedRequests({});
+            setIsAddModalOpen(true);
+          }}
+          className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90"
+        >
+          <Plus className="h-4 w-4" />
+          Add Request
+        </button>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+        <div className="rounded-xl border border-border/70 bg-background/80 px-3 py-3">
+          <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:text-xs">
+            Pending
+          </p>
+          <p className="mt-1 text-lg font-semibold sm:text-2xl">
+            {stats.pending}
+          </p>
+        </div>
+        <div className="rounded-xl border border-border/70 bg-background/80 px-3 py-3">
+          <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:text-xs">
+            Reviewing
+          </p>
+          <p className="mt-1 text-lg font-semibold sm:text-2xl">
+            {stats.reviewing}
+          </p>
+        </div>
+        <div className="rounded-xl border border-border/70 bg-background/80 px-3 py-3">
+          <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:text-xs">
+            Completed
+          </p>
+          <p className="mt-1 text-lg font-semibold sm:text-2xl">
+            {stats.completed}
+          </p>
+        </div>
+        <div className="rounded-xl border border-border/70 bg-background/80 px-3 py-3">
+          <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:text-xs">
+            Total
+          </p>
+          <p className="mt-1 text-lg font-semibold sm:text-2xl">
+            {stats.total}
+          </p>
+        </div>
+      </div>
+
+      {requests.length === 0 ? (
+        <div className="mt-6 flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 bg-muted/30 py-14 text-center">
+          <Book className="h-10 w-10 text-muted-foreground" />
+          <h3 className="mt-4 text-xl font-medium">No requests yet</h3>
+          <p className="mt-2 max-w-md text-sm text-muted-foreground">
+            Create your first request and manage contributions from the
+            community.
+          </p>
         </div>
       ) : (
-        <div className="w-full min-h-full pb-8 bg-slate-900/50 backdrop-blur-lg rounded-lg shadow-lg border border-slate-800 max-w-full overflow-x-hidden">
-          <div className="w-full mx-auto px-3 py-4 sm:px-4 sm:py-6 lg:px-6 lg:py-8 max-w-full">
-            {/* Header */}
-            <div className="flex flex-col gap-4 mb-6 sm:mb-8">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
-                <div>
-                  <h1 className="font-bold text-lg xs:text-xl sm:text-2xl lg:text-3xl text-white flex items-center gap-1 xs:gap-2 sm:gap-3 mb-1 sm:mb-2">
-                    <Book className="text-blue-400 w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
-                    <span className="truncate">Your Resource Requests</span>
-                  </h1>
-                  <p className="text-xs xs:text-sm sm:text-base text-slate-400">
-                    Manage and review your resource contributions
-                  </p>
-                </div>
-                {/* Pagination Controls - Top Right, Responsive */}
-                {totalPages > 1 && (
-                  <div className="flex flex-col xs:flex-row xs:items-center xs:justify-end gap-1 xs:gap-2 mt-2 xs:mt-0 w-full xs:w-auto">
-                    <div className="flex flex-wrap justify-end gap-1 xs:gap-1.5">
-                      <button
-                        className="px-2 py-1 text-xs rounded bg-slate-700 text-white disabled:opacity-50 min-w-[60px]"
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                      >
-                        Previous
-                      </button>
-                      {Array.from({ length: totalPages }, (_, i) => (
-                        <button
-                          key={i + 1}
-                          className={`px-2 py-1 text-xs rounded min-w-[32px] ${
-                            currentPage === i + 1
-                              ? "bg-blue-600 text-white"
-                              : "bg-slate-700 text-white"
-                          }`}
-                          onClick={() => handlePageChange(i + 1)}
-                        >
-                          {i + 1}
-                        </button>
-                      ))}
-                      <button
-                        className="px-2 py-1 text-xs rounded bg-slate-700 text-white disabled:opacity-50 min-w-[60px]"
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="flex gap-1 xs:gap-2">
+        <div className="mt-5 space-y-4">
+          {paginatedRequests.map((request) => {
+            const isExpanded = Boolean(expandedRequests[request._id]);
+
+            return (
+              <article
+                key={request._id}
+                className="overflow-hidden rounded-2xl border border-border/70 bg-background/80 shadow-sm"
+              >
                 <button
-                  onClick={() => {
-                    setExpandedRequests({});
-                    setIsAddModalOpen(true);
-                  }}
-                  className="flex items-center justify-center gap-1 xs:gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 xs:px-4 xs:py-2.5 rounded-lg font-medium text-xs xs:text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+                  type="button"
+                  onClick={() => toggleRequestExpansion(request._id)}
+                  className="w-full px-4 py-4 text-left sm:px-5"
                 >
-                  <FiPlus className="text-base xs:text-lg" />
-                  <span>Add Request</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Requests List */}
-            <div className="space-y-3 sm:space-y-4 lg:space-y-6 w-full max-w-full">
-              {paginatedRequests.map((request, requestIndex) => (
-                <div
-                  key={request._id || requestIndex}
-                  className="bg-slate-800/50 backdrop-blur-sm rounded-lg sm:rounded-xl border border-slate-700 overflow-hidden transition-all duration-300 hover:border-slate-600 hover:shadow-lg hover:shadow-slate-900/20 text-xs xs:text-sm sm:text-base w-full max-w-full"
-                >
-                  {/* Request Header */}
-                  <div
-                    className="p-3 sm:p-4 lg:p-6 cursor-pointer group w-full max-w-full"
-                    onClick={() => toggleRequestExpansion(request._id)}
-                  >
-                    <div className="flex justify-between items-start gap-3 flex-wrap w-full max-w-full">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-col gap-2 sm:gap-3 mb-2 sm:mb-3">
-                          <div className="flex items-center gap-2 sm:gap-3">
-                            <h3 className="font-bold text-base sm:text-lg lg:text-xl text-white group-hover:text-blue-400 transition-colors truncate">
-                              {request.subjectCode}
-                            </h3>
-                            <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-                              <span className="bg-slate-700/50 border border-slate-600 text-slate-300 text-xs font-medium px-2 py-0.5 sm:px-3 sm:py-1 rounded-full">
-                                {request.branch}
-                              </span>
-                              <span className="bg-slate-700/50 border border-slate-600 text-slate-300 text-xs font-medium px-2 py-0.5 sm:px-3 sm:py-1 rounded-full">
-                                {parseInt(request.semester) === 1
-                                  ? "C Cycle"
-                                  : parseInt(request.semester) === 2
-                                  ? "P Cycle"
-                                  : `Sem ${request.semester}`}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-400">
-                          <div className="flex items-center gap-1.5 sm:gap-2">
-                            <Calendar className="text-slate-500 w-3 h-3 sm:w-4 sm:h-4" />
-                            Posted{" "}
-                            {new Date(request.postedAt).toLocaleDateString()}
-                          </div>
-
-                          <div className="flex items-center gap-1.5 sm:gap-2">
-                            <span className="text-slate-500">Documents:</span>
-                            {request.documents.length}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 sm:gap-4">
-                        {getStatusBadge(request.status)}
-                        <button
-                          onClick={(e) => {
-                            setExpandedRequests({});
-                            e.stopPropagation();
-                            setDeleteRequestId(request._id);
-                          }}
-                          className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-md transition-colors"
-                          title="Delete request"
-                        >
-                          <FiTrash2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </button>
-                        <button className="text-slate-400 hover:text-white transition-colors p-0.5 sm:p-1">
-                          {expandedRequests[request._id] ? (
-                            <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" />
-                          )}
-                        </button>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <h3 className="truncate text-lg font-semibold">
+                        {request.subjectCode || "Untitled Subject"}
+                      </h3>
+                      <p className="truncate text-sm text-muted-foreground">
+                        {request.subject || "No subject name"}
+                      </p>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                        <span className="inline-flex items-center gap-1">
+                          <Calendar className="h-3.5 w-3.5" />
+                          {request.postedAt
+                            ? new Date(request.postedAt).toLocaleDateString()
+                            : "Unknown date"}
+                        </span>
+                        <span className="rounded-full border border-border/70 bg-muted/55 px-2 py-0.5">
+                          {request.branch} - {semesterLabel(request.semester)}
+                        </span>
+                        <span className="rounded-full border border-border/70 bg-muted/55 px-2 py-0.5">
+                          {request.documents?.length || 0} document(s)
+                        </span>
                       </div>
                     </div>
-                  </div>
-                  <AnimatePresence>
-                    {/* Expanded Content  */}
-                    {expandedRequests[request._id] && (
-                      <motion.div
-                        initial={{ height: 0 }}
-                        animate={{ height: "auto" }}
-                        exit={{ height: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="border-t border-slate-700/50 relative overflow-x-auto w-full max-w-full"
+
+                    <div className="flex items-center gap-2 self-start">
+                      <span
+                        className={`rounded-full border px-2.5 py-1 text-[11px] ${requestStatusClass[request.status] || requestStatusClass.pending}`}
                       >
-                        <div className="p-3 sm:p-4 lg:p-6 pt-3 sm:pt-4 w-full max-w-full">
-                          <div className="space-y-3 sm:space-y-4 w-full max-w-full">
-                            {request.documents.map(
-                              (document, documentIndex) => {
-                                const filesKey = `${request._id}-${document._id}`;
-                                const filesExpanded = expandedFiles[filesKey];
-                                const showExpand =
-                                  document.files && document.files.length > 1;
-                                // Prefer showing: approved > pending > reviewing > rejected
-                                let sortedFiles = document.files
-                                  ? [...document.files]
-                                  : [];
-                                sortedFiles.sort((a, b) => {
-                                  const statusOrder = {
-                                    approved: 0,
-                                    pending: 1,
-                                    reviewing: 2,
-                                    rejected: 3,
-                                  };
-                                  return (
-                                    (statusOrder[a.status] ?? 99) -
-                                    (statusOrder[b.status] ?? 99)
-                                  );
-                                });
-                                const filesToShow =
-                                  showExpand && !filesExpanded
-                                    ? [sortedFiles[0]]
-                                    : sortedFiles;
+                        {request.status || "pending"}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setDeleteRequestId(request._id);
+                        }}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose-500/30 bg-rose-500/10 text-rose-600 transition hover:bg-rose-500/20"
+                        aria-label="Delete request"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+
+                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border/70 text-muted-foreground">
+                        {isExpanded ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden border-t border-border/70"
+                    >
+                      <div className="space-y-3 px-4 py-4 sm:px-5">
+                        {(request.documents || []).map(
+                          (document, documentIndex) => {
+                            const files = [...(document.files || [])].sort(
+                              (a, b) => {
+                                const order = {
+                                  approved: 0,
+                                  pending: 1,
+                                  reviewing: 2,
+                                  rejected: 3,
+                                };
                                 return (
-                                  <div
-                                    key={`${document._id}-${documentIndex}`}
-                                    className="bg-slate-900/50 rounded-lg sm:rounded-xl border border-slate-700/50 p-2 xs:p-3 sm:p-4 lg:p-5 transition-all duration-200 hover:border-slate-600/50 relative overflow-x-auto w-full max-w-full"
-                                  >
-                                    {/* Document Header */}
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 sm:mb-4 gap-2 sm:gap-3">
-                                      {document.files?.length > 1 &&
-                                        !document.files.some(
-                                          (ele) =>
-                                            ele.status === "reviewing" ||
-                                            ele.status === "approved"
-                                        ) &&
-                                        request.status === "pending" && (
-                                          <span className="absolute top-0 right-0 translate-x-0 px-2 py-1 bg-amber-500/20 text-amber-400 text-xs rounded-full border border-amber-500/30 z-10">
-                                            {" "}
-                                            Accept only one document
-                                          </span>
-                                        )}
-                                      <div className="flex items-center gap-2 sm:gap-3">
-                                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
-                                          <BookOpenText className="text-blue-400 w-3 h-3 sm:w-4 sm:h-4" />
-                                        </div>
-                                        <div className="min-w-0">
-                                          <p className="font-medium text-sm sm:text-base text-white truncate">
-                                            {document.name || "N/A"}
-                                          </p>
-                                          <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-slate-400">
-                                            <span className="flex gap-1 items-center justify-center">
-                                              <Info className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                                              <span className="text-slate-500">
-                                                {(document?.description
-                                                  ?.length > 25
-                                                  ? document?.description?.slice(
-                                                      0,
-                                                      23
-                                                    ) + "..."
-                                                  : document.description) ||
-                                                  "No description provided"}
-                                              </span>
-                                            </span>
-                                            <span className="flex gap-1 items-center justify-center">
-                                              <span className="text-slate-500 flex justify-center items-center gap-1">
-                                                {document.files?.length == 0 ||
-                                                  (document.files?.every(
-                                                    (ele) =>
-                                                      ele.status === "rejected"
-                                                  ) && (
-                                                    <>
-                                                      <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                                                      <span>
-                                                        Awaiting contribution
-                                                      </span>
-                                                    </>
-                                                  ))}
-                                              </span>
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                      <div className="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 bg-slate-800/50 rounded-full text-xs font-medium text-slate-300 border border-slate-700/50 hover:border-slate-600/50 transition-colors">
-                                        {document.type || "N/A"}
-                                      </div>
+                                  (order[a.status] ?? 99) -
+                                  (order[b.status] ?? 99)
+                                );
+                              },
+                            );
+
+                            const filesKey = `${request._id}-${document._id}`;
+                            const filesExpanded = Boolean(
+                              expandedFiles[filesKey],
+                            );
+                            const showExpand = files.length > 1;
+                            const filesToShow =
+                              showExpand && !filesExpanded ? [files[0]] : files;
+
+                            return (
+                              <div
+                                key={
+                                  document._id ||
+                                  `${request._id}-${documentIndex}`
+                                }
+                                className="rounded-xl border border-border/70 bg-muted/30 p-3"
+                              >
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                  <div className="min-w-0">
+                                    <div className="inline-flex items-center gap-2">
+                                      <BookOpenText className="h-4 w-4 text-primary" />
+                                      <p className="text-sm font-medium sm:text-base">
+                                        {document.name || "Untitled Item"}
+                                      </p>
                                     </div>
-                                    {/* Files */}
-                                    <div className="space-y-2 sm:space-y-3 w-full max-w-full">
-                                      {filesToShow &&
-                                        filesToShow.map((file, fileIndex) => (
-                                          <div
-                                            key={`${document._id}-${fileIndex}-${file.fileId}`}
-                                            className="bg-slate-800/50 rounded-lg border border-slate-700/50 p-2 xs:p-3 sm:p-4 transition-all duration-200 hover:border-slate-600/50 w-full max-w-full break-words"
-                                          >
-                                            <div className="flex flex-col gap-3 sm:gap-4 w-full max-w-full">
-                                              {/* File Info */}
-                                              <div className="flex items-start gap-2 sm:gap-3 flex-wrap w-full max-w-full">
-                                                <div
-                                                  className={getFileStatusIndicator(
-                                                    file.status
-                                                  )}
-                                                />
-                                                <div className="flex-1 min-w-0 w-full max-w-full">
-                                                  <h4 className="font-medium text-xs xs:text-sm sm:text-base text-white break-words break-all w-full max-w-full whitespace-normal">
-                                                    {file.fileName}
-                                                  </h4>
-                                                  <span className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-slate-400">
-                                                    <p className="text-xs sm:text-xs text-slate-400 truncate mt-0.5 sm:mt-1 flex items-center">
-                                                      <Clock className="inline w-2 h-2 sm:w-3 sm:h-3 mr-1" />
-                                                      {new Date(
-                                                        file.contributedAt
-                                                      ).toLocaleDateString()}
-                                                    </p>
-                                                    <p className="text-xs sm:text-sm text-slate-400 truncate mt-0.5 sm:mt-1">
-                                                      <User className="inline w-2 h-2 sm:w-3 sm:h-3 mr-1" />
-                                                      {"@"}
-                                                      {file.contributedBy.split(
-                                                        "."
-                                                      )[0] ||
-                                                        "Anonymous Contributor"}
-                                                    </p>
-                                                  </span>
+                                    <p className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                      <Info className="h-3.5 w-3.5" />
+                                      {document.description ||
+                                        "No description provided"}
+                                    </p>
+                                  </div>
 
-                                                  {file.rejectionComment && (
-                                                    <div className="mt-2 p-2 sm:p-3 bg-red-500/10 border border-red-500/20 rounded-md">
-                                                      <p className="text-xs sm:text-sm text-red-400">
-                                                        <span className="font-medium">
-                                                          Rejection reason:
-                                                        </span>{" "}
-                                                        {file.rejectionComment}
-                                                      </p>
-                                                    </div>
-                                                  )}
+                                  <span
+                                    className={`rounded-full border px-2.5 py-1 text-[11px] ${fileTypeClass[document.type] || fileTypeClass.Other}`}
+                                  >
+                                    {document.type || "Other"}
+                                  </span>
+                                </div>
 
-                                                  {/* Status Badge */}
-                                                  <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-slate-400 mt-2">
-                                                    {file.status ===
-                                                    "pending" ? (
-                                                      <>
-                                                        <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                                                        <span className="text-slate-500">
-                                                          Waiting for your
-                                                          approval
-                                                        </span>
-                                                      </>
-                                                    ) : file.status ===
-                                                      "reviewing" ? (
-                                                      <>
-                                                        <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                                                        <span className="text-slate-500">
-                                                          Waiting for admin
-                                                          approval
-                                                        </span>
-                                                      </>
-                                                    ) : (
-                                                      <>
-                                                        <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                                                        <span className="text-slate-500">
-                                                          {"Contribution "}
-                                                          {file.status}
-                                                        </span>
-                                                      </>
-                                                    )}
-                                                  </div>
-                                                </div>
+                                {files.length === 0 ? (
+                                  <div className="mt-3 rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-700">
+                                    Awaiting contribution for this item.
+                                  </div>
+                                ) : (
+                                  <div className="mt-3 space-y-2">
+                                    {filesToShow.map((file) => (
+                                      <div
+                                        key={file.fileId}
+                                        className="rounded-lg border border-border/70 bg-background/80 p-3"
+                                      >
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                          <div className="min-w-0 flex-1">
+                                            <p className="break-all text-sm font-medium">
+                                              {file.fileName}
+                                            </p>
+                                            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                              <span className="inline-flex items-center gap-1">
+                                                <Clock className="h-3.5 w-3.5" />
+                                                {file.contributedAt
+                                                  ? new Date(
+                                                      file.contributedAt,
+                                                    ).toLocaleDateString()
+                                                  : "Unknown date"}
+                                              </span>
+                                              <span className="inline-flex items-center gap-1">
+                                                <User className="h-3.5 w-3.5" />
+                                                @
+                                                {file.contributedBy?.split(
+                                                  ".",
+                                                )[0] || "anonymous"}
+                                              </span>
+                                            </div>
+
+                                            {file.rejectionComment && (
+                                              <div className="mt-2 rounded-lg border border-rose-500/25 bg-rose-500/10 px-3 py-2 text-xs text-rose-700">
+                                                <span className="font-medium">
+                                                  Rejection reason:
+                                                </span>{" "}
+                                                {file.rejectionComment}
                                               </div>
+                                            )}
+                                          </div>
 
-                                              {/* File Actions Row */}
-                                              <div className="flex items-center justify-between gap-2 sm:gap-3">
-                                                {getFileTypeBadge(
-                                                  document.type
-                                                )}
-                                                <div className="flex items-center gap-1 sm:gap-4">
-                                                  <button
-                                                    className="p-1.5 sm:p-2 rounded-md bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white transition-all duration-200 border border-slate-600/50"
-                                                    title="View file"
-                                                    onClick={() => {
-                                                      setViewerFile(
-                                                        file?.webViewLink
-                                                      );
-                                                    }}
-                                                  >
-                                                    <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                  </button>
-                                                  <button
-                                                    className="p-1.5 sm:p-2 rounded-md bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white transition-all duration-200 border border-slate-600/50"
-                                                    title="Download file"
-                                                    onClick={() =>
-                                                      window.open(
-                                                        file.webContentLink,
-                                                        "_blank"
-                                                      )
-                                                    }
-                                                  >
-                                                    <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                  </button>
-                                                </div>
-                                              </div>
+                                          <div className="flex flex-col items-end gap-2">
+                                            <span
+                                              className={`rounded-full border px-2.5 py-1 text-[11px] ${fileStatusClass[file.status] || fileStatusClass.pending}`}
+                                            >
+                                              {file.status || "pending"}
+                                            </span>
 
-                                              {/* Action Buttons */}
-                                              {file.status === "pending" && (
-                                                <div className="pt-2 sm:pt-3 border-t border-slate-700/50">
-                                                  {activeRejection ===
-                                                  `${request._id}-${document._id}-${file.fileId}` ? (
-                                                    <div className="space-y-2 sm:space-y-3">
-                                                      <textarea
-                                                        value={rejectComment}
-                                                        onChange={(e) =>
-                                                          setRejectComment(
-                                                            e.target.value
-                                                          )
-                                                        }
-                                                        placeholder="Please provide a reason for rejection..."
-                                                        className="w-full p-2 sm:p-3 text-xs sm:text-sm bg-slate-900/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                                                        rows={2}
-                                                        required
-                                                      />
-                                                      <div className="flex justify-end gap-1.5 sm:gap-2">
-                                                        <button
-                                                          onClick={
-                                                            cancelRejection
-                                                          }
-                                                          className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white transition-all duration-200 border border-slate-600"
-                                                          disabled={isLoading}
-                                                        >
-                                                          Cancel
-                                                        </button>
-                                                        <button
-                                                          onClick={() =>
-                                                            handleAction(
-                                                              request._id,
-                                                              document._id,
-                                                              file.fileId,
-                                                              "rejected"
-                                                            )
-                                                          }
-                                                          className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 flex items-center gap-1 sm:gap-2 transition-all duration-200 border border-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                          disabled={
-                                                            !rejectComment.trim() ||
-                                                            isLoading
-                                                          }
-                                                        >
-                                                          <X className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                          {isLoading
-                                                            ? "Rejecting..."
-                                                            : "Reject"}
-                                                        </button>
-                                                      </div>
-                                                    </div>
-                                                  ) : (
-                                                    <div className="flex justify-end gap-1.5 sm:gap-2">
-                                                      <button
-                                                        onClick={() =>
-                                                          handleAction(
-                                                            request._id,
-                                                            document._id,
-                                                            file.fileId,
-                                                            "approved"
-                                                          )
-                                                        }
-                                                        className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm rounded-lg bg-green-600/20 hover:bg-green-600/30 text-green-400 hover:text-green-300 flex items-center gap-1 sm:gap-2 transition-all duration-200 border border-green-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                        disabled={isLoading}
-                                                      >
-                                                        <Check className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                        {isLoading
-                                                          ? "Accepting..."
-                                                          : "Accept"}
-                                                      </button>
-                                                      <button
-                                                        onClick={() =>
-                                                          startRejection(
-                                                            request._id,
-                                                            document._id,
-                                                            file.fileId
-                                                          )
-                                                        }
-                                                        className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 flex items-center gap-1 sm:gap-2 transition-all duration-200 border border-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                        disabled={isLoading}
-                                                      >
-                                                        <X className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                        Reject
-                                                      </button>
-                                                    </div>
-                                                  )}
-                                                </div>
-                                              )}
-
-                                              {file.status !== "pending" && (
-                                                <div className="pt-2 sm:pt-3 border-t border-slate-700/50">
-                                                  <div
-                                                    className={`inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-medium ${
-                                                      file.status === "approved"
-                                                        ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                                                        : file.status ===
-                                                          "reviewing"
-                                                        ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                                                        : "bg-red-500/20 text-red-400 border border-red-500/30"
-                                                    }`}
-                                                  >
-                                                    {file.status ===
-                                                    "approved" ? (
-                                                      <>
-                                                        <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
-                                                        Accepted
-                                                      </>
-                                                    ) : file.status ===
-                                                      "reviewing" ? (
-                                                      <>
-                                                        <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
-                                                        Reviewing
-                                                      </>
-                                                    ) : (
-                                                      <>
-                                                        <X className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
-                                                        Rejected
-                                                      </>
-                                                    )}
-                                                  </div>
-                                                </div>
-                                              )}
+                                            <div className="flex items-center gap-2">
+                                              <button
+                                                type="button"
+                                                onClick={() =>
+                                                  setViewerFile(
+                                                    file.webViewLink ||
+                                                      file.webContentLink,
+                                                  )
+                                                }
+                                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border/70 bg-background/85 transition hover:bg-accent"
+                                                title="View file"
+                                              >
+                                                <Eye className="h-4 w-4" />
+                                              </button>
+                                              <button
+                                                type="button"
+                                                onClick={() =>
+                                                  window.open(
+                                                    file.webContentLink,
+                                                    "_blank",
+                                                    "noopener,noreferrer",
+                                                  )
+                                                }
+                                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border/70 bg-background/85 transition hover:bg-accent"
+                                                title="Download file"
+                                              >
+                                                <Download className="h-4 w-4" />
+                                              </button>
                                             </div>
                                           </div>
-                                        ))}
-                                      {showExpand && (
-                                        <button
-                                          className="mt-2 text-xs text-blue-400 hover:underline focus:outline-none"
-                                          onClick={() =>
-                                            toggleFilesExpansion(
-                                              request._id,
-                                              document._id
-                                            )
-                                          }
-                                        >
-                                          {filesExpanded
-                                            ? `Show less`
-                                            : `Show all (${document.files.length}) files`}
-                                        </button>
-                                      )}
-                                    </div>
+                                        </div>
+
+                                        {file.status === "pending" && (
+                                          <div className="mt-3 flex justify-end gap-2 border-t border-border/70 pt-3">
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                openPreview(
+                                                  "approved",
+                                                  request._id,
+                                                  document._id,
+                                                  file,
+                                                )
+                                              }
+                                              className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-500/20"
+                                            >
+                                              <Check className="h-3.5 w-3.5" />
+                                              Accept
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                openPreview(
+                                                  "rejected",
+                                                  request._id,
+                                                  document._id,
+                                                  file,
+                                                )
+                                              }
+                                              className="inline-flex items-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-700 transition hover:bg-rose-500/20"
+                                            >
+                                              <X className="h-3.5 w-3.5" />
+                                              Reject
+                                            </button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+
+                                    {showExpand && (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          toggleFilesExpansion(
+                                            request._id,
+                                            document._id,
+                                          )
+                                        }
+                                        className="text-xs font-medium text-primary"
+                                      >
+                                        {filesExpanded
+                                          ? "Show less"
+                                          : `Show all (${files.length}) files`}
+                                      </button>
+                                    )}
                                   </div>
-                                );
-                              }
-                            )}
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              ))}
-            </div>
-            {/* Pagination Controls (bottom) - hidden on small screens, visible on md+ for redundancy */}
-            {totalPages > 1 && (
-              <div className="hidden xs:flex justify-center items-center gap-2 mt-8">
-                <button
-                  className="px-2 py-1 text-xs rounded bg-slate-700 text-white disabled:opacity-50 min-w-[60px]"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <button
-                    key={i + 1}
-                    className={`px-2 py-1 text-xs rounded min-w-[32px] ${
-                      currentPage === i + 1
-                        ? "bg-blue-600 text-white"
-                        : "bg-slate-700 text-white"
-                    }`}
-                    onClick={() => handlePageChange(i + 1)}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-                <button
-                  className="px-2 py-1 text-xs rounded bg-slate-700 text-white disabled:opacity-50 min-w-[60px]"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </button>
-              </div>
-            )}
+                                )}
+                              </div>
+                            );
+                          },
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </article>
+            );
+          })}
 
-            {/* Empty State */}
-            {requests.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-12 sm:py-16 lg:py-20 text-center">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-800/50 rounded-full flex items-center justify-center mb-4 sm:mb-6 border border-slate-700">
-                  <Book className="text-2xl sm:text-3xl text-slate-500" />
-                </div>
-                <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">
-                  No requests found
-                </h3>
-                <p className="text-sm sm:text-base text-slate-400 max-w-md px-4">
-                  You haven't made any resource requests yet. When you do,
-                  they'll appear here for you to manage.
-                </p>
-              </div>
-            )}
-          </div>
-          {deleteRequestId && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
-              <div className="bg-slate-900/50 backdrop-blur-lg rounded-lg shadow-lg border border-slate-800 w-full max-w-md">
-                <div className="p-6">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
-                      <FiAlertCircle className="w-6 h-6 text-red-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-white mb-1">
-                        Delete Request
-                      </h3>
-                      <p className="text-sm text-slate-400">
-                        Are you sure you want to delete this request? This
-                        action cannot be undone.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setDeleteRequestId(null)}
-                      className="flex-1 px-4 py-2.5 text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => handleDeleteRequest(deleteRequestId)}
-                      className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 flex items-center justify-center gap-2"
-                    >
-                      <FiTrash2 className="w-4 h-4" />
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="rounded-lg border border-border/70 bg-background/85 px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-muted-foreground">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                }
+                disabled={currentPage === totalPages}
+                className="rounded-lg border border-border/70 bg-background/85 px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Next
+              </button>
             </div>
           )}
         </div>
@@ -1355,123 +817,174 @@ const ViewRequests = () => {
             addNewItem={addNewItem}
             updateItem={updateItem}
             removeItem={removeItem}
-            isLoading={isLoading}
+            isLoading={isAddingRequest}
           />
         )}
       </AnimatePresence>
-      {/* File Preview Modal */}
+
       <AnimatePresence>
         {viewerFile && (
           <FileViewer url={viewerFile} onClose={() => setViewerFile(null)} />
         )}
+      </AnimatePresence>
 
-        {showPreviewModal && previewFile && (
-          <motion.div
-            className="fixed inset-0 mt-10 md:mt-1 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
+      <AnimatePresence>
+        {deleteRequestId && (
+          <ContributionModalPortal>
             <motion.div
-              className="bg-slate-900/50 backdrop-blur-lg rounded-lg shadow-lg border border-slate-800 w-full max-w-4xl"
-              variants={modalVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
+              className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-black/60 p-2 backdrop-blur-sm sm:items-center sm:p-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={(event) => {
+                if (event.target === event.currentTarget) {
+                  setDeleteRequestId(null);
+                }
+              }}
             >
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <h3 className="text-xl font-semibold text-white mb-2">
-                      Preview File
-                    </h3>
-                    <p className="text-sm text-slate-400">
-                      Please review the file before{" "}
-                      {previewAction?.type === "approved"
-                        ? "accepting"
-                        : "rejecting"}
-                    </p>
+              <motion.div
+                className="w-full max-w-md rounded-2xl border border-border/70 bg-card shadow-xl"
+                variants={modalVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+              >
+                <div className="p-5">
+                  <h3 className="text-lg font-semibold">Delete Request</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    This action cannot be undone. Do you want to continue?
+                  </p>
+
+                  <div className="mt-5 flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setDeleteRequestId(null)}
+                      className="flex-1 rounded-xl border border-border/70 bg-background/85 px-4 py-2.5 text-sm font-medium transition hover:bg-accent"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteRequest(deleteRequestId)}
+                      className="flex-1 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-rose-700"
+                    >
+                      Delete
+                    </button>
                   </div>
-                  <button
-                    onClick={() => {
-                      setShowPreviewModal(false);
-                      setPreviewFile(null);
-                      setPreviewAction(null);
-                    }}
-                    className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-                    disabled={isItLoading}
-                  >
-                    <FiX className="w-5 h-5" />
-                  </button>
                 </div>
-
-                <div className="bg-slate-800/50 rounded-lg border border-slate-700 p-4 mb-6">
-                  <iframe
-                    src={previewFile.webViewLink}
-                    className="w-full h-[60vh] rounded-lg"
-                    title="File Preview"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-3">
-                  <button
-                    onClick={() => {
-                      setShowPreviewModal(false);
-                      setPreviewFile(null);
-                      setPreviewAction(null);
-                    }}
-                    className="px-4 py-2.5 text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-lg font-medium transition-colors"
-                    disabled={isItLoading}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (previewAction?.type === "approved") {
-                        handleAccept();
-                      } else {
-                        handleReject();
-                      }
-                    }}
-                    className={`px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2
-                ${
-                  previewAction?.type === "approved"
-                    ? "bg-green-600 hover:bg-green-700 text-white"
-                    : "bg-red-600 hover:bg-red-700 text-white"
-                }`}
-                    disabled={isItLoading}
-                  >
-                    {isItLoading ? (
-                      previewAction?.type === "approved" ? (
-                        <>
-                          <Check className="w-4 h-4" />
-                          Accepting...
-                        </>
-                      ) : (
-                        <>
-                          <X className="w-4 h-4" />
-                          Rejecting...
-                        </>
-                      )
-                    ) : previewAction?.type === "approved" ? (
-                      <>
-                        <Check className="w-4 h-4" />
-                        Accept File
-                      </>
-                    ) : (
-                      <>
-                        <X className="w-4 h-4" />
-                        Reject File
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
+          </ContributionModalPortal>
         )}
       </AnimatePresence>
-    </>
+
+      <AnimatePresence>
+        {showPreviewModal && previewFile && previewAction && (
+          <ContributionModalPortal>
+            <motion.div
+              className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-black/60 p-2 backdrop-blur-sm sm:items-center sm:p-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={(event) => {
+                if (event.target === event.currentTarget && !isActionLoading) {
+                  closePreview();
+                }
+              }}
+            >
+              <motion.div
+                className="flex max-h-[calc(100dvh-1rem)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-xl sm:max-h-[calc(100dvh-2rem)]"
+                variants={modalVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+              >
+                <div className="min-h-0 overflow-y-auto p-4 sm:p-5">
+                  <div className="mb-4 flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-lg font-semibold sm:text-xl">
+                        Review Contribution
+                      </h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {previewAction.type === "approved"
+                          ? "Confirm acceptance after verifying the file."
+                          : "Provide a rejection reason before submitting."}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={closePreview}
+                      disabled={isActionLoading}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border/70 transition hover:bg-accent disabled:opacity-50"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="mb-4 rounded-xl border border-border/70 bg-muted/30 p-3">
+                    <iframe
+                      src={previewFile.webViewLink}
+                      className="h-[45vh] w-full rounded-lg sm:h-[58vh]"
+                      title="File Preview"
+                    />
+                  </div>
+
+                  {previewAction.type === "rejected" && (
+                    <div className="mb-4">
+                      <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                        Rejection Comment
+                      </label>
+                      <textarea
+                        value={rejectComment}
+                        onChange={(event) =>
+                          setRejectComment(event.target.value)
+                        }
+                        rows={3}
+                        placeholder="Explain clearly why this file does not satisfy the request..."
+                        className="w-full rounded-xl border border-border/70 bg-background/85 px-3 py-2.5 text-sm text-foreground shadow-sm transition focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={closePreview}
+                      disabled={isActionLoading}
+                      className="rounded-xl border border-border/70 bg-background/85 px-4 py-2.5 text-sm font-medium transition hover:bg-accent disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={submitPreviewAction}
+                      disabled={
+                        isActionLoading ||
+                        (previewAction.type === "rejected" &&
+                          !rejectComment.trim())
+                      }
+                      className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition disabled:opacity-50 ${
+                        previewAction.type === "approved"
+                          ? "bg-emerald-600 hover:bg-emerald-700"
+                          : "bg-rose-600 hover:bg-rose-700"
+                      }`}
+                    >
+                      {isActionLoading
+                        ? previewAction.type === "approved"
+                          ? "Accepting..."
+                          : "Rejecting..."
+                        : previewAction.type === "approved"
+                          ? "Accept File"
+                          : "Reject File"}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          </ContributionModalPortal>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 

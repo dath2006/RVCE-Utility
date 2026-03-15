@@ -1,78 +1,8 @@
-import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import React from "react";
-import {
-  Folder,
-  Description,
-  Add,
-  GetApp,
-  Visibility,
-} from "@mui/icons-material";
-import { useState } from "react";
-
-const Card = styled(motion.div)`
-  background: ${(props) => props.theme.surface};
-  padding: 1.5rem;
-  border-radius: 10px;
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-`;
-
-const Content = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: filter 0.3s ease;
-  ${(props) =>
-    props.$isblurred &&
-    `
-    filter: blur(2px);
-    opacity: 0.7;
-  `}
-`;
-
-const ActionOverlay = styled(motion.div)`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: ${(props) => props.theme.surface}CC;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1.5rem;
-`;
-
-const IconButton = styled(motion.button)`
-  background: ${(props) => props.theme.primary};
-  color: white;
-  border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-
-  &:hover {
-    background: ${(props) => props.theme.accent};
-  }
-`;
-
-const SubjectBadge = styled.div`
-  position: absolute;
-  top: -0.1rem;
-  right: 0.5rem;
-  background: ${(props) => props.theme.primary}33;
-  color: ${(props) => props.theme.primary};
-  padding: 0.25rem 0.75rem;
-  border-radius: 15px;
-  font-size: 0.8rem;
-`;
+import { Download, Eye, FileText, Folder, Plus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const FileCard = ({
   item,
@@ -89,6 +19,23 @@ const FileCard = ({
   const isMobile = typeof window !== "undefined" && "ontouchstart" in window;
 
   const showActions = activeCardId === item.id;
+
+  const getSubjectTag = () => {
+    if (!item.path || item.path.length < 3) {
+      return "";
+    }
+
+    const segment = item.path[2] || "";
+    const prefix = segment.split(" ")[0];
+
+    if (["ESC", "PLC", "ETC", "Basket"].includes(prefix)) {
+      return item.path[3] || segment;
+    }
+
+    return segment;
+  };
+
+  const subjectTag = getSubjectTag();
 
   const handleClick = (e) => {
     if (isFolder) {
@@ -115,74 +62,102 @@ const FileCard = ({
   }, [isMobile, showActions, setActiveCardId]);
 
   return (
-    <Card
-      className="file-card-action-area"
-      whilehover={!isMobile ? { scale: 1.02 } : undefined}
-      whiletap={{ scale: 0.98 }}
+    <motion.div
+      whileHover={!isMobile ? { scale: 1.02 } : undefined}
+      whileTap={{ scale: 0.985 }}
       onClick={handleClick}
       onMouseEnter={
         !isMobile ? () => !isFolder && setActiveCardId(item.id) : undefined
       }
       onMouseLeave={!isMobile ? () => setActiveCardId(null) : undefined}
+      className="file-card-action-area relative cursor-pointer overflow-hidden rounded-xl border border-border/70 bg-card p-5 text-card-foreground shadow-sm transition-colors hover:bg-accent/20"
     >
-      <Content $isblurred={showActions}>
-        {isFolder ? <Folder /> : <Description />}
-        <span>{item.name}</span>
-      </Content>
+      <div
+        className={`flex items-center gap-4 transition-all duration-200 ${
+          showActions ? "blur-[1px] opacity-70" : "opacity-100"
+        }`}
+      >
+        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-secondary-foreground">
+          {isFolder ? (
+            <Folder className="h-5 w-5" />
+          ) : (
+            <FileText className="h-5 w-5" />
+          )}
+        </span>
+        <p className="line-clamp-2 break-words text-sm font-medium leading-5">
+          {item.name}
+        </p>
+      </div>
 
-      {item.path && (
-        <SubjectBadge>
-          {["ESC", "PLC", "ETC", "Basket"].includes(item.path[2].split(" ")[0])
-            ? item.path[3]
-            : item.path[2]}
-        </SubjectBadge>
+      {subjectTag && (
+        <Badge
+          variant="outline"
+          className="absolute right-2 top-2 max-w-[55%] truncate rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-medium text-primary"
+        >
+          {subjectTag}
+        </Badge>
       )}
 
       <AnimatePresence>
         {!isFolder && showActions && (
-          <ActionOverlay
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={isMobile ? (e) => e.stopPropagation() : undefined}
+            className="absolute inset-0 flex items-center justify-center gap-3 bg-background/80 px-4 backdrop-blur-sm"
           >
-            <IconButton
-              whilehover={{ scale: 1.1 }}
-              whiletap={{ scale: 0.9 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                onAddToWorkspace(item);
-                if (isMobile) setActiveCardId(null);
-              }}
-            >
-              <Add />
-            </IconButton>
-            <IconButton
-              whilehover={{ scale: 1.1 }}
-              whiletap={{ scale: 0.9 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                onView(item);
-                if (isMobile) setActiveCardId(null);
-              }}
-            >
-              <Visibility />
-            </IconButton>
-            <IconButton
-              whilehover={{ scale: 1.1 }}
-              whiletap={{ scale: 0.9 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                onDownload(item);
-                if (isMobile) setActiveCardId(null);
-              }}
-            >
-              <GetApp />
-            </IconButton>
-          </ActionOverlay>
+            <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.94 }}>
+              <Button
+                type="button"
+                size="icon"
+                className="rounded-full"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddToWorkspace(item);
+                  if (isMobile) setActiveCardId(null);
+                }}
+                aria-label="Add file to workspace"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </motion.div>
+
+            <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.94 }}>
+              <Button
+                type="button"
+                size="icon"
+                className="rounded-full"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onView(item);
+                  if (isMobile) setActiveCardId(null);
+                }}
+                aria-label="View file"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            </motion.div>
+
+            <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.94 }}>
+              <Button
+                type="button"
+                size="icon"
+                className="rounded-full"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDownload(item);
+                  if (isMobile) setActiveCardId(null);
+                }}
+                aria-label="Download file"
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
-    </Card>
+    </motion.div>
   );
 };
 

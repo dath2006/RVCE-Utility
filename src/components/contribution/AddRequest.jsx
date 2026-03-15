@@ -1,16 +1,12 @@
 import React from "react";
 import { motion } from "framer-motion";
-import {
-  FiPlus,
-  FiX,
-  FiTag,
-  FiCalendar,
-  FiBook,
-  FiUpload,
-  FiFileText,
-} from "react-icons/fi";
-import { File } from "lucide-react";
+import { CalendarDays, FileText, Layers3, Plus, Tag, X } from "lucide-react";
+
+import ContributionModalPortal from "./ContributionModalPortal";
 import WaveLoader from "../Loading";
+
+const inputClass =
+  "w-full rounded-xl border border-border/70 bg-background/85 px-3 py-2.5 text-sm text-foreground shadow-sm transition focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20";
 
 const AddRequest = ({
   modalVariants,
@@ -24,259 +20,306 @@ const AddRequest = ({
   isLoading,
 }) => {
   return (
-    <motion.div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 mt-16"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
+    <ContributionModalPortal>
       <motion.div
-        className="bg-slate-900/50 backdrop-blur-lg rounded-lg shadow-lg border border-slate-800 w-full max-w-2xl  max-h-[90vh] "
-        variants={modalVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
+        className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-black/60 p-2 backdrop-blur-sm sm:items-center sm:p-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) {
+            setIsAddModalOpen(false);
+          }
+        }}
       >
-        {isLoading ? (
-          <div className="flex justify-center items-center min-h-[100px]">
-            <WaveLoader
-              size="3em"
-              primaryColor="hsl(220,90%,50%)"
-              secondaryColor="hsl(300,90%,50%)"
-            />
-          </div>
-        ) : (
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                <FiPlus className="text-indigo-400" />
-                Create New Request
-              </h2>
-              <button
-                onClick={() => setIsAddModalOpen(false)}
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-              >
-                <FiX className="w-5 h-5" />
-              </button>
+        <motion.div
+          className="flex max-h-[calc(100dvh-1rem)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-xl sm:max-h-[calc(100dvh-2rem)]"
+          variants={modalVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+        >
+          {isLoading ? (
+            <div className="flex min-h-[140px] items-center justify-center">
+              <WaveLoader
+                size="3em"
+                primaryColor="hsl(220,90%,50%)"
+                secondaryColor="hsl(300,90%,50%)"
+              />
             </div>
-
-            <form onSubmit={handleAddRequest} className="space-y-8">
-              <div className="overflow-y-auto max-h-[60vh]">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          ) : (
+            <>
+              <div className="border-b border-border/70 px-4 py-4 sm:px-6">
+                <div className="flex items-start justify-between gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      <FiTag className="inline w-4 h-4 mr-1" />
-                      Branch
-                    </label>
-                    <select
-                      value={newRequest.branch}
-                      onChange={(e) =>
-                        setNewRequest((prev) => ({
-                          ...prev,
-                          branch: e.target.value,
-                        }))
-                      }
-                      className="w-full bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 sm:p-4 transition-all duration-200 hover:border-slate-600/50 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      required
-                    >
-                      <option value="">Select Branch</option>
-                      {[
-                        "CSE",
-                        "ISE",
-                        "ECE",
-                        "EEE",
-                        "CV",
-                        "AIML",
-                        "BT",
-                        "CD",
-                        "CY",
-                        "ET",
-                        "AS",
-                        "CH",
-                        "IM",
-                        "ME",
-                      ].map((branch, index) => (
-                        <option key={`${branch}-${index}--`} value={branch}>
-                          {branch}
-                        </option>
-                      ))}
-                    </select>
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                      New Request
+                    </p>
+                    <h2 className="mt-1 text-xl font-semibold sm:text-2xl">
+                      Create Resource Request
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Add subject details and describe the exact resources you
+                      need.
+                    </p>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      <FiCalendar className="inline w-4 h-4 mr-1" />
-                      Semester
-                    </label>
-                    <select
-                      value={newRequest.semester}
-                      onChange={(e) =>
-                        setNewRequest((prev) => ({
-                          ...prev,
-                          semester: e.target.value,
-                        }))
-                      }
-                      className="w-full bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 sm:p-4 transition-all duration-200 hover:border-slate-600/50 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      required
-                    >
-                      <option value="">Select Semester</option>
-                      <option value={1}>Chem Cycle</option>
-                      <option value={2}>Phy Cycle</option>
-                      {[3, 4, 5, 6, 7, 8].map((num) => (
-                        <option key={num} value={num}>
-                          Semester {num}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      <FiBook className="inline w-4 h-4 mr-1" />
-                      Subject Code
-                    </label>
-                    <input
-                      type="text"
-                      value={newRequest.subjectCode}
-                      onChange={(e) =>
-                        setNewRequest((prev) => ({
-                          ...prev,
-                          subjectCode: e.target.value,
-                        }))
-                      }
-                      placeholder="Enter subject code"
-                      className="w-full bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 sm:p-4 transition-all duration-200 hover:border-slate-600/50 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      <File className="inline w-4 h-4 mr-1" />
-                      Subject Name
-                    </label>
-                    <input
-                      type="text"
-                      value={newRequest.subject}
-                      onChange={(e) =>
-                        setNewRequest((prev) => ({
-                          ...prev,
-                          subject: e.target.value,
-                        }))
-                      }
-                      placeholder="Enter subject name"
-                      className="w-full bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 sm:p-4 transition-all duration-200 hover:border-slate-600/50 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      required
-                    />
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddModalOpen(false)}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border/70 transition hover:bg-accent"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
+              </div>
 
-                <div className="mt-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <label className="block text-sm font-medium text-slate-300">
-                      <FiUpload className="inline w-4 h-4 mr-1" />
-                      Requested Items
-                    </label>
+              <form
+                onSubmit={handleAddRequest}
+                className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5"
+              >
+                <div className="space-y-6">
+                  <section className="rounded-2xl border border-border/70 bg-background/80 p-4 sm:p-5">
+                    <div className="mb-4 flex items-center gap-2">
+                      <Tag className="h-4 w-4 text-primary" />
+                      <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                        Request Details
+                      </h3>
+                    </div>
+
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                          Branch
+                        </label>
+                        <select
+                          value={newRequest.branch}
+                          onChange={(e) =>
+                            setNewRequest((prev) => ({
+                              ...prev,
+                              branch: e.target.value,
+                            }))
+                          }
+                          className={inputClass}
+                          required
+                        >
+                          <option value="">Select Branch</option>
+                          {[
+                            "CSE",
+                            "ISE",
+                            "ECE",
+                            "EEE",
+                            "CV",
+                            "AIML",
+                            "BT",
+                            "CD",
+                            "CY",
+                            "ET",
+                            "AS",
+                            "CH",
+                            "IM",
+                            "ME",
+                          ].map((branch) => (
+                            <option key={branch} value={branch}>
+                              {branch}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                          Semester
+                        </label>
+                        <select
+                          value={newRequest.semester}
+                          onChange={(e) =>
+                            setNewRequest((prev) => ({
+                              ...prev,
+                              semester: e.target.value,
+                            }))
+                          }
+                          className={inputClass}
+                          required
+                        >
+                          <option value="">Select Semester</option>
+                          <option value={1}>Chem Cycle</option>
+                          <option value={2}>Phy Cycle</option>
+                          {[3, 4, 5, 6, 7, 8].map((num) => (
+                            <option key={num} value={num}>
+                              Semester {num}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                          Subject Code
+                        </label>
+                        <input
+                          type="text"
+                          value={newRequest.subjectCode}
+                          onChange={(e) =>
+                            setNewRequest((prev) => ({
+                              ...prev,
+                              subjectCode: e.target.value,
+                            }))
+                          }
+                          placeholder="Example: CS222IA"
+                          className={inputClass}
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                          Subject Name
+                        </label>
+                        <input
+                          type="text"
+                          value={newRequest.subject}
+                          onChange={(e) =>
+                            setNewRequest((prev) => ({
+                              ...prev,
+                              subject: e.target.value,
+                            }))
+                          }
+                          placeholder="Example: C Programming"
+                          className={inputClass}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="rounded-2xl border border-border/70 bg-background/80 p-4 sm:p-5">
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <Layers3 className="h-4 w-4 text-primary" />
+                        <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                          Requested Items
+                        </h3>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={addNewItem}
+                        className="inline-flex items-center gap-1 rounded-lg border border-border/70 bg-background/85 px-3 py-2 text-sm font-medium transition hover:bg-accent"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Add Item
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      {newRequest.items.map((item, index) => (
+                        <div
+                          key={index}
+                          className="rounded-2xl border border-border/70 bg-muted/35 p-4"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="flex-1 space-y-3">
+                              <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_180px]">
+                                <div className="space-y-1.5">
+                                  <label className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                                    Item Name
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={item.name}
+                                    onChange={(e) =>
+                                      updateItem(index, "name", e.target.value)
+                                    }
+                                    placeholder="Example: Unit 5 sensors"
+                                    className={inputClass}
+                                    required
+                                  />
+                                </div>
+
+                                <div className="space-y-1.5">
+                                  <label className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                                    Type
+                                  </label>
+                                  <select
+                                    value={item.type}
+                                    onChange={(e) =>
+                                      updateItem(index, "type", e.target.value)
+                                    }
+                                    className={inputClass}
+                                  >
+                                    <option value="Notes">Notes</option>
+                                    <option value="QP">Question Paper</option>
+                                    <option value="Textbook">Textbook</option>
+                                    <option value="Lab">Lab</option>
+                                    <option value="Other">Other</option>
+                                  </select>
+                                </div>
+                              </div>
+
+                              <div className="space-y-1.5">
+                                <label className="inline-flex items-center gap-1 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                                  <FileText className="h-3.5 w-3.5" />
+                                  Description
+                                </label>
+                                <textarea
+                                  value={item.description}
+                                  onChange={(e) =>
+                                    updateItem(
+                                      index,
+                                      "description",
+                                      e.target.value,
+                                    )
+                                  }
+                                  placeholder="Mention specific units, lecturer notes, editions, or any context that helps contributors."
+                                  rows={3}
+                                  maxLength={200}
+                                  className={`${inputClass} min-h-[96px] resize-none`}
+                                />
+                              </div>
+                            </div>
+
+                            {newRequest.items.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeItem(index)}
+                                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-rose-500/20 text-rose-500 transition hover:bg-rose-500/10"
+                                aria-label="Remove request item"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+
+                  <div className="sticky bottom-0 flex flex-col gap-3 border-t border-border/70 bg-card/95 px-0 pb-0 pt-4 backdrop-blur sm:flex-row sm:justify-end">
                     <button
                       type="button"
-                      onClick={addNewItem}
-                      className="text-indigo-400 hover:text-indigo-300 text-sm font-medium flex items-center gap-1"
+                      disabled={isLoading}
+                      onClick={() => setIsAddModalOpen(false)}
+                      className="rounded-xl border border-border/70 bg-background/85 px-5 py-3 text-sm font-medium transition hover:bg-accent"
                     >
-                      <FiPlus className="w-4 h-4" />
-                      Add Item
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Create Request
                     </button>
                   </div>
-
-                  <div className="space-y-3">
-                    {newRequest.items.map((item, index) => (
-                      <div
-                        key={index}
-                        className="bg-slate-900/50 rounded-lg sm:rounded-xl border border-slate-700/50 p-3 sm:p-4 lg:p-5 transition-all duration-200 hover:border-slate-600/50"
-                      >
-                        <div className="flex gap-3 items-start">
-                          <div className="flex-1">
-                            <input
-                              type="text"
-                              value={item.name}
-                              onChange={(e) =>
-                                updateItem(index, "name", e.target.value)
-                              }
-                              placeholder="Item name (e.g., Unit 5 sensors)"
-                              className="w-full bg-slate-800 border border-slate-700 text-white rounded-md px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-slate-400"
-                              required
-                            />
-                            <select
-                              value={item.type}
-                              onChange={(e) =>
-                                updateItem(index, "type", e.target.value)
-                              }
-                              className="w-full bg-slate-800 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            >
-                              <option value="Notes">Notes</option>
-                              <option value="QP">Question Paper</option>
-                              <option value="Textbook">Textbook</option>
-                              <option value="Lab">Lab</option>
-                              <option value="Other">Other</option>
-                            </select>
-                            <div className="mt-3">
-                              <label className="block text-sm font-medium text-slate-300 mb-2">
-                                <FiFileText className="inline w-4 h-4 mr-1" />
-                                Description
-                              </label>
-                              <textarea
-                                value={item.description}
-                                onChange={(e) =>
-                                  updateItem(
-                                    index,
-                                    "description",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="(e.g. handwritten notes made by RSA mam)"
-                                rows={1}
-                                className="w-full bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 sm:p-4 transition-all duration-200 hover:border-slate-600/50 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-                                maxLength={200}
-                              />
-                            </div>
-                          </div>
-                          {newRequest.items.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removeItem(index)}
-                              className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-md transition-colors"
-                            >
-                              <FiX className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 </div>
-              </div>
-
-              <div className="flex gap-3 ">
-                <button
-                  disabled={isLoading}
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="flex-1 px-4 py-3 text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500"
-                >
-                  Cancel
-                </button>
-                <button
-                  disabled={isLoading}
-                  type="submit"
-                  className="flex-1 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  Create Request
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+              </form>
+            </>
+          )}
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </ContributionModalPortal>
   );
 };
 

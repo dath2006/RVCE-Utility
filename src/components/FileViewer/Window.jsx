@@ -1,18 +1,19 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { motion } from "framer-motion";
+import { LoaderCircle } from "lucide-react";
 import { useWindowContext } from "./WindowContext";
 import WindowControls from "./WindowControls";
-import { Maximize2 } from "lucide-react";
-import styled from "styled-components";
-import WaveLoader from "../Loading";
-import { motion } from "framer-motion";
-import { Close, Fullscreen, FullscreenExit } from "@mui/icons-material";
 
-const LoadingSpinner = styled(motion.div)`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 400px;
-`;
+const getInitialSize = () => {
+  if (typeof window === "undefined") {
+    return { width: 820, height: 620 };
+  }
+
+  return {
+    width: Math.min(Math.max(window.innerWidth * 0.72, 660), 1160),
+    height: Math.min(Math.max(window.innerHeight * 0.72, 420), 780),
+  };
+};
 
 const Window = ({ data }) => {
   const {
@@ -20,52 +21,46 @@ const Window = ({ data }) => {
     updateWindowState,
     removeWindow,
     activateWindow,
-    setSplitView,
   } = useWindowContext();
 
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [size, setSize] = useState({ width: 800, height: 600 });
+  const [size, setSize] = useState(getInitialSize);
   const [resizeType, setResizeType] = useState("none");
+  const [iframeKey, setIframeKey] = useState(0);
+  const [isIframeLoading, setIsIframeLoading] = useState(true);
+
   const windowRef = useRef(null);
   const dragPositionRef = useRef({ x: data.position.x, y: data.position.y });
   const rafRef = useRef();
-  const iframeRef = useRef(null);
-  const [iframeKey, setIframeKey] = useState(0);
 
-  // Handle clicking anywhere on the window to activate it
-  const handleWindowClick = (e) => {
-    e.stopPropagation();
+  const handleWindowClick = (event) => {
+    event.stopPropagation();
     activateWindow(data.id);
   };
 
-  // Handle window close
   const handleClose = () => {
     removeWindow(data.id);
   };
 
-  // Handle window minimize
   const handleMinimize = () => {
     updateWindowState(data.id, "minimized");
   };
 
-  // Handle window maximize/restore
   const handleMaximize = () => {
     updateWindowState(
       data.id,
-      data.state === "maximized" ? "normal" : "maximized"
+      data.state === "maximized" ? "normal" : "maximized",
     );
   };
 
-  // Reload handler
   const handleReload = useCallback(() => {
-    // Force iframe to reload by changing key
-    setIframeKey((k) => k + 1);
+    setIsIframeLoading(true);
+    setIframeKey((key) => key + 1);
   }, []);
 
-  // Start dragging process
-  const handleDragStart = (e) => {
+  const handleDragStart = (event) => {
     if (
       data.state === "maximized" ||
       data.state === "split-left" ||
@@ -74,29 +69,31 @@ const Window = ({ data }) => {
       return;
     }
 
-    e.preventDefault();
+    event.preventDefault();
+
     const rect = windowRef.current?.getBoundingClientRect();
-    if (rect) {
-      setDragOffset({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      });
-      setIsDragging(true);
-      activateWindow(data.id);
-      document.body.style.cursor = "grabbing";
+    if (!rect) {
+      return;
     }
+
+    setDragOffset({
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+    });
+
+    setIsDragging(true);
+    activateWindow(data.id);
+    document.body.style.cursor = "grabbing";
   };
 
-  // Handle resize start
-  const handleResizeStart = (e, type) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleResizeStart = (event, type) => {
+    event.preventDefault();
+    event.stopPropagation();
     setResizeType(type);
     setIsResizing(true);
     document.body.style.cursor = getCursorStyle(type);
   };
 
-  // Get cursor style based on resize type
   const getCursorStyle = (type) => {
     switch (type) {
       case "e":
@@ -116,48 +113,44 @@ const Window = ({ data }) => {
     }
   };
 
-  // Handle mouse movement while dragging or resizing
   useEffect(() => {
-    const handleMouseMove = (e) => {
+    const handleMouseMove = (event) => {
       if (isDragging) {
-        // Prevent dragging if mouse buttons are not pressed
-        if (e.buttons === 0) {
+        if (event.buttons === 0) {
           setIsDragging(false);
           document.body.style.cursor = "";
           return;
         }
 
-        const newX = e.clientX - dragOffset.x;
-        const newY = e.clientY - dragOffset.y;
+        const newX = event.clientX - dragOffset.x;
+        const newY = event.clientY - dragOffset.y;
 
-        // Calculate maximum offscreen amounts (40% of window size)
         const maxOffscreenX = size.width * 0.4;
         const maxOffscreenBottom = size.height * 0.4;
 
         dragPositionRef.current = {
           x: Math.max(
             -maxOffscreenX,
-            Math.min(newX, window.innerWidth - size.width + maxOffscreenX)
+            Math.min(newX, window.innerWidth - size.width + maxOffscreenX),
           ),
-          // Prevent dragging off the top, but allow 40% off the bottom
           y: Math.max(
             0,
             Math.min(
               newY,
-              window.innerHeight - size.height + maxOffscreenBottom
-            )
+              window.innerHeight - size.height + maxOffscreenBottom,
+            ),
           ),
         };
 
         if (rafRef.current) {
           cancelAnimationFrame(rafRef.current);
         }
+
         rafRef.current = requestAnimationFrame(() => {
           updateWindowPosition(data.id, dragPositionRef.current);
         });
       } else if (isResizing) {
-        // Prevent resizing if mouse buttons are not pressed
-        if (e.buttons === 0) {
+        if (event.buttons === 0) {
           setIsResizing(false);
           setResizeType("none");
           document.body.style.cursor = "";
@@ -165,7 +158,9 @@ const Window = ({ data }) => {
         }
 
         const rect = windowRef.current?.getBoundingClientRect();
-        if (!rect) return;
+        if (!rect) {
+          return;
+        }
 
         let newWidth = size.width;
         let newHeight = size.height;
@@ -174,62 +169,64 @@ const Window = ({ data }) => {
 
         switch (resizeType) {
           case "e":
-            newWidth = e.clientX - rect.left;
+            newWidth = event.clientX - rect.left;
             break;
           case "w":
-            newWidth = rect.right - e.clientX;
-            newX = e.clientX;
+            newWidth = rect.right - event.clientX;
+            newX = event.clientX;
             break;
           case "s":
-            newHeight = e.clientY - rect.top;
+            newHeight = event.clientY - rect.top;
             break;
           case "n":
-            newHeight = rect.bottom - e.clientY;
-            newY = Math.max(0, e.clientY); // Prevent resizing above top of screen
+            newHeight = rect.bottom - event.clientY;
+            newY = Math.max(0, event.clientY);
             break;
           case "se":
-            newWidth = e.clientX - rect.left;
-            newHeight = e.clientY - rect.top;
+            newWidth = event.clientX - rect.left;
+            newHeight = event.clientY - rect.top;
             break;
           case "sw":
-            newWidth = rect.right - e.clientX;
-            newHeight = e.clientY - rect.top;
-            newX = e.clientX;
+            newWidth = rect.right - event.clientX;
+            newHeight = event.clientY - rect.top;
+            newX = event.clientX;
             break;
           case "ne":
-            newWidth = e.clientX - rect.left;
-            newHeight = rect.bottom - e.clientY;
-            newY = Math.max(0, e.clientY); // Prevent resizing above top of screen
+            newWidth = event.clientX - rect.left;
+            newHeight = rect.bottom - event.clientY;
+            newY = Math.max(0, event.clientY);
             break;
           case "nw":
-            newWidth = rect.right - e.clientX;
-            newHeight = rect.bottom - e.clientY;
-            newX = e.clientX;
-            newY = Math.max(0, e.clientY); // Prevent resizing above top of screen
+            newWidth = rect.right - event.clientX;
+            newHeight = rect.bottom - event.clientY;
+            newX = event.clientX;
+            newY = Math.max(0, event.clientY);
+            break;
+          default:
             break;
         }
 
-        // Add bounds checking for resize
         const maxOffscreenX = size.width * 0.4;
         const maxOffscreenBottom = size.height * 0.4;
 
         newWidth = Math.max(
-          400,
-          Math.min(newWidth, window.innerWidth + maxOffscreenX)
+          420,
+          Math.min(newWidth, window.innerWidth + maxOffscreenX),
         );
         newHeight = Math.max(
           300,
-          Math.min(newHeight, window.innerHeight + maxOffscreenBottom)
+          Math.min(newHeight, window.innerHeight + maxOffscreenBottom),
         );
         newX = Math.max(
           -maxOffscreenX,
-          Math.min(newX, window.innerWidth - 100)
+          Math.min(newX, window.innerWidth - 100),
         );
         newY = Math.max(0, Math.min(newY, window.innerHeight - 100));
 
         if (rafRef.current) {
           cancelAnimationFrame(rafRef.current);
         }
+
         rafRef.current = requestAnimationFrame(() => {
           setSize({ width: newWidth, height: newHeight });
           updateWindowPosition(data.id, { x: newX, y: newY });
@@ -238,58 +235,67 @@ const Window = ({ data }) => {
     };
 
     const handleMouseUp = () => {
-      if (isDragging || isResizing) {
-        setIsDragging(false);
-        setIsResizing(false);
-        setResizeType("none");
-        document.body.style.cursor = "";
-
-        if (rafRef.current) {
-          cancelAnimationFrame(rafRef.current);
-          rafRef.current = null;
-        }
+      if (!isDragging && !isResizing) {
+        return;
       }
-    };
 
-    const handleMouseLeave = () => {
-      // Also handle when mouse leaves the window
-      if (isDragging || isResizing) {
-        handleMouseUp();
+      setIsDragging(false);
+      setIsResizing(false);
+      setResizeType("none");
+      document.body.style.cursor = "";
+
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
       }
     };
 
     if (isDragging || isResizing) {
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
-      document.addEventListener("mouseleave", handleMouseLeave);
       document.body.classList.add("select-none");
     }
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
-      document.removeEventListener("mouseleave", handleMouseLeave);
       document.body.classList.remove("select-none");
+
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
         rafRef.current = null;
       }
     };
-  }, [isDragging, isResizing, dragOffset, data.id, resizeType, size]);
+  }, [
+    data.id,
+    data.position.x,
+    data.position.y,
+    dragOffset.x,
+    dragOffset.y,
+    isDragging,
+    isResizing,
+    resizeType,
+    size.height,
+    size.width,
+    updateWindowPosition,
+  ]);
 
-  // Render nothing if minimized
   if (data.state === "minimized") {
     return null;
   }
 
-  // Determine window position and size classes based on state
   let positionStyle = {};
   let sizeClasses = "";
 
   switch (data.state) {
     case "maximized":
-      positionStyle = { top: 0, left: 0, right: 0, bottom: 0 };
-      sizeClasses = "w-full h-full";
+      positionStyle = {
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      };
+      sizeClasses = "h-full w-full rounded-none";
       break;
     case "split-left":
       positionStyle = {
@@ -318,38 +324,41 @@ const Window = ({ data }) => {
         transform: isDragging ? "scale(1.01)" : "scale(1)",
         transition: isDragging ? "none" : "transform 0.2s ease-out",
       };
+      break;
   }
 
-  const windowStyle = {
-    ...positionStyle,
-    zIndex: data.isActive ? 9999 : data.zIndex,
-  };
+  const isDark = localStorage.getItem("theme") === "dark";
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.8 }}
-      transition={{ duration: 0.2, ease: "easeInOut", damping: 20 }}
+      initial={{ opacity: 0, scale: 0.92, y: 12 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.92, y: 12 }}
+      transition={{ duration: 0.22, ease: "easeInOut" }}
       ref={windowRef}
-      className={`absolute bg-white rounded-lg shadow-xl overflow-hidden flex flex-col 
-                  ${sizeClasses} 
-                  ${data.isActive ? "ring-2 ring-blue-400" : ""}`}
-      style={windowStyle}
+      className={`absolute flex flex-col overflow-hidden border border-border/80 bg-background/95 shadow-2xl backdrop-blur-sm ${
+        sizeClasses || "rounded-2xl"
+      } ${data.isActive ? "ring-2 ring-primary/70" : "ring-1 ring-black/5"}`}
+      style={{
+        ...positionStyle,
+        zIndex: data.isActive ? 9999 : data.zIndex,
+      }}
       onClick={handleWindowClick}
     >
-      {/* Window Header */}
       <div
-        className={`px-6 py-1 select-none 
-                   flex items-center justify-between border-b border-gray-200
-                   cursor-grab active:cursor-grabbing ${
-                     localStorage.getItem("theme") === "dark"
-                       ? "bg-gray-800 text-white"
-                       : "bg-gradient-to-r from-gray-50 to-gray-100  text-gray-800"
-                   }`}
+        className={`select-none border-b px-3 py-1.5 ${
+          isDark
+            ? "border-slate-700 bg-slate-900/90 text-slate-100"
+            : "border-slate-200 bg-slate-50/90 text-slate-800"
+        } flex cursor-grab items-center justify-between active:cursor-grabbing`}
         onMouseDown={handleDragStart}
       >
-        <h3 className="text-lg font-medium  truncate">{data.title}</h3>
+        <div className="min-w-0 pr-2">
+          <h3 className="truncate text-sm font-semibold sm:text-base">
+            {data.title}
+          </h3>
+        </div>
+
         <WindowControls
           windowId={data.id}
           currentState={data.state}
@@ -360,20 +369,25 @@ const Window = ({ data }) => {
         />
       </div>
 
-      {/* Window Content */}
+      <div className="relative flex-1 overflow-hidden bg-muted/20">
+        {isIframeLoading && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/70 backdrop-blur-sm">
+            <LoaderCircle className="h-6 w-6 animate-spin text-primary" />
+          </div>
+        )}
 
-      <div className="flex-1 overflow-hidden bg-gray-50 relative">
         <iframe
           key={data.contentId + "-" + iframeKey}
           src={data.content}
           title={data.title}
-          className="w-full h-full border-0"
+          className="h-full w-full border-0"
           sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
           allow="autoplay; fullscreen;"
           allowFullScreen
+          onLoad={() => setIsIframeLoading(false)}
+          onError={() => setIsIframeLoading(false)}
         />
 
-        {/* Click overlay when window is not active */}
         {!data.isActive && (
           <div
             className="absolute inset-0 bg-black/5 transition-opacity"
@@ -382,40 +396,39 @@ const Window = ({ data }) => {
         )}
       </div>
 
-      {/* Resize handles */}
       {data.state === "normal" && (
         <>
           <div
-            className="absolute top-0 right-0 w-2 h-2 cursor-ne-resize"
-            onMouseDown={(e) => handleResizeStart(e, "ne")}
+            className="absolute right-0 top-0 h-2 w-2 cursor-ne-resize"
+            onMouseDown={(event) => handleResizeStart(event, "ne")}
           />
           <div
-            className="absolute top-0 left-0 w-2 h-2 cursor-nw-resize"
-            onMouseDown={(e) => handleResizeStart(e, "nw")}
+            className="absolute left-0 top-0 h-2 w-2 cursor-nw-resize"
+            onMouseDown={(event) => handleResizeStart(event, "nw")}
           />
           <div
-            className="absolute bottom-0 right-0 w-2 h-2 cursor-se-resize"
-            onMouseDown={(e) => handleResizeStart(e, "se")}
+            className="absolute bottom-0 right-0 h-2 w-2 cursor-se-resize"
+            onMouseDown={(event) => handleResizeStart(event, "se")}
           />
           <div
-            className="absolute bottom-0 left-0 w-2 h-2 cursor-sw-resize"
-            onMouseDown={(e) => handleResizeStart(e, "sw")}
+            className="absolute bottom-0 left-0 h-2 w-2 cursor-sw-resize"
+            onMouseDown={(event) => handleResizeStart(event, "sw")}
           />
           <div
-            className="absolute top-0 left-1/2 w-8 h-2 -translate-x-1/2 cursor-n-resize"
-            onMouseDown={(e) => handleResizeStart(e, "n")}
+            className="absolute left-1/2 top-0 h-2 w-8 -translate-x-1/2 cursor-n-resize"
+            onMouseDown={(event) => handleResizeStart(event, "n")}
           />
           <div
-            className="absolute bottom-0 left-1/2 w-8 h-2 -translate-x-1/2 cursor-s-resize"
-            onMouseDown={(e) => handleResizeStart(e, "s")}
+            className="absolute bottom-0 left-1/2 h-2 w-8 -translate-x-1/2 cursor-s-resize"
+            onMouseDown={(event) => handleResizeStart(event, "s")}
           />
           <div
-            className="absolute left-0 top-1/2 w-2 h-8 -translate-y-1/2 cursor-w-resize"
-            onMouseDown={(e) => handleResizeStart(e, "w")}
+            className="absolute left-0 top-1/2 h-8 w-2 -translate-y-1/2 cursor-w-resize"
+            onMouseDown={(event) => handleResizeStart(event, "w")}
           />
           <div
-            className="absolute right-0 top-1/2 w-2 h-8 -translate-y-1/2 cursor-e-resize"
-            onMouseDown={(e) => handleResizeStart(e, "e")}
+            className="absolute right-0 top-1/2 h-8 w-2 -translate-y-1/2 cursor-e-resize"
+            onMouseDown={(event) => handleResizeStart(event, "e")}
           />
         </>
       )}

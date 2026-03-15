@@ -1,70 +1,16 @@
-import React, { useEffect } from "react";
-import styled from "styled-components";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import FileCard from "./FileCard";
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { CheckCircle2, Download, LoaderCircle } from "lucide-react";
+
+import FileCard from "./FileCard";
 import FileViewer from "../../components/FileViewer";
-import { CheckCircle } from "@mui/icons-material";
 import { useWindowContext } from "../../components/FileViewer/WindowContext";
 import WindowManager from "../../components/FileViewer/WindowManager";
 import { useOverlay } from "../../contexts/NavigationContext";
 
-const DownloadStatus = styled(motion.div)`
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  background: ${(props) => props.theme.surface};
-  padding: 1rem 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  z-index: 1000;
-`;
-
-const Spinner = styled(motion.div)`
-  width: 20px;
-  height: 20px;
-  border: 2px solid ${(props) => props.theme.primary};
-  border-top-color: transparent;
-  border-radius: 50%;
-`;
-
-const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
-  padding-bottom: 5.5rem; /* Prevent bottom bar overlay */
-
-  @media (max-width: 900px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-    padding-bottom: 6.5rem;
-  }
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-    padding-bottom: 7.5rem;
-  }
-`;
-
-const Toast = styled(motion.div)`
-  position: fixed;
-  top: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #4caf50;
-  color: white;
-  padding: 1rem 2rem;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-`;
+const RECENT_FILES_KEY = "resources_recent_files";
+const MAX_RECENT_FILES = 10;
 
 const FileExplorer = ({
   currentPath,
@@ -72,6 +18,7 @@ const FileExplorer = ({
   filteredFiles,
   onPathChange,
   rootFolders,
+  recentOpenRequest,
 }) => {
   const [downloadStatus, setDownloadStatus] = useState(null);
   const [files, setFiles] = useState(() => {
@@ -79,20 +26,16 @@ const FileExplorer = ({
     return saved ? JSON.parse(saved) : [];
   });
   const [viewerFile, setViewerFile] = useState(null);
-  const [viewerModalId, setViewerModalId] = useState(0); // robust modal remount
-
-  // Initialize showViewer to false to prevent flash on mobile
+  const [viewerModalId, setViewerModalId] = useState(0);
   const [showViewer, setShowViewer] = useState(false);
-
   const [showToast, setShowToast] = useState(false);
-  const [activeCardId, setActiveCardId] = useState(null); // Only one card active
+  const [activeCardId, setActiveCardId] = useState(null);
+
   const { addWindow, getAllWindowsId, setWindows } = useWindowContext();
 
-  // Better mobile detection with state
   const [isMobile, setIsMobile] = useState(false);
 
-  // Register overlay when file viewer is open (either mobile or desktop)
-  useOverlay("fileViewer", isMobile && !!viewerFile);
+  useOverlay("resourcesFileViewer", isMobile && !!viewerFile);
 
   useEffect(() => {
     const checkIsMobile = () => {
@@ -101,12 +44,11 @@ const FileExplorer = ({
         ("ontouchstart" in window ||
           navigator.maxTouchPoints > 0 ||
           /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-            navigator.userAgent
+            navigator.userAgent,
           )) &&
         window.innerWidth <= 768;
       setIsMobile(mobile);
 
-      // Only set showViewer to true if not mobile and there are saved windows
       if (!mobile) {
         const saved = localStorage.getItem("windows");
         if (saved) {
@@ -126,7 +68,7 @@ const FileExplorer = ({
     if (downloadStatus === "ready") {
       timeoutId = setTimeout(() => {
         setDownloadStatus(null);
-      }, 3000); // Close after 3 seconds when ready
+      }, 3000);
     }
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
@@ -136,6 +78,29 @@ const FileExplorer = ({
   useEffect(() => {
     localStorage.setItem("workspace", JSON.stringify(files));
   }, [files]);
+
+  const trackRecentFile = (item) => {
+    if (!item?.id || !item?.webViewLink) {
+      return;
+    }
+
+    const nextFile = {
+      id: item.id,
+      name: item.name,
+      mimeType: item.mimeType,
+      webViewLink: item.webViewLink,
+      webContentLink: item.webContentLink,
+      path: item.path,
+      parentName: item.parentName,
+      lastViewedAt: Date.now(),
+    };
+
+    const saved = localStorage.getItem(RECENT_FILES_KEY);
+    const prev = saved ? JSON.parse(saved) : [];
+    const deduped = prev.filter((file) => file.id !== item.id);
+    const next = [nextFile, ...deduped].slice(0, MAX_RECENT_FILES);
+    localStorage.setItem(RECENT_FILES_KEY, JSON.stringify(next));
+  };
 
   const getCurrentFolder = () => {
     if (searchQuery) return filteredFiles;
@@ -158,7 +123,7 @@ const FileExplorer = ({
         item.parentName = currentPath[0];
       } else {
         item.parentName = ["ESC", "PLC", "ETC"].includes(
-          item.path[0].split(" ")[0]
+          item.path[0].split(" ")[0],
         )
           ? item.path[1]
           : item.path[0];
@@ -171,6 +136,8 @@ const FileExplorer = ({
   };
 
   const onView = (item) => {
+    trackRecentFile(item);
+
     if (!isMobile && getAllWindowsId().includes(item.id)) {
       setWindows((prev) =>
         prev.map((window) => {
@@ -178,42 +145,47 @@ const FileExplorer = ({
             return { ...window, state: "normal", isActive: true };
           }
           return window;
-        })
+        }),
       );
       return;
     }
 
-    // For mobile, use FileViewer modal
     if (isMobile) {
-      // Direct state update without setTimeout
       setViewerModalId((id) => id + 1);
       setViewerFile(item);
     } else {
-      // For desktop, use WindowManager
       setShowViewer(true);
       addWindow(item.name || "New Document", item.webViewLink, item.id);
     }
   };
 
+  useEffect(() => {
+    if (!recentOpenRequest?.id || !recentOpenRequest?.webViewLink) {
+      return;
+    }
+
+    onView(recentOpenRequest);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recentOpenRequest?.openedAt]);
+
   const onDownload = async (item) => {
     try {
-      // Show preparing status
       setDownloadStatus("preparing");
 
-      // Create iframe
       const iframe = document.createElement("iframe");
       iframe.style.display = "none";
       document.body.appendChild(iframe);
       iframe.src = item.webContentLink;
-      // Update status and trigger download
+
       setTimeout(() => {
         setDownloadStatus("ready");
       }, 4000);
 
-      // Cleanup
       iframe.onload = () => {
         setTimeout(() => {
-          document.body.removeChild(iframe);
+          if (iframe.parentNode) {
+            document.body.removeChild(iframe);
+          }
         }, 1000);
       };
     } catch (error) {
@@ -228,7 +200,7 @@ const FileExplorer = ({
 
   return (
     <>
-      <Grid>
+      <div className="grid grid-cols-1 gap-2 pb-[7.5rem] sm:grid-cols-2 sm:gap-3 sm:pb-[6.5rem] lg:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] lg:gap-4 lg:pb-[5.5rem]">
         {currentFolder.map((item) => (
           <FileCard
             key={item.id}
@@ -241,55 +213,59 @@ const FileExplorer = ({
             setActiveCardId={setActiveCardId}
           />
         ))}
-      </Grid>
+      </div>
 
       <AnimatePresence>
-        {/* Mobile FileViewer */}
         {isMobile && viewerFile && viewerFile.webViewLink && (
           <FileViewer
             key={`mobile-${viewerFile.id}-${viewerModalId}`}
             url={viewerFile.webViewLink}
+            title={viewerFile.name}
             onClose={handleCloseViewer}
           />
         )}
 
-        {/* Desktop WindowManager - only show if not mobile */}
         {!isMobile && showViewer && <WindowManager />}
 
         {downloadStatus && (
-          <DownloadStatus
+          <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-8 right-4 z-[1000] flex items-center gap-3 rounded-xl border border-border bg-background/95 px-4 py-3 text-sm shadow-lg backdrop-blur sm:right-8"
           >
             {downloadStatus === "preparing" && (
               <>
-                <Spinner
+                <motion.span
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                />
+                >
+                  <LoaderCircle className="h-5 w-5 text-primary" />
+                </motion.span>
                 <span>Preparing download...</span>
               </>
             )}
             {downloadStatus === "ready" && (
               <>
                 <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                  ✓
+                  <Download className="h-5 w-5 text-primary" />
                 </motion.span>
                 <span>Download ready!</span>
               </>
             )}
-          </DownloadStatus>
+          </motion.div>
         )}
+
         {showToast && (
-          <Toast
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
+            className="fixed left-1/2 top-20 z-[1000] flex -translate-x-1/2 items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-lg"
           >
-            <CheckCircle /> Added to workspace
-          </Toast>
+            <CheckCircle2 className="h-4 w-4" /> Added to workspace
+          </motion.div>
         )}
       </AnimatePresence>
     </>
@@ -306,8 +282,15 @@ FileExplorer.propTypes = {
       name: PropTypes.string.isRequired,
       mimeType: PropTypes.string.isRequired,
       children: PropTypes.array,
-    })
+    }),
   ).isRequired,
+  recentOpenRequest: PropTypes.shape({
+    id: PropTypes.string,
+    name: PropTypes.string,
+    webViewLink: PropTypes.string,
+    webContentLink: PropTypes.string,
+    openedAt: PropTypes.number,
+  }),
 };
 
 export default FileExplorer;

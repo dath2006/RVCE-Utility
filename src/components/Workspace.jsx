@@ -1,235 +1,100 @@
-import React, { useEffect } from "react";
-import styled from "styled-components";
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Description,
   Close,
-  GetApp,
+  Description,
   Fullscreen,
+  GetApp,
   Visibility,
 } from "@mui/icons-material";
-import FileViewer from "./FileViewer";
 
-const WorkspaceContainer = styled.div`
-  position: fixed;
-  bottom: ${(props) => (props.isOpen ? "0" : "-400px")};
-  left: 0;
-  right: 0;
-  height: 400px;
-  background: ${(props) => props.theme.surface};
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-  transition: bottom 0.3s ease;
-  z-index: 99;
+const getSubjectLabel = (file) => {
+  if (file?.parentName) return file.parentName;
+  if (!Array.isArray(file?.path) || file.path.length === 0) return "Resources";
 
-  ::-webkit-scrollbar {
-    width: 8px;
+  const first = file.path[0];
+  const prefix = first?.split(" ")?.[0] || "";
+  if (["ESC", "PLC", "ETC"].includes(prefix)) {
+    return file.path[1] || file.path[0] || "Resources";
   }
 
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
+  return file.path[0] || "Resources";
+};
 
-  ::-webkit-scrollbar-thumb {
-    background: ${(props) => props.theme.secondary};
-    border-radius: 4px;
-    opacity: 0;
-  }
-
-  &:hover::-webkit-scrollbar-thumb {
-    opacity: 1;
-  }
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  border-bottom: 1px solid ${(props) => props.theme.border};
-`;
-
-const Card = styled(motion.div)`
-  background: ${(props) => props.theme.surface};
-  padding: 1.5rem;
-  border-radius: 10px;
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-
-  @media (min-width: 540px) {
-    height: 100px;
-  }
-
-  @media (max-width: 540px) {
-    height: 100px;
-  }
-`;
-
-const Content = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: filter 0.3s ease;
-  ${(props) =>
-    props.isblurred &&
-    `
-    filter: blur(2px);
-    opacity: 0.7;
-  `}
-`;
-
-const SubjectBadge = styled.div`
-  position: absolute;
-  top: -0.1rem;
-  right: 0.5rem;
-  background: ${(props) => props.theme.primary}33;
-  color: ${(props) => props.theme.primary};
-  padding: 0.25rem 0.75rem;
-  border-radius: 15px;
-  font-size: 0.8rem;
-`;
-
-const ActionOverlay = styled(motion.div)`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: ${(props) => props.theme.surface}CC;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1.5rem;
-`;
-
-const IconButton = styled(motion.button)`
-  background: ${(props) => props.theme.primary};
-  color: white;
-  border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-
-  &:hover {
-    background: ${(props) => props.theme.accent};
-  }
-`;
-
-const FileGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
-  padding: 1rem;
-  overflow-y: auto;
-  height: calc(100% - 60px);
-  position: relative;
-
-  /* Custom Scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: ${(props) => props.theme.secondary}66;
-    border-radius: 3px;
-  }
-`;
-
-const DownloadStatus = styled(motion.div)`
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  background: ${(props) => props.theme.surface};
-  padding: 1rem 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  z-index: 1000;
-`;
-
-const Spinner = styled(motion.div)`
-  width: 20px;
-  height: 20px;
-  border: 2px solid ${(props) => props.theme.primary};
-  border-top-color: transparent;
-  border-radius: 50%;
-`;
+const ActionButton = ({ label, className, onClick, children }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    aria-label={label}
+    className={`inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-background text-foreground transition hover:scale-105 hover:bg-accent ${className}`}
+  >
+    {children}
+  </button>
+);
 
 const WorkspaceCard = ({ file, onRemove, onView, onDownload }) => {
-  const [showActions, setShowActions] = useState(false);
+  const subject = getSubjectLabel(file);
 
   return (
-    <Card
-      whilehover={{ scale: 1.02 }}
-      whiletap={{ scale: 0.98 }}
-      onMouseEnter={() => setShowActions(true)}
-      onMouseLeave={() => setShowActions(false)}
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -12 }}
+      className="rounded-2xl border border-border/70 bg-card p-3 shadow-sm sm:p-4"
     >
-      <Content isblurred={showActions}>
-        <Description />
-        <span>{file.name}</span>
-      </Content>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Description fontSize="small" />
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-foreground sm:text-base">
+              {file.name}
+            </p>
+            <p className="mt-1 line-clamp-1 text-xs text-muted-foreground sm:text-sm">
+              {subject}
+            </p>
+          </div>
+        </div>
 
-      <SubjectBadge>{file.parentName}</SubjectBadge>
+        <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary sm:text-xs">
+          {subject}
+        </span>
+      </div>
 
-      <AnimatePresence>
-        {showActions && (
-          <ActionOverlay
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <IconButton
-              whilehover={{ scale: 1.1 }}
-              whiletap={{ scale: 0.9 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemove(file.id);
-              }}
-            >
-              <Close />
-            </IconButton>
-            <IconButton
-              whilehover={{ scale: 1.1 }}
-              whiletap={{ scale: 0.9 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                onDownload(file);
-              }}
-            >
-              <GetApp />
-            </IconButton>
-            <IconButton
-              whilehover={{ scale: 1.1 }}
-              whiletap={{ scale: 0.9 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                onView(file);
-              }}
-            >
-              <Visibility />
-            </IconButton>
-          </ActionOverlay>
-        )}
-      </AnimatePresence>
-    </Card>
+      <div className="mt-3 flex items-center justify-end gap-2 border-t border-border/60 pt-3">
+        <ActionButton
+          label="Remove from workspace"
+          className="text-red-600 hover:bg-red-50"
+          onClick={() => onRemove(file.id)}
+        >
+          <Close fontSize="small" />
+        </ActionButton>
+        <ActionButton
+          label="Download file"
+          className="text-blue-600 hover:bg-blue-50"
+          onClick={() => onDownload(file)}
+        >
+          <GetApp fontSize="small" />
+        </ActionButton>
+        <ActionButton
+          label="View file"
+          className="text-emerald-600 hover:bg-emerald-50"
+          onClick={() => onView(file)}
+        >
+          <Visibility fontSize="small" />
+        </ActionButton>
+      </div>
+    </motion.div>
   );
 };
 
 const Workspace = ({ onClose, setViewerFile }) => {
   const [isOpen, setIsOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth < 768 : false,
+  );
   const [files, setFiles] = useState(() => {
     const saved = localStorage.getItem("workspace");
     return saved ? JSON.parse(saved) : [];
@@ -237,39 +102,61 @@ const Workspace = ({ onClose, setViewerFile }) => {
   const [downloadStatus, setDownloadStatus] = useState(null);
 
   useEffect(() => {
+    const onResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
     let timeoutId;
     if (downloadStatus === "ready") {
       timeoutId = setTimeout(() => {
         setDownloadStatus(null);
-      }, 3000); // Close after 3 seconds when ready
+      }, 2800);
     }
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
   }, [downloadStatus]);
 
-  // Prevent background scroll when workspace is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
     }
+
     return () => {
       document.body.style.overflow = "";
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    localStorage.setItem("workspace", JSON.stringify(files));
+  }, [files]);
+
+  const panelStyle = useMemo(() => {
+    if (isMobile) {
+      return {
+        top: "var(--app-nav-offset, 0px)",
+        height:
+          "calc(100dvh - var(--app-nav-offset, 0px) - env(safe-area-inset-bottom))",
+      };
+    }
+
+    return {
+      height: "min(78vh, 560px)",
+    };
+  }, [isMobile]);
+
   const handleRemoveFile = (id) => {
-    setFiles((prev) => {
-      const newFiles = prev.filter((file) => file.id !== id);
-      localStorage.setItem("workspace", JSON.stringify(newFiles));
-      return newFiles;
-    });
+    setFiles((prev) => prev.filter((file) => file.id !== id));
   };
 
   const handleClearAll = () => {
-    localStorage.setItem("workspace", "[]");
     setFiles([]);
   };
 
@@ -280,24 +167,23 @@ const Workspace = ({ onClose, setViewerFile }) => {
 
   const onDownload = async (item) => {
     try {
-      // Show preparing status
       setDownloadStatus("preparing");
 
-      // Create iframe
       const iframe = document.createElement("iframe");
       iframe.style.display = "none";
       document.body.appendChild(iframe);
       iframe.src = item.webContentLink;
-      // Update status and trigger download
+
       setTimeout(() => {
         setDownloadStatus("ready");
-      }, 4000);
+      }, 3200);
 
-      // Cleanup
       iframe.onload = () => {
         setTimeout(() => {
-          document.body.removeChild(iframe);
-        }, 1000);
+          if (iframe.parentNode) {
+            document.body.removeChild(iframe);
+          }
+        }, 800);
       };
     } catch (error) {
       console.error("Download failed:", error);
@@ -306,107 +192,92 @@ const Workspace = ({ onClose, setViewerFile }) => {
   };
 
   return (
-    <WorkspaceContainer isOpen={isOpen}>
-      <Header>
-        <h3>Workspace</h3>
-        <div className="flex gap-2">
-          <div
-            onClick={handleClearAll}
-            className="flex items-center px-4 mr-6 border border-red-400  hover:bg-red-400  py-1 rounded-full cursor-pointer"
-          >
-            Clear All
+    <>
+      <motion.div
+        initial={{ y: "100%" }}
+        animate={{ y: isOpen ? "0%" : "100%" }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 28, stiffness: 280 }}
+        style={panelStyle}
+        className="fixed inset-x-0 bottom-0 z-[1001] flex flex-col border-t border-border/80 bg-background/95 shadow-[0_-16px_40px_rgba(0,0,0,0.18)] backdrop-blur-xl"
+      >
+        <div className="flex items-center justify-between gap-3 border-b border-border/70 px-3 py-3 sm:px-5">
+          <div>
+            <h3 className="text-base font-semibold sm:text-lg">Workspace</h3>
+            <p className="text-xs text-muted-foreground sm:text-sm">
+              {files.length} file{files.length === 1 ? "" : "s"} pinned
+            </p>
           </div>
-          <IconButton
-            onClick={() => {
-              onClose();
-              setIsOpen(!isOpen);
-            }}
-          >
-            {isOpen ? <Close /> : <Fullscreen />}
-          </IconButton>
-        </div>
-      </Header>
-      <FileGrid>
-        {files.length === 0 ? (
-          <div
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: "100%",
-              height: "auto",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "1.5rem",
-              color: "#888",
-              textAlign: "center",
-              pointerEvents: "none",
-            }}
-          >
-            <img
-              src="/UserManual/image.png"
-              alt="Add files to workspace"
-              style={{
-                maxWidth: 400,
-                width: "100%",
-                height: "auto",
-                opacity: 0.85,
-                pointerEvents: "auto",
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleClearAll}
+              disabled={files.length === 0}
+              className="rounded-full border border-red-300 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4 sm:text-sm"
+            >
+              Clear all
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                setIsOpen(false);
               }}
-            />
-            <div style={{ fontSize: "1.1rem", maxWidth: 320 }}>
-              Your workspace is empty.
-              <br />
-              <span style={{ color: "#2563eb", fontWeight: 500 }}>
-                Add files to your workspace
-              </span>{" "}
-              for quick access. Use the <b>+</b> button on any file to add it
-              here!
-            </div>
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-foreground transition hover:bg-accent"
+              aria-label="Close workspace"
+            >
+              {isOpen ? <Close /> : <Fullscreen />}
+            </button>
           </div>
-        ) : (
-          files.map((file) => (
-            <WorkspaceCard
-              key={file.id}
-              file={file}
-              onRemove={handleRemoveFile}
-              onView={onView}
-              onDownload={onDownload}
-            />
-          ))
-        )}
-      </FileGrid>
+        </div>
+
+        <div className="relative flex-1 overflow-y-auto px-3 py-3 sm:px-5 sm:py-4">
+          {files.length === 0 ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
+              <img
+                src="/UserManual/image.png"
+                alt="Add files to workspace"
+                className="h-auto w-full max-w-sm opacity-85"
+              />
+              <p className="mt-4 max-w-md text-sm text-muted-foreground sm:text-base">
+                Your workspace is empty. Add files with the + button and they
+                will appear here for quick access.
+              </p>
+            </div>
+          ) : (
+            <AnimatePresence>
+              <div className="grid grid-cols-1 gap-3 pb-6 sm:grid-cols-2 lg:grid-cols-3">
+                {files.map((file) => (
+                  <WorkspaceCard
+                    key={file.id}
+                    file={file}
+                    onRemove={handleRemoveFile}
+                    onView={onView}
+                    onDownload={onDownload}
+                  />
+                ))}
+              </div>
+            </AnimatePresence>
+          )}
+        </div>
+      </motion.div>
+
       <AnimatePresence>
         {downloadStatus && (
-          <DownloadStatus
-            initial={{ opacity: 0, y: 50 }}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
+            exit={{ opacity: 0, y: 30 }}
+            className="fixed bottom-6 right-4 z-[1002] rounded-xl border border-border bg-card/95 px-4 py-3 text-sm shadow-xl backdrop-blur sm:right-8"
           >
-            {downloadStatus === "preparing" && (
-              <>
-                <Spinner
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                />
-                <span>Preparing download...</span>
-              </>
-            )}
-            {downloadStatus === "ready" && (
-              <>
-                <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                  ✓
-                </motion.span>
-                <span>Download ready!</span>
-              </>
-            )}
-          </DownloadStatus>
+            {downloadStatus === "preparing" && "Preparing download..."}
+            {downloadStatus === "ready" && "Download ready!"}
+          </motion.div>
         )}
       </AnimatePresence>
-    </WorkspaceContainer>
+    </>
   );
 };
 

@@ -13,7 +13,7 @@ function setAppHeight() {
   // For bottom bar positioning
   document.documentElement.style.setProperty(
     "--app-height",
-    `${window.innerHeight}px`
+    `${window.innerHeight}px`,
   );
 }
 
@@ -33,7 +33,7 @@ window.addEventListener(
   () => {
     setTimeout(setAppHeight, 500);
   },
-  { passive: true }
+  { passive: true },
 );
 
 // Support for Visual Viewport API (mobile browsers)
@@ -42,7 +42,7 @@ if (window.visualViewport) {
     passive: true,
   });
 }
- 
+
 // Handle page visibility changes (when returning from background)
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) {
@@ -67,6 +67,8 @@ createRoot(document.getElementById("root")).render(
     <Auth0Provider
       domain={import.meta.env.VITE_AUTH0_DOMAIN}
       clientId={import.meta.env.VITE_AUTH0_CLIENTID}
+      cacheLocation="localstorage"
+      useRefreshTokens={true}
       authorizationParams={{
         redirect_uri: window.location.origin,
         audience: import.meta.env.VITE_API_URL,
@@ -75,5 +77,5 @@ createRoot(document.getElementById("root")).render(
     >
       <App />
     </Auth0Provider>
-  </StrictMode>
+  </StrictMode>,
 );

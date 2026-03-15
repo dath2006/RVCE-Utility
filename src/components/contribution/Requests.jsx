@@ -1,52 +1,47 @@
-import React, { useState, useEffect, useRef } from "react";
-import {
-  FiPlus,
-  FiFilter,
-  FiChevronDown,
-  FiClock,
-  FiDownload,
-  FiEye,
-  FiX,
-  FiSearch,
-  FiUpload,
-  FiBook,
-  FiFileText,
-  FiUser,
-  FiCalendar,
-  FiTag,
-  FiCheck,
-} from "react-icons/fi";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useAuth0 } from "@auth0/auth0-react";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
+import {
+  CalendarDays,
+  Check,
+  Clock3,
+  Eye,
+  Filter,
+  FolderOpen,
+  Plus,
+  Search,
+  Upload,
+  X,
+} from "lucide-react";
+
 import FilterRequests from "./FilterRequests";
 import AddRequest from "./AddRequest";
-
+import ContributionModalPortal from "./ContributionModalPortal";
 import ViewRequestModal from "./ViewRequestModal";
-
 import WaveLoader from "../Loading";
 import useBottomBarVisibility from "../../hooks/useBottomBarVisibility";
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 },
-};
-
 const modalVariants = {
-  hidden: { opacity: 0, scale: 0.95 },
+  hidden: { opacity: 0, scale: 0.96 },
   visible: { opacity: 1, scale: 1 },
-  exit: { opacity: 0, scale: 0.95 },
+  exit: { opacity: 0, scale: 0.96 },
+};
+
+const typeStyles = {
+  Notes: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  QP: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+  Textbook: "bg-violet-500/10 text-violet-700 border-violet-500/20",
+  Lab: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  Other: "bg-slate-500/10 text-slate-700 border-slate-500/20",
+};
+
+const semesterLabel = (semester) => {
+  const value = Number(semester);
+  if (value === 1) return "C Cycle";
+  if (value === 2) return "P Cycle";
+  return `Sem ${semester}`;
 };
 
 const Requests = () => {
@@ -56,15 +51,11 @@ const Requests = () => {
     isLoading: isAuthLoading,
     getAccessTokenSilently,
   } = useAuth0();
+
   const [requests, setRequests] = useState([]);
   const [isLoadingRequests, setIsLoadingRequests] = useState(true);
   const [error, setError] = useState(null);
-  const [filters, setFilters] = useState({
-    semester: "",
-    branch: "",
-    subject: "",
-    subjectCode: "",
-  });
+  const [filters, setFilters] = useState({ semester: "", branch: "" });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -83,15 +74,14 @@ const Requests = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [pendingCancelIndex, setPendingCancelIndex] = useState(null);
-  const filterRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Use bottom bar visibility hooks for modals
+  const filterRef = useRef(null);
+
   useBottomBarVisibility(isAddModalOpen, "add-request-modal");
   useBottomBarVisibility(!!activeUpload, "upload-modal");
   useBottomBarVisibility(showCancelConfirm, "cancel-confirm-modal");
 
-  // Close filter dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (filterRef.current && !filterRef.current.contains(event.target)) {
@@ -103,10 +93,10 @@ const Requests = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Fetch requests from the server
   useEffect(() => {
     const fetchRequests = async () => {
-      if (!isAuthenticated || isAuthLoading) return;
+      if (!isAuthenticated || isAuthLoading || !user?.email) return;
+
       try {
         setIsLoadingRequests(true);
         const token = await getAccessTokenSilently();
@@ -116,13 +106,13 @@ const Requests = () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
-        setRequests(response.data);
+        setRequests(response.data || []);
         setError(null);
-      } catch (err) {
-        console.error("Error fetching requests:", err);
+      } catch (requestError) {
+        console.error("Error fetching requests:", requestError);
         setError("Failed to load requests. Please try again later.");
       } finally {
         setIsLoadingRequests(false);
@@ -130,25 +120,24 @@ const Requests = () => {
     };
 
     fetchRequests();
-  }, [isAuthenticated]);
+  }, [getAccessTokenSilently, isAuthLoading, isAuthenticated, user?.email]);
 
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
+  const handleFilterChange = (event) => {
+    const { name, value } = event.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
   const clearFilters = () => {
-    setFilters({ semester: "", branch: "", subject: "" });
+    setFilters({ semester: "", branch: "" });
     setSearchQuery("");
   };
 
-  const hasActiveFilters =
-    Object.values(filters).some((filter) => filter !== "") ||
-    searchQuery !== "";
+  const hasActiveFilters = Boolean(
+    filters.semester || filters.branch || searchQuery,
+  );
 
-  // Handle adding new request
-  const handleAddRequest = async (e) => {
-    e.preventDefault();
+  const handleAddRequest = async (event) => {
+    event.preventDefault();
     if (!isAuthenticated) return;
 
     try {
@@ -166,62 +155,88 @@ const Requests = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
-      if (response.data.success) {
-        // setRequests((prev) => [...prev, response.data.request]);
-        setIsAddModalOpen(false);
-        setNewRequest({
-          branch: "",
-          semester: "",
-          subject: "",
-          subjectCode: "",
-          items: [{ name: "", type: "Notes", description: "" }],
-        });
-        toast.success("Request created successfully");
-      } else {
+
+      if (!response.data.success) {
         throw new Error(response.data.message);
       }
-    } catch (err) {
-      console.error("Error creating request:", err);
-      alert("Failed to create request. Please try again.");
+
+      setIsAddModalOpen(false);
+      setNewRequest({
+        branch: "",
+        semester: "",
+        subject: "",
+        subjectCode: "",
+        items: [{ name: "", type: "Notes", description: "" }],
+      });
+      toast.success("Request created successfully");
+    } catch (requestError) {
+      console.error("Error creating request:", requestError);
+      toast.error("Failed to create request. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Filter requests based on search and filters
-  const filteredRequests = requests.filter((request) => {
-    const matchesSearch =
-      searchQuery === "" ||
-      request._id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      request.user.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      request.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      request.subjectCode?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      request.documents.some((item) =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredRequests = useMemo(() => {
+    return requests.filter((request) => {
+      const matchesSearch =
+        !searchQuery ||
+        request._id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        request.user?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        request.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        request.subjectCode
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        request.documents?.some((item) =>
+          item.name.toLowerCase().includes(searchQuery.toLowerCase()),
+        );
+
+      const matchesSemester =
+        !filters.semester || request.semester?.toString() === filters.semester;
+      const matchesBranch =
+        !filters.branch || request.branch === filters.branch;
+
+      return matchesSearch && matchesSemester && matchesBranch;
+    });
+  }, [filters.branch, filters.semester, requests, searchQuery]);
+
+  const openRequestsCount = useMemo(() => {
+    return filteredRequests.filter((request) =>
+      request.documents?.some(
+        (item) =>
+          !item.files ||
+          !item.files.some((file) =>
+            ["reviewing", "approved"].includes(file.status),
+          ),
+      ),
+    ).length;
+  }, [filteredRequests]);
+
+  const pendingItemsCount = useMemo(() => {
+    return filteredRequests.reduce((count, request) => {
+      const pendingItems = (request.documents || []).filter(
+        (item) =>
+          !item.files ||
+          !item.files.some((file) =>
+            ["reviewing", "approved"].includes(file.status),
+          ),
       );
+      return count + pendingItems.length;
+    }, 0);
+  }, [filteredRequests]);
 
-    const matchesSemester =
-      filters.semester === "" ||
-      request.semester.toString() === filters.semester;
-    const matchesBranch =
-      filters.branch === "" || request.branch === filters.branch;
-
-    return matchesSearch && matchesSemester && matchesBranch;
-  });
-  const handleFileSelect = (e, index) => {
-    const file = e.target.files[0];
+  const handleFileSelect = (event, index) => {
+    const file = event.target.files[0];
     if (!file) return;
 
-    // Validate file size (max 20MB)
-    const MAX_SIZE = 20 * 1024 * 1024; // 20MB in bytes
-    if (file.size > MAX_SIZE) {
+    const maxSize = 20 * 1024 * 1024;
+    if (file.size > maxSize) {
       toast.error("File size exceeds 20MB limit");
       return;
     }
 
-    // Validate file type
     const allowedTypes = [
       "application/pdf",
       "application/msword",
@@ -233,7 +248,7 @@ const Requests = () => {
 
     if (!allowedTypes.includes(file.type)) {
       toast.error(
-        "Invalid file type. Only PDF, DOC, DOCX, PPT, PPTX and TXT files are allowed"
+        "Invalid file type. Only PDF, DOC, DOCX, PPT, PPTX and TXT files are allowed",
       );
       return;
     }
@@ -243,14 +258,18 @@ const Requests = () => {
 
   const handleUpload = async (index) => {
     const file = selectedFiles[index];
-    if (!file || !isAuthenticated) return;
+    if (!file || !isAuthenticated || !selectedRequest) return;
+
     const document = selectedRequest.documents[activeUpload];
     if (!document) return;
+
     const uploadSessionId = crypto.randomUUID();
+
     try {
       setIsUploading(true);
       setActiveUpload(index);
       setUploadProgress((prev) => ({ ...prev, [index]: 0 }));
+
       const formData = new FormData();
       formData.append("file", file);
       formData.append("reqId", selectedRequest._id);
@@ -265,10 +284,10 @@ const Requests = () => {
           fullName: user.name,
           email: user.email,
           imageUrl: user.picture,
-        })
+        }),
       );
-      const token = await getAccessTokenSilently();
 
+      const token = await getAccessTokenSilently();
       const response = await axios.post(
         `${import.meta.env.VITE_UPLOAD_URL}/contribute`,
         formData,
@@ -279,28 +298,29 @@ const Requests = () => {
           },
           onUploadProgress: (progressEvent) => {
             const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
+              (progressEvent.loaded * 100) / progressEvent.total,
             );
             setUploadProgress((prev) => ({
               ...prev,
               [index]: percentCompleted,
             }));
           },
-        }
+        },
       );
 
       if (response.data.success) {
         toast.success("File uploaded successfully");
-        // Auto-close after successful upload
         setTimeout(() => {
           setActiveUpload(null);
           setSelectedFiles((prev) => ({ ...prev, [index]: null }));
           setUploadProgress((prev) => ({ ...prev, [index]: 0 }));
-        }, 1000);
+        }, 900);
       }
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error(error.response?.data?.message || "Failed to upload file");
+    } catch (uploadError) {
+      console.error("Upload error:", uploadError);
+      toast.error(
+        uploadError.response?.data?.message || "Failed to upload file",
+      );
       setActiveUpload(null);
       setUploadProgress((prev) => ({ ...prev, [index]: 0 }));
     } finally {
@@ -330,22 +350,22 @@ const Requests = () => {
   const addNewItem = () => {
     setNewRequest((prev) => ({
       ...prev,
-      items: [...prev.items, { name: "", type: "Notes" }],
+      items: [...prev.items, { name: "", type: "Notes", description: "" }],
     }));
   };
 
   const removeItem = (index) => {
     setNewRequest((prev) => ({
       ...prev,
-      items: prev.items.filter((_, i) => i !== index),
+      items: prev.items.filter((_, itemIndex) => itemIndex !== index),
     }));
   };
 
   const updateItem = (index, field, value) => {
     setNewRequest((prev) => ({
       ...prev,
-      items: prev.items.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item
+      items: prev.items.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, [field]: value } : item,
       ),
     }));
   };
@@ -355,68 +375,62 @@ const Requests = () => {
     setIsViewModalOpen(true);
   };
 
+  if (isLoadingRequests) {
+    return (
+      <div className="flex min-h-[340px] items-center justify-center py-10">
+        <WaveLoader
+          size="7em"
+          primaryColor="hsl(220,90%,50%)"
+          secondaryColor="hsl(300,90%,50%)"
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="requests-container w-full h-full p-4 md:p-6 bg-slate-900 overflow-hidden">
-      {/* Header Section */}
-      <motion.div
-        className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6"
-        initial="hidden"
-        animate="show"
-        variants={containerVariants}
-      >
-        <motion.div variants={itemVariants}>
-          <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
-            Resource Requests
-          </h1>
-          <p className="text-slate-400 text-sm">
-            {filteredRequests.length} request
-            {filteredRequests.length !== 1 ? "s" : ""} found
+    <div className="w-full rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm sm:p-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+            Requests Hub
           </p>
-        </motion.div>
+          <h2 className="mt-1 text-2xl font-semibold">Resource Requests</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Browse pending community requests, filter by branch or semester, and
+            contribute directly.
+          </p>
+        </div>
 
-        <motion.div
-          className="flex sm:flex-row gap-3  lg:w-auto"
-          variants={itemVariants}
-        >
-          <motion.button
-            whilehover={{ scale: 1.03 }}
-            whiletap={{ scale: 0.97 }}
+        <div className="flex flex-wrap items-center gap-2" ref={filterRef}>
+          <button
+            type="button"
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90"
           >
-            <FiPlus className="text-lg" />
-            <span>Add Request</span>
-          </motion.button>
+            <Plus className="h-4 w-4" />
+            Add Request
+          </button>
 
-          <div className="relative" ref={filterRef}>
-            <motion.button
-              whilehover={{ scale: 1.03 }}
-              whiletap={{ scale: 0.97 }}
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-slate-900 ${
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsFilterOpen((prev) => !prev)}
+              className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition ${
                 hasActiveFilters
-                  ? "bg-indigo-600 hover:bg-indigo-700 text-white"
-                  : "bg-slate-800 hover:bg-slate-700 text-white"
+                  ? "border-primary/30 bg-primary/10 text-primary"
+                  : "border-border/70 bg-background/80 text-foreground hover:bg-accent"
               }`}
             >
-              <FiFilter className="text-lg" />
-              <span>Filters</span>
+              <Filter className="h-4 w-4" />
+              Filters
               {hasActiveFilters && (
-                <motion.span
-                  className="bg-white text-indigo-600 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                >
-                  {Object.values(filters).filter((f) => f !== "").length +
-                    (searchQuery !== "" ? 1 : 0)}
-                </motion.span>
+                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold text-primary-foreground">
+                  {(filters.branch ? 1 : 0) +
+                    (filters.semester ? 1 : 0) +
+                    (searchQuery ? 1 : 0)}
+                </span>
               )}
-              <FiChevronDown
-                className={`transition-transform duration-200 ${
-                  isFilterOpen ? "rotate-180" : ""
-                }`}
-              />
-            </motion.button>
+            </button>
 
             <AnimatePresence>
               {isFilterOpen && (
@@ -427,267 +441,219 @@ const Requests = () => {
                   setSearchQuery={setSearchQuery}
                   filters={filters}
                   handleFilterChange={handleFilterChange}
+                  onClose={() => setIsFilterOpen(false)}
                 />
               )}
             </AnimatePresence>
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
 
-      {/* Active Filters Display */}
+      <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="rounded-xl border border-border/70 bg-background/80 px-2.5 py-3 sm:p-3">
+          <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground sm:text-xs sm:tracking-[0.14em]">
+            Visible Requests
+          </p>
+          <p className="mt-1 text-lg font-semibold sm:text-2xl">
+            {filteredRequests.length}
+          </p>
+        </div>
+        <div className="rounded-xl border border-border/70 bg-background/80 px-2.5 py-3 sm:p-3">
+          <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground sm:text-xs sm:tracking-[0.14em]">
+            Open Requests
+          </p>
+          <p className="mt-1 text-lg font-semibold sm:text-2xl">
+            {openRequestsCount}
+          </p>
+        </div>
+        <div className="rounded-xl border border-border/70 bg-background/80 px-2.5 py-3 sm:p-3">
+          <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground sm:text-xs sm:tracking-[0.14em]">
+            Pending Items
+          </p>
+          <p className="mt-1 text-lg font-semibold sm:text-2xl">
+            {pendingItemsCount}
+          </p>
+        </div>
+      </div>
+
       <AnimatePresence>
         {hasActiveFilters && (
           <motion.div
-            className="flex flex-wrap gap-2 mb-4"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
+            className="mt-4 flex flex-wrap gap-2"
           >
             {searchQuery && (
-              <motion.span
-                className="inline-flex items-center gap-1 bg-indigo-900/30 text-indigo-300 text-sm px-3 py-1 rounded-full"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-              >
-                Search: "{searchQuery}"
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="hover:text-indigo-200"
-                >
-                  <FiX className="text-xs" />
+              <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs text-primary">
+                Search: {searchQuery}
+                <button type="button" onClick={() => setSearchQuery("")}>
+                  <X className="h-3.5 w-3.5" />
                 </button>
-              </motion.span>
+              </span>
             )}
-            {Object.entries(filters).map(
-              ([key, value], index) =>
-                value && (
-                  <motion.span
-                    key={`${key}ddf${index}`}
-                    className="inline-flex items-center gap-1 bg-slate-700 text-slate-200 text-sm px-3 py-1 rounded-full"
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.8, opacity: 0 }}
-                  >
-                    {key}: {value}
-                    <button
-                      onClick={() =>
-                        setFilters((prev) => ({ ...prev, [key]: "" }))
-                      }
-                      className="hover:text-white"
-                    >
-                      <FiX className="text-xs" />
-                    </button>
-                  </motion.span>
-                )
+            {filters.semester && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-muted/55 px-3 py-1 text-xs text-foreground">
+                {semesterLabel(filters.semester)}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFilters((prev) => ({ ...prev, semester: "" }))
+                  }
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </span>
+            )}
+            {filters.branch && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-muted/55 px-3 py-1 text-xs text-foreground">
+                {filters.branch}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFilters((prev) => ({ ...prev, branch: "" }))
+                  }
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </span>
             )}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Requests Grid */}
-      {isLoadingRequests ? (
-        <div className="flex items-center justify-center py-12">
-          <WaveLoader
-            size="7em"
-            primaryColor="hsl(220,90%,50%)"
-            secondaryColor="hsl(300,90%,50%)"
-          />
+      {error ? (
+        <div className="mt-6 rounded-xl border border-rose-500/25 bg-rose-500/10 p-4 text-sm text-rose-600">
+          {error}
         </div>
-      ) : error ? (
-        <div className="text-center py-12">
-          <div className="text-red-400 mb-2">
-            <svg
-              className="w-12 h-12 mx-auto"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
+      ) : filteredRequests.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="inline-flex h-16 w-16 items-center justify-center rounded-full border border-dashed border-border/80 bg-muted/35">
+            <FolderOpen className="h-7 w-7 text-muted-foreground" />
           </div>
-          <p className="text-slate-300">{error}</p>
+          <h3 className="mt-4 text-xl font-medium">
+            {hasActiveFilters
+              ? "No matching requests found"
+              : "No requests found"}
+          </h3>
+          <p className="mt-2 max-w-md text-sm text-muted-foreground">
+            {hasActiveFilters
+              ? "Try adjusting your filters or search term to broaden the result set."
+              : "Be the first to create a resource request for the community."}
+          </p>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="mt-4 text-sm font-medium text-primary"
+            >
+              Clear all filters
+            </button>
+          )}
         </div>
       ) : (
         <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 overflow-y-auto max-h-[calc(100vh-215px)] pb-40"
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
         >
-          {filteredRequests.map((request, index) => (
-            <motion.div
-              key={
-                request._id
-                  ? `${request._id}dfd${index}`
-                  : `fallback-key-${index}`
-              }
-              className="bg-slate-800/50 backdrop-blur-sm rounded-lg sm:rounded-xl border border-slate-700 overflow-hidden transition-all duration-300 hover:border-slate-600 hover:shadow-lg hover:shadow-slate-900/20 flex flex-col h-full"
-              variants={itemVariants}
-              whilehover="hover"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              {/* Request Header */}
-              <div className="bg-gradient-to-r from-slate-700/50 to-slate-600/30 p-4 border-b border-slate-700">
-                <div className="flex justify-between items-start">
-                  <div className="min-w-0 flex-1 mr-2">
-                    <h2 className="text-lg font-semibold text-white">
-                      {request.subjectCode || "Untitled Request"}
-                    </h2>
-                    <h4 className="font-extralight text-slate-300 text-sm truncate">
-                      {request.subject || "N/A"}
-                    </h4>
-                    {/* <p className="text-sm text-indigo-400 truncate">
-                      {"@"}
-                      {request.user.split(".")[0]}{" "}
-                    </p> */}
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="bg-slate-600/80 text-slate-200 text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap">
-                      {request.branch}
-                    </span>
-                    <span className="bg-slate-600/80 text-slate-200 text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap">
-                      {parseInt(request.semester) === 1
-                        ? "C Cycle"
-                        : parseInt(request.semester) === 2
-                        ? "P Cycle"
-                        : `Sem ${request.semester}`}
-                    </span>
+          {filteredRequests.map((request, index) => {
+            const pendingDocuments = (request.documents || []).filter(
+              (item) =>
+                !item.files ||
+                !item.files.some((file) =>
+                  ["reviewing", "approved"].includes(file.status),
+                ),
+            );
+
+            return (
+              <motion.article
+                key={request._id || `${request.subjectCode}-${index}`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, delay: index * 0.03 }}
+                className="flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-background/80 shadow-sm"
+              >
+                <div className="border-b border-border/70 px-4 py-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="truncate text-lg font-semibold">
+                        {request.subjectCode || "Untitled Request"}
+                      </h3>
+                      <p className="truncate text-sm text-muted-foreground">
+                        {request.subject || "No subject name"}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-1">
+                      <span className="rounded-full border border-border/70 bg-muted/55 px-2.5 py-1 text-[11px] text-muted-foreground">
+                        {request.branch}
+                      </span>
+                      <span className="rounded-full border border-border/70 bg-muted/55 px-2.5 py-1 text-[11px] text-muted-foreground">
+                        {semesterLabel(request.semester)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              {/* Request Items */}
-              <div className="p-4 space-y-3 flex-grow overflow-y-auto max-h-48">
-                {request.documents.map((item, itemIndex) => {
-                  if (
-                    !item.files ||
-                    !item.files.some((file) =>
-                      ["reviewing", "approved"].includes(file.status)
-                    )
-                  ) {
-                    return (
+
+                <div className="flex flex-1 flex-col px-4 py-4">
+                  <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1">
+                      <Clock3 className="h-3.5 w-3.5" />
+                      {new Date(request.postedAt).toLocaleDateString()}
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-primary">
+                      {pendingDocuments.length} pending
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {pendingDocuments.slice(0, 3).map((item, itemIndex) => (
                       <div
-                        key={item._id || item.name || itemIndex}
-                        className="flex items-center justify-between p-2.5 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors group"
+                        key={item._id || `${item.name}-${itemIndex}`}
+                        className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-muted/35 px-3 py-2.5"
                       >
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div
-                            className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
-                              item.type === "Notes"
-                                ? "bg-blue-500"
-                                : item.type === "QP"
-                                ? "bg-green-500"
-                                : item.type === "Textbook"
-                                ? "bg-purple-500"
-                                : "bg-amber-500"
-                            }`}
-                          ></div>
-                          <p
-                            className="text-sm text-slate-200 truncate group-hover:text-white transition-colors"
-                            title={item.name}
-                          >
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium">
                             {item.name}
                           </p>
                         </div>
                         <span
-                          className={`text-xs font-medium px-2 py-1 rounded-full flex-shrink-0 ml-2 ${
-                            item.type === "Notes"
-                              ? "bg-blue-900/30 text-blue-400"
-                              : item.type === "QP"
-                              ? "bg-green-900/30 text-green-400"
-                              : item.type === "Textbook"
-                              ? "bg-purple-900/30 text-purple-400"
-                              : "bg-amber-900/30 text-amber-400"
+                          className={`shrink-0 rounded-full border px-2 py-0.5 text-[11px] ${
+                            typeStyles[item.type] || typeStyles.Other
                           }`}
                         >
                           {item.type}
                         </span>
                       </div>
-                    );
-                  }
-                  return null;
-                })}
-              </div>
-              {/* /* Request Footer */}
-              <div className="p-4 border-t border-slate-700 flex items-center justify-between bg-slate-800/50 min-h-[80px]">
-                <div className="mr-3 flex flex-col gap-2 min-w-0 flex-1">
-                  <p
-                    className="text-sm text-indigo-400 truncate max-w-[120px] sm:max-w-[180px]"
-                    title={request.user}
-                  >
-                    {"@"}
-                    {request.user.split(".")[0]}{" "}
-                  </p>
-                  <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                    <FiClock className="text-slate-500 flex-shrink-0" />
-                    <span className="truncate">
-                      Posted {new Date(request.postedAt).toLocaleDateString()}
-                    </span>
+                    ))}
+
+                    {pendingDocuments.length > 3 && (
+                      <p className="text-xs text-muted-foreground">
+                        +{pendingDocuments.length - 3} more item(s)
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between border-t border-border/70 pt-3">
+                    <p className="truncate text-xs text-muted-foreground">
+                      @{request.user?.split(".")?.[0] || "unknown"}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => handleViewRequest(request)}
+                      className="inline-flex items-center gap-1 rounded-lg border border-border/70 bg-background/85 px-3 py-2 text-sm font-medium transition hover:bg-accent"
+                    >
+                      <Eye className="h-4 w-4" />
+                      View
+                    </button>
                   </div>
                 </div>
-                <div className="flex gap-2 flex-shrink-0 ml-2">
-                  <button
-                    onClick={() => handleViewRequest(request)}
-                    className="p-2 sm:p-1.5 bg-slate-700 hover:bg-slate-600 rounded-md text-slate-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 flex items-center gap-1 sm:gap-2 min-w-[60px] sm:min-w-0 justify-center"
-                    title="View Request"
-                    aria-label="View Request"
-                  >
-                    <FiEye className="w-4 h-4" />
-                    <span className="text-xs sm:text-sm">view</span>
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.article>
+            );
+          })}
         </motion.div>
       )}
 
-      {/* Empty State */}
-      <AnimatePresence>
-        {filteredRequests.length === 0 && !isLoadingRequests && (
-          <motion.div
-            className="flex flex-col items-center justify-center py-16 text-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-4 border-2 border-dashed border-slate-700"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-            >
-              <FiFilter className="text-3xl text-slate-500" />
-            </motion.div>
-            <h3 className="text-xl font-medium text-slate-200 mb-2">
-              {hasActiveFilters
-                ? "No matching requests found"
-                : "No requests found"}
-            </h3>
-            <p className="text-slate-400 max-w-md mb-4">
-              {hasActiveFilters
-                ? "Try adjusting your filters or search terms to find more requests"
-                : "Be the first to create a resource request"}
-            </p>
-            {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="text-indigo-400 hover:text-indigo-300 font-medium"
-              >
-                Clear all filters
-              </button>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Add Request Modal */}
       <AnimatePresence>
         {isAddModalOpen && (
           <AddRequest
@@ -704,7 +670,6 @@ const Requests = () => {
         )}
       </AnimatePresence>
 
-      {/* View Request Modal */}
       <AnimatePresence>
         {isViewModalOpen && selectedRequest && (
           <ViewRequestModal
@@ -714,129 +679,116 @@ const Requests = () => {
             setActiveUpload={setActiveUpload}
           />
         )}
+      </AnimatePresence>
 
-        {/* File Upload Modal */}
-        <AnimatePresence>
-          {activeUpload !== null && (
+      <AnimatePresence>
+        {activeUpload !== null && selectedRequest && (
+          <ContributionModalPortal>
             <motion.div
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[60]"
+              className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-black/70 p-2 backdrop-blur-sm sm:items-center sm:p-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
               <motion.div
-                className="bg-slate-800 rounded-lg shadow-xl border border-slate-600 w-full max-w-md mx-4"
-                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                className="max-h-[calc(100dvh-1rem)] w-full max-w-md overflow-y-auto rounded-2xl border border-border/70 bg-card shadow-xl sm:max-h-[calc(100dvh-2rem)]"
+                initial={{ scale: 0.96, opacity: 0, y: 10 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                transition={{ type: "spring", duration: 0.3 }}
+                exit={{ scale: 0.96, opacity: 0, y: 10 }}
               >
-                <div className="p-6">
-                  <div className="text-center mb-6">
-                    <h4 className="text-lg font-semibold text-white mb-2">
-                      Upload File
-                    </h4>
-                    <p className="text-slate-400 text-sm mb-1">
-                      {selectedRequest.documents[activeUpload]?.name}
-                    </p>
-                    <p className="text-slate-500 text-xs">
-                      Select one file to contribute
-                    </p>
-                  </div>
+                <div className="border-b border-border/70 px-5 py-4 text-center">
+                  <h4 className="text-lg font-semibold">Upload Contribution</h4>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {selectedRequest.documents[activeUpload]?.name}
+                  </p>
+                </div>
 
-                  <div className="mb-6">
-                    <div
-                      className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 ${
-                        selectedFiles[activeUpload]
-                          ? "border-indigo-500 bg-indigo-500/10"
-                          : "border-slate-600 hover:border-slate-500"
-                      }`}
+                <div className="p-5">
+                  <div
+                    className={`rounded-2xl border-2 border-dashed p-6 text-center transition ${
+                      selectedFiles[activeUpload]
+                        ? "border-primary/45 bg-primary/10"
+                        : "border-border/70 bg-muted/35"
+                    }`}
+                  >
+                    <input
+                      type="file"
+                      id={`file-upload-${activeUpload}`}
+                      className="hidden"
+                      onChange={(event) =>
+                        handleFileSelect(event, activeUpload)
+                      }
+                      accept=".pdf,.doc,.docx,.txt,.pptx,.ppt"
+                      disabled={isUploading || uploadProgress[activeUpload] > 0}
+                    />
+                    <label
+                      htmlFor={`file-upload-${activeUpload}`}
+                      className={`block ${uploadProgress[activeUpload] > 0 ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
                     >
-                      <input
-                        type="file"
-                        id={`file-upload-${activeUpload}`}
-                        className="hidden"
-                        onChange={(e) => handleFileSelect(e, activeUpload)}
-                        accept=".pdf,.doc,.docx,.txt,.pptx,.ppt"
-                        disabled={
-                          isUploading || uploadProgress[activeUpload] > 0
-                        }
-                      />
-                      <label
-                        htmlFor={`file-upload-${activeUpload}`}
-                        className={`cursor-pointer block ${
-                          uploadProgress[activeUpload] > 0
-                            ? "cursor-not-allowed opacity-50"
-                            : ""
-                        }`}
-                      >
-                        <FiUpload className="w-8 h-8 text-slate-400 mx-auto mb-3" />
-                        <div className="text-slate-300 mb-2">
-                          {selectedFiles[activeUpload] ? (
-                            <div>
-                              <span className="text-indigo-400 font-medium block">
-                                {selectedFiles[activeUpload].name}
-                              </span>
-                              <span className="text-slate-500 text-xs">
-                                {(
-                                  selectedFiles[activeUpload].size /
-                                  1024 /
-                                  1024
-                                ).toFixed(2)}{" "}
-                                MB
-                              </span>
-                            </div>
-                          ) : (
-                            <>
-                              <span className="text-white font-medium">
-                                Click to upload
-                              </span>{" "}
-                              <span className="hidden sm:inline">
-                                or drag and drop
-                              </span>
-                            </>
-                          )}
-                        </div>
-                        <p className="text-slate-500 text-xs">
-                          PDF, DOC, TXT, or Image files (Max 10MB)
-                        </p>
-                      </label>
-                    </div>
-
-                    {/* Upload Progress */}
-                    {uploadProgress[activeUpload] > 0 && (
-                      <div className="mt-4">
-                        <div className="flex items-center justify-between text-sm mb-2">
-                          <span className="text-slate-400">Uploading...</span>
-                          <span className="text-indigo-400">
-                            {uploadProgress[activeUpload]}%
-                          </span>
-                        </div>
-                        <div className="w-full bg-slate-700 rounded-full h-2">
-                          <div
-                            className="bg-indigo-500 h-2 rounded-full transition-all duration-300 ease-out"
-                            style={{
-                              width: `${uploadProgress[activeUpload]}%`,
-                            }}
-                          ></div>
-                        </div>
+                      <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
+                      <div className="mt-3 text-sm">
+                        {selectedFiles[activeUpload] ? (
+                          <>
+                            <span className="block font-medium text-primary">
+                              {selectedFiles[activeUpload].name}
+                            </span>
+                            <span className="text-muted-foreground">
+                              {(
+                                selectedFiles[activeUpload].size /
+                                1024 /
+                                1024
+                              ).toFixed(2)}{" "}
+                              MB
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="font-medium">
+                              Choose a file to upload
+                            </span>
+                            <p className="mt-1 text-muted-foreground">
+                              PDF, DOC, DOCX, TXT, PPT, PPTX up to 20MB
+                            </p>
+                          </>
+                        )}
                       </div>
-                    )}
+                    </label>
                   </div>
 
-                  <div className="flex gap-3">
+                  {uploadProgress[activeUpload] > 0 && (
+                    <div className="mt-4">
+                      <div className="mb-2 flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          Uploading...
+                        </span>
+                        <span className="font-medium text-primary">
+                          {uploadProgress[activeUpload]}%
+                        </span>
+                      </div>
+                      <div className="h-2 rounded-full bg-muted">
+                        <div
+                          className="h-2 rounded-full bg-primary transition-all"
+                          style={{ width: `${uploadProgress[activeUpload]}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mt-5 flex gap-3">
                     <button
+                      type="button"
                       onClick={() => handleCancelUpload(activeUpload)}
                       disabled={
                         isUploading ||
                         (uploadProgress[activeUpload] > 0 &&
                           uploadProgress[activeUpload] < 100)
                       }
-                      className="flex-1 px-4 py-2.5 text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 rounded-xl border border-border/70 bg-background/85 px-4 py-2.5 text-sm font-medium transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       Cancel
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleUpload(activeUpload)}
                       disabled={
                         !selectedFiles[activeUpload] ||
@@ -844,80 +796,66 @@ const Requests = () => {
                         (uploadProgress[activeUpload] > 0 &&
                           uploadProgress[activeUpload] < 100)
                       }
-                      className="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {isUploading ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                          Uploading...
-                        </>
-                      ) : uploadProgress[activeUpload] === 100 ? (
-                        <>
-                          <FiCheck className="w-4 h-4" />
-                          Complete
-                        </>
-                      ) : (
-                        <>
-                          <FiUpload className="w-4 h-4" />
-                          Upload
-                        </>
-                      )}
+                      {isUploading
+                        ? "Uploading..."
+                        : uploadProgress[activeUpload] === 100
+                          ? "Complete"
+                          : "Upload"}
                     </button>
                   </div>
                 </div>
               </motion.div>
             </motion.div>
-          )}
-        </AnimatePresence>
+          </ContributionModalPortal>
+        )}
+      </AnimatePresence>
 
-        {/* Confirmation Dialog */}
-        <AnimatePresence>
-          {showCancelConfirm && (
+      <AnimatePresence>
+        {showCancelConfirm && (
+          <ContributionModalPortal>
             <motion.div
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[70]"
+              className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
               <motion.div
-                className="bg-slate-800 rounded-lg shadow-xl border border-slate-600 w-full max-w-sm mx-4"
-                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                className="w-full max-w-sm rounded-2xl border border-border/70 bg-card shadow-xl"
+                initial={{ scale: 0.96, opacity: 0, y: 10 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                transition={{ type: "spring", duration: 0.3 }}
+                exit={{ scale: 0.96, opacity: 0, y: 10 }}
               >
-                <div className="p-6">
-                  <div className="text-center mb-6">
-                    <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <FiX className="w-6 h-6 text-red-400" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-white mb-2">
-                      Cancel Upload?
-                    </h3>
-                    <p className="text-slate-400 text-sm">
-                      Are you sure you want to cancel? Your selected file will
-                      be lost.
-                    </p>
+                <div className="p-5 text-center">
+                  <div className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-full bg-rose-500/10 text-rose-500">
+                    <X className="h-5 w-5" />
                   </div>
-                  <div className="flex gap-3">
+                  <h3 className="mt-4 text-lg font-semibold">Cancel upload?</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Your selected file will be removed from the queue.
+                  </p>
+                  <div className="mt-5 flex gap-3">
                     <button
+                      type="button"
                       onClick={() => setShowCancelConfirm(false)}
-                      className="flex-1 px-4 py-2.5 text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500"
+                      className="flex-1 rounded-xl border border-border/70 bg-background/85 px-4 py-2.5 text-sm font-medium transition hover:bg-accent"
                     >
-                      Keep File
+                      Keep file
                     </button>
                     <button
+                      type="button"
                       onClick={confirmCancel}
-                      className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+                      className="flex-1 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-rose-700"
                     >
-                      Cancel Upload
+                      Cancel upload
                     </button>
                   </div>
                 </div>
               </motion.div>
             </motion.div>
-          )}
-        </AnimatePresence>
+          </ContributionModalPortal>
+        )}
       </AnimatePresence>
     </div>
   );

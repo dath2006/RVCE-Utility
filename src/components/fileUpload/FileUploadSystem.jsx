@@ -1,6 +1,8 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Upload } from "lucide-react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { CheckCircle2, ShieldCheck, UploadCloud } from "lucide-react";
+import { useAuth0 } from "@auth0/auth0-react";
+
 import FormFields from "./FormFields";
 import FileDropZone from "./FileDropZone";
 import FileList from "./FileList";
@@ -8,14 +10,14 @@ import UploadButton from "./UploadButton";
 import StatusMessages from "./StatusMessages";
 import { uploadFile } from "../../utils/uploadUtils";
 import {
-  validateFileType,
   allowedExtensions,
+  validateFileType,
 } from "../../utils/fileValidation";
-import { useAuth0 } from "@auth0/auth0-react";
 import { incrementResourceCount } from "../../firebase";
 
 const FileUploadSystem = ({ setDisableWorkSpace }) => {
   const { user, getAccessTokenSilently } = useAuth0();
+
   const [files, setFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadStatus, setUploadStatus] = useState(null);
@@ -28,14 +30,12 @@ const FileUploadSystem = ({ setDisableWorkSpace }) => {
     subjectName: "",
     docType: "",
   });
+
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    const setShow = () => {
-      setDisableWorkSpace(true);
-    };
-    setShow();
-  }, []);
+    setDisableWorkSpace(true);
+  }, [setDisableWorkSpace]);
 
   const handleFormChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -44,8 +44,8 @@ const FileUploadSystem = ({ setDisableWorkSpace }) => {
   };
 
   const processFiles = (selectedFiles) => {
-    let validFiles = [];
-    let invalidFiles = [];
+    const validFiles = [];
+    const invalidFiles = [];
 
     selectedFiles.forEach((file) => {
       if (validateFileType(file)) {
@@ -62,9 +62,7 @@ const FileUploadSystem = ({ setDisableWorkSpace }) => {
 
     if (invalidFiles.length > 0) {
       setError(
-        `Invalid file type(s): ${invalidFiles.join(
-          ", "
-        )}. Only ${allowedExtensions.join(", ")} files are allowed.`
+        `Invalid file type(s): ${invalidFiles.join(", ")}. Only ${allowedExtensions.join(", ")} files are allowed.`,
       );
     }
 
@@ -78,30 +76,28 @@ const FileUploadSystem = ({ setDisableWorkSpace }) => {
     setUploadStatus(null);
 
     if (event.target.files) {
-      const selectedFiles = Array.from(event.target.files);
-      processFiles(selectedFiles);
+      processFiles(Array.from(event.target.files));
     }
   };
 
-  const handleDrop = useCallback((e) => {
-    e.preventDefault();
+  const handleDrop = useCallback((event) => {
+    event.preventDefault();
     setIsDragging(false);
     setError(null);
     setUploadStatus(null);
 
-    if (e.dataTransfer.files) {
-      const droppedFiles = Array.from(e.dataTransfer.files);
-      processFiles(droppedFiles);
+    if (event.dataTransfer.files) {
+      processFiles(Array.from(event.dataTransfer.files));
     }
   }, []);
 
-  const handleDragEnter = useCallback((e) => {
-    e.preventDefault();
+  const handleDragEnter = useCallback((event) => {
+    event.preventDefault();
     setIsDragging(true);
   }, []);
 
-  const handleDragLeave = useCallback((e) => {
-    e.preventDefault();
+  const handleDragLeave = useCallback((event) => {
+    event.preventDefault();
     setIsDragging(false);
   }, []);
 
@@ -125,18 +121,17 @@ const FileUploadSystem = ({ setDisableWorkSpace }) => {
     setIsUploading(true);
     const token = await getAccessTokenSilently();
     const uploadSessionId = crypto.randomUUID();
-
-    // Keep track of upload results
     const uploadResults = [];
 
-    // Process files sequentially
     for (const fileItem of files) {
       if (!fileItem.uploaded && !fileItem.error) {
         try {
           setFiles((prev) =>
-            prev.map((f) =>
-              f.id === fileItem.id ? { ...f, uploading: true, progress: 0 } : f
-            )
+            prev.map((file) =>
+              file.id === fileItem.id
+                ? { ...file, uploading: true, progress: 0 }
+                : file,
+            ),
           );
 
           const userProp = {
@@ -153,52 +148,53 @@ const FileUploadSystem = ({ setDisableWorkSpace }) => {
             userProp,
             (progress) => {
               setFiles((prev) =>
-                prev.map((f) => (f.id === fileItem.id ? { ...f, progress } : f))
+                prev.map((file) =>
+                  file.id === fileItem.id ? { ...file, progress } : file,
+                ),
               );
-            }
+            },
           );
 
           setFiles((prev) =>
-            prev.map((f) =>
-              f.id === fileItem.id
-                ? { ...f, uploaded: true, uploading: false, progress: 100 }
-                : f
-            )
+            prev.map((file) =>
+              file.id === fileItem.id
+                ? { ...file, uploaded: true, uploading: false, progress: 100 }
+                : file,
+            ),
           );
 
           uploadResults.push({ id: fileItem.id, success: true });
-        } catch (error) {
+        } catch (uploadError) {
           setFiles((prev) =>
-            prev.map((f) =>
-              f.id === fileItem.id
+            prev.map((file) =>
+              file.id === fileItem.id
                 ? {
-                    ...f,
+                    ...file,
                     uploaded: false,
                     uploading: false,
                     progress: 0,
-                    error: error.message,
+                    error: uploadError.message,
                   }
-                : f
-            )
+                : file,
+            ),
           );
 
           uploadResults.push({
             id: fileItem.id,
             success: false,
-            error: error.message,
+            error: uploadError.message,
           });
         }
       }
     }
 
-    // Check results based on our tracking array
     const successfulUploads = uploadResults.filter((result) => result.success);
     const failedUploads = uploadResults.filter((result) => !result.success);
-    
+
     if (successfulUploads.length > 0) {
       incrementResourceCount(successfulUploads.length);
     }
-    
+
     const allUploaded =
       failedUploads.length === 0 && successfulUploads.length > 0;
 
@@ -220,14 +216,14 @@ const FileUploadSystem = ({ setDisableWorkSpace }) => {
           docType: "",
         });
         setUploadStatus(null);
-      }, 2000);
+      }, 1800);
     }
 
     setIsUploading(false);
   };
 
   const removeFile = (id) => {
-    setFiles((prev) => prev.filter((f) => f.id !== id));
+    setFiles((prev) => prev.filter((file) => file.id !== id));
   };
 
   const isFormValid =
@@ -238,33 +234,30 @@ const FileUploadSystem = ({ setDisableWorkSpace }) => {
     formData.docType;
 
   return (
-    <div className="h-fit flex items-center justify-center p-2 sm:p-3 lg:p-6 w-full box-border">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full h-full max-w-4xl bg-slate-900/50 backdrop-blur-lg rounded-lg shadow-lg border border-slate-800 p-3 sm:p-5 lg:p-8 overflow-hidden box-border"
-      >
-        <div className="text-center mb-3 sm:mb-4">
-          <motion.h1
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2"
-          >
-            Upload Study Materials
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-            className="text-slate-400"
-          >
-            Share your documents with fellow students
-          </motion.p>
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+      className="mx-auto w-full max-w-5xl"
+    >
+      <div className="rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm sm:p-6">
+        <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-semibold sm:text-2xl">
+              Upload Study Material
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Add clean metadata, attach files, and publish for review.
+            </p>
+          </div>
+
+          <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-muted/50 px-3 py-1 text-xs text-muted-foreground">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            Admin reviewed before publishing
+          </div>
         </div>
 
-        <div className="space-y-4 sm:space-y-6">
+        <div className="space-y-4">
           <FormFields formData={formData} onChange={handleFormChange} />
 
           <FileDropZone
@@ -289,15 +282,28 @@ const FileUploadSystem = ({ setDisableWorkSpace }) => {
 
           <StatusMessages error={error} uploadStatus={uploadStatus} />
 
-          <UploadButton
-            onClick={handleUpload}
-            disabled={!isFormValid || files.length === 0 || isUploading}
-            isUploading={isUploading}
-            fileCount={files.length}
-          />
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/70 bg-muted/35 p-3">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <UploadCloud className="h-4 w-4" />
+              <span>{files.length} file(s) in queue</span>
+              {files.some((file) => file.uploaded) && (
+                <span className="inline-flex items-center gap-1 text-emerald-600">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Uploaded: {files.filter((file) => file.uploaded).length}
+                </span>
+              )}
+            </div>
+
+            <UploadButton
+              onClick={handleUpload}
+              disabled={!isFormValid || files.length === 0 || isUploading}
+              isUploading={isUploading}
+              fileCount={files.length}
+            />
+          </div>
         </div>
-      </motion.div>
-    </div>
+      </div>
+    </motion.div>
   );
 };
 

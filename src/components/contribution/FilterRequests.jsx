@@ -1,6 +1,9 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { FiSearch, FiX } from "react-icons/fi";
+import { Search, X } from "lucide-react";
+
+const inputClass =
+  "w-full rounded-xl border border-border/70 bg-background/85 px-3 py-2.5 text-sm text-foreground shadow-sm transition focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20";
 
 const FilterRequests = ({
   clearFilters,
@@ -9,55 +12,60 @@ const FilterRequests = ({
   setSearchQuery,
   filters,
   handleFilterChange,
+  onClose,
 }) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 10 }}
-      transition={{ type: "spring", damping: 20 }}
-      className="absolute right-0 mt-2 w-72 sm:w-96 bg-slate-900/50 backdrop-blur-lg rounded-lg shadow-lg border border-slate-800 z-20 p-4"
-    >
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-white font-medium">Filter Requests</h3>
-        {hasActiveFilters && (
+  const content = (
+    <>
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-sm font-semibold">Filter Requests</h3>
+        <div className="flex items-center gap-2">
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex items-center gap-1 text-xs font-medium text-primary"
+            >
+              <X className="h-3.5 w-3.5" />
+              Clear all
+            </button>
+          )}
           <button
-            onClick={clearFilters}
-            className="text-indigo-400 hover:text-indigo-300 text-sm font-medium flex items-center gap-1"
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-border/70 text-muted-foreground transition hover:bg-accent sm:hidden"
+            aria-label="Close filters"
           >
-            <FiX className="text-sm" />
-            Clear all
+            <X className="h-3.5 w-3.5" />
           </button>
-        )}
+        </div>
       </div>
 
       <div className="space-y-4">
-        {/* Search */}
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">
+          <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
             Search
           </label>
           <div className="relative">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search subjects, users, items..."
+              placeholder="Search subject, user, item..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-700 border border-slate-600 text-white rounded-md pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-slate-400"
+              className={`${inputClass} pl-9`}
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">
+          <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
             Semester
           </label>
           <select
             name="semester"
             value={filters.semester}
             onChange={handleFilterChange}
-            className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className={inputClass}
           >
             <option value="">All Semesters</option>
             <option value={1}>Chem Cycle</option>
@@ -71,14 +79,14 @@ const FilterRequests = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">
+          <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
             Branch
           </label>
           <select
             name="branch"
             value={filters.branch}
             onChange={handleFilterChange}
-            className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className={inputClass}
           >
             <option value="">All Branches</option>
             {[
@@ -96,41 +104,47 @@ const FilterRequests = ({
               "CH",
               "IM",
               "ME",
-            ].map((branch, index) => (
-              <option key={`-${index}-kkf${branch}`} value={branch}>
+            ].map((branch) => (
+              <option key={branch} value={branch}>
                 {branch}
               </option>
             ))}
           </select>
         </div>
-
-        {/* <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">
-            Subject
-          </label>
-          <select
-            name="subject"
-            value={filters.subject}
-            onChange={handleFilterChange}
-            className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-          >
-            <option value="">All Subjects</option>
-            {[
-              "Maths",
-              "Physics",
-              "Chemistry",
-              "Biology",
-              "Programming",
-              "Electronics",
-            ].map((subject) => (
-              <option key={subject} value={subject}>
-                {subject}
-              </option>
-            ))}
-          </select>
-        </div> */}
       </div>
-    </motion.div>
+    </>
+  );
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[94] bg-black/45 backdrop-blur-[1px] sm:hidden"
+        onClick={onClose}
+      />
+
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 12 }}
+        transition={{ duration: 0.18 }}
+        className="fixed inset-x-2 bottom-0 z-[95] max-h-[calc(100dvh-var(--app-nav-offset,88px)-0.5rem)] overflow-y-auto rounded-t-2xl border border-border/70 bg-card/95 p-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] shadow-xl backdrop-blur sm:hidden"
+      >
+        {content}
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 8 }}
+        transition={{ duration: 0.18 }}
+        className="absolute right-0 z-20 mt-2 hidden w-96 rounded-2xl border border-border/70 bg-card/95 p-4 shadow-xl backdrop-blur sm:block"
+      >
+        {content}
+      </motion.div>
+    </>
   );
 };
 

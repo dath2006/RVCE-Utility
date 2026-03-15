@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Upload } from "lucide-react";
+import { FileUp, Sparkles } from "lucide-react";
 
 const fileInputAccept = ".pdf,.doc,.docx,.ppt,.pptx,.txt";
 
@@ -15,60 +15,45 @@ const FileDropZone = ({
 }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: 0.5, duration: 0.5 }}
-      className={`
-        relative min-h-[160px] sm:min-h-[200px] border-2 border-dashed rounded-xl p-4 sm:p-6 lg:p-8 text-center cursor-pointer
-        transition-all duration-300 ease-in-out
-        ${
-          isDragging
-            ? "border-blue-500 bg-blue-500/10 scale-[1.02]"
-            : "border-slate-600 bg-slate-800/30 hover:border-slate-500 hover:bg-slate-800/50"
-        }
-      `}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, delay: 0.05 }}
+      className={`relative min-h-[180px] rounded-2xl border-2 border-dashed p-5 text-center transition ${
+        isDragging
+          ? "border-primary/60 bg-primary/10"
+          : "border-border/70 bg-muted/35 hover:border-primary/35 hover:bg-muted/55"
+      }`}
       onDrop={onDrop}
       onDragOver={(e) => e.preventDefault()}
       onDragEnter={onDragEnter}
       onDragLeave={onDragLeave}
       onClick={onFileSelect}
     >
-      <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
-        <motion.div
-          animate={{
-            y: isDragging ? [-5, 5, -5] : 0,
-            rotate: isDragging ? [0, 5, -5, 0] : 0,
-          }}
-          transition={{
-            duration: 1,
-            repeat: isDragging ? Infinity : 0,
-            ease: "easeInOut",
-          }}
-          className={`
-            p-3 sm:p-4 rounded-full transition-colors duration-300
-            ${
-              isDragging
-                ? "bg-blue-500/20 text-blue-400"
-                : "bg-slate-700/50 text-slate-400"
-            }
-          `}
+      <div className="flex h-full flex-col items-center justify-center gap-3">
+        <div
+          className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl border ${
+            isDragging
+              ? "border-primary/45 bg-primary/20 text-primary"
+              : "border-border/70 bg-background/80 text-muted-foreground"
+          }`}
         >
-          <Upload size={24} className="sm:w-8 sm:h-8" />
-        </motion.div>
+          <FileUp className="h-5 w-5" />
+        </div>
 
-        <div className="space-y-1 sm:space-y-2">
-          <p className="text-base sm:text-lg font-medium text-white">
-            {isDragging ? "Drop files here" : "Drag and drop files here"}
+        <div>
+          <p className="text-base font-semibold">
+            {isDragging
+              ? "Drop files to queue upload"
+              : "Drag and drop files here"}
           </p>
-          <p className="text-sm sm:text-base text-slate-400">
-            or{" "}
-            <span className="text-blue-400 hover:text-blue-300 underline">
-              browse files
-            </span>
+          <p className="mt-1 text-sm text-muted-foreground">
+            or click to browse local files
           </p>
-          <p className="text-xs sm:text-sm text-slate-500">
-            PDF, DOC, PPT files up to 20MB each
-          </p>
+        </div>
+
+        <div className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/75 px-3 py-1 text-xs text-muted-foreground">
+          <Sparkles className="h-3.5 w-3.5" />
+          PDF, DOC, DOCX, PPT, PPTX, TXT
         </div>
       </div>
 
@@ -80,14 +65,6 @@ const FileDropZone = ({
         accept={fileInputAccept}
         onChange={onFileChange}
       />
-
-      {isDragging && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-blue-500/10 rounded-xl pointer-events-none"
-        />
-      )}
     </motion.div>
   );
 };

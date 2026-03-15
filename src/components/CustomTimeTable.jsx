@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
-import styled, { ThemeProvider, useTheme } from "styled-components";
+import React, { useState } from "react";
+import PropTypes from "prop-types";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar } from "react-calendar";
-import { IconButton, Box } from "@mui/material";
+import { IconButton } from "@mui/material";
 import {
-  Close,
   AddCircle,
   Delete,
   Edit,
@@ -13,9 +12,27 @@ import {
 } from "@mui/icons-material";
 
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useBottomBarVisibility } from "../hooks/useBottomBarVisibility";
+import { cn } from "@/lib/utils";
+import { Button } from "./ui/button";
+import { Input as UiInput } from "./ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+import {
+  Select as UiSelect,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 // Constants
 const daysOfWeek = ["MON", "TUE", "WED", "THU", "FRI"];
@@ -42,596 +59,6 @@ const timeSlots = [
   { slotId: "slot6", display: "03.30 - 04.30", start: 930, end: 990 },
 ];
 
-const Card = styled(motion.div)`
-  background-color: ${(props) => props.theme.cardTheme};
-  border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-  padding: 1.25rem;
-  padding-bottom: 0.5rem;
-  border: 1px solid ${(props) => props.theme.border};
-  width: 95%;
-  max-width: 1000px;
-  margin: 0 auto;
-  transition: all 0.3s ease;
-  height: calc(100vh - 170px);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-
-  @media (min-width: 768px) {
-    padding: 1.75rem;
-    height: calc(100vh - 120px);
-  }
-`;
-const StepText = styled.span`
-  font-size: ${(props) => (props.vertical ? "0.9rem" : "0.75rem")};
-  color: ${(props) =>
-    props.active
-      ? props.theme.primary
-      : props.completed
-      ? props.theme.text
-      : props.theme.text + "60"};
-  font-weight: ${(props) => (props.active || props.completed ? "600" : "400")};
-  transition: all 0.3s ease;
-`;
-
-const FormGroup = styled.div`
-  margin-bottom: 1rem;
-`;
-
-const Label = styled.label`
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: ${(props) => props.theme.text};
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 0.75rem;
-  border-radius: 8px;
-  border: 1px solid ${(props) => props.theme.border};
-  background-color: ${(props) => props.theme.surface};
-  color: ${(props) => props.theme.text};
-  font-size: 1rem;
-  transition: border-color 0.2s;
-
-  &:focus {
-    outline: none;
-    border-color: ${(props) => props.theme.primary};
-  }
-`;
-
-const Select = styled.select`
-  width: 100%;
-  padding: 0.75rem;
-  border-radius: 8px;
-  border: 1px solid ${(props) => props.theme.border};
-  background-color: ${(props) => props.theme.surface};
-  color: ${(props) => props.theme.text};
-  font-size: 1rem;
-  transition: border-color 0.2s;
-
-  &:focus {
-    outline: none;
-    border-color: ${(props) => props.theme.primary};
-  }
-`;
-
-const FormRow = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-
-  @media (min-width: 768px) {
-    grid-template-columns: 1fr 1fr;
-  }
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1rem;
-`;
-
-const StyledButton = styled(motion.button)`
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  border: none;
-`;
-
-const PrimaryButton = styled(StyledButton)`
-  background: ${(props) => props.theme.gradient};
-  color: white;
-  border-radius: 12px;
-  padding: 0.85rem 1.75rem;
-  box-shadow: 0 4px 10px rgba(74, 144, 226, 0.2);
-  transition: all 0.3s ease;
-
-  &:hover {
-    box-shadow: 0 8px 15px rgba(74, 144, 226, 0.4);
-    transform: translateY(-2px);
-  }
-
-  &:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 5px rgba(74, 144, 226, 0.4);
-  }
-`;
-
-const SecondaryButton = styled(StyledButton)`
-  background-color: transparent;
-  border: 2px solid ${(props) => props.theme.primary};
-  color: ${(props) => props.theme.primary};
-  border-radius: 12px;
-  padding: 0.75rem 1.5rem;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background-color: ${(props) => props.theme.primary + "10"};
-    transform: translateY(-2px);
-  }
-
-  &:active {
-    transform: translateY(1px);
-  }
-`;
-
-const TimetableGrid = styled.div`
-  display: grid;
-  grid-template-columns: auto repeat(5, minmax(120px, 1fr));
-  gap: 2px;
-  margin-top: 1rem;
-  min-width: 700px; // Minimum width to ensure readability
-`;
-
-const TimeCell = styled.div`
-  padding: 0.75rem;
-  text-align: center;
-  background-color: ${(props) => props.theme.secondary};
-  border-radius: 6px;
-  font-weight: ${(props) => (props.isHeader ? "600" : "400")};
-  font-size: ${(props) => (props.isHeader ? "0.9rem" : "0.8rem")};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: ${(props) => (props.isBreak ? "30px" : "60px")};
-  color: ${(props) =>
-    props.isBreak ? props.theme.text + "80" : props.theme.text};
-  position: relative;
-`;
-
-const DayCell = styled.div`
-  padding: 0.75rem;
-  text-align: center;
-  background-color: ${(props) => props.theme.secondary};
-  font-weight: 600;
-  border-radius: 6px;
-`;
-
-const CourseCell = styled.div`
-  padding: 0.75rem 0.5rem;
-  background-color: ${(props) => props.theme.primary + "20"};
-  border-radius: 6px;
-  border-left: 3px solid ${(props) => props.theme.primary};
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background-color: ${(props) => props.theme.primary + "30"};
-  }
-`;
-
-const CourseName = styled.div`
-  font-weight: 600;
-  font-size: 0.85rem;
-`;
-
-const CourseInfo = styled.div`
-  font-size: 0.75rem;
-  opacity: 0.8;
-`;
-
-const CourseList = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-  margin-top: 1.5rem;
-
-  @media (min-width: 768px) {
-    grid-template-columns: 1fr 1fr;
-  }
-`;
-
-const CourseCard = styled.div`
-  padding: 1rem;
-  background-color: ${(props) => props.theme.surface};
-  border: 1px solid ${(props) => props.theme.border};
-  border-radius: 8px;
-  position: relative;
-  transition: all 0.2s ease;
-
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-color: ${(props) => props.theme.primary + "60"};
-  }
-`;
-
-const CourseCardHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 0.5rem;
-`;
-
-const CourseActionButtons = styled.div`
-  display: flex;
-  gap: 0.5rem;
-`;
-
-const EmptySlot = styled.div`
-  height: 100%;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: background-color 0.2s;
-  min-height: 60px;
-
-  &:hover {
-    background-color: ${(props) => props.theme.secondary};
-  }
-`;
-
-const CalendarContainer = styled(motion.div)`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 1rem;
-`;
-
-const CalendarCard = styled(motion.div)`
-  background-color: ${(props) => props.theme.cardTheme};
-  border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-  padding: 1rem;
-  width: 95%;
-  max-width: 350px;
-
-  @media (min-width: 480px) {
-    padding: 1.5rem;
-    border-radius: 16px;
-    max-width: 400px;
-  }
-
-  .react-calendar {
-    border: none;
-    width: 100%;
-    font-family: inherit;
-    background: transparent;
-    font-size: 0.9rem;
-    color: ${(props) => props.theme.text};
-
-    @media (min-width: 480px) {
-      font-size: 1rem;
-    }
-  }
-
-  .react-calendar__navigation {
-    display: flex;
-    margin-bottom: 0.75rem;
-    align-items: center;
-
-    @media (min-width: 480px) {
-      margin-bottom: 1rem;
-    }
-  }
-
-  .react-calendar__navigation button {
-    min-width: 36px;
-    background: none;
-    font-size: 1rem;
-    font-weight: 600;
-    color: ${(props) => props.theme.primary};
-    padding: 0.4rem;
-    border-radius: 6px;
-    transition: all 0.2s;
-
-    @media (min-width: 480px) {
-      min-width: 44px;
-      font-size: 1.1rem;
-      padding: 0.5rem;
-      border-radius: 8px;
-    }
-
-    &:hover {
-      background-color: ${(props) => props.theme.secondary};
-    }
-
-    &:disabled {
-      background-color: transparent;
-      color: ${(props) => props.theme.border};
-      cursor: not-allowed;
-    }
-  }
-
-  .react-calendar__month-view__weekdays {
-    text-align: center;
-    text-transform: uppercase;
-    font-weight: 600;
-    font-size: 0.7rem;
-    color: ${(props) => props.theme.text}80;
-    margin-bottom: 0.4rem;
-
-    @media (min-width: 480px) {
-      font-size: 0.8rem;
-      margin-bottom: 0.5rem;
-    }
-  }
-
-  .react-calendar__month-view__days__day {
-    padding: 0.5rem 0.3rem;
-    font-size: 0.8rem;
-    color: ${(props) => props.theme.text};
-    border-radius: 6px;
-    transition: all 0.2s;
-
-    @media (min-width: 480px) {
-      padding: 0.75rem 0.5rem;
-      font-size: 0.9rem;
-      border-radius: 8px;
-    }
-
-    &:hover {
-      background-color: ${(props) => props.theme.secondary};
-    }
-
-    &--weekend {
-      color: ${(props) => props.theme.accent};
-    }
-
-    &--neighboringMonth {
-      color: ${(props) => props.theme.border};
-    }
-  }
-
-  .react-calendar__tile {
-    position: relative;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    @media (min-width: 480px) {
-      height: 44px;
-    }
-
-    &:disabled {
-      cursor: not-allowed;
-      pointer-events: none;
-      opacity: 0.5;
-    }
-  }
-
-  .react-calendar__tile--active {
-    background-color: ${(props) => props.theme.primary};
-    color: white;
-    border-radius: 6px;
-
-    @media (min-width: 480px) {
-      border-radius: 8px;
-    }
-
-    &:hover {
-      background-color: ${(props) => props.theme.primary};
-    }
-  }
-
-  .react-calendar__tile--now {
-    background-color: ${(props) => props.theme.secondary};
-    color: ${(props) => props.theme.primary};
-    border-radius: 6px;
-    font-weight: 600;
-
-    @media (min-width: 480px) {
-      border-radius: 8px;
-    }
-  }
-
-  .react-calendar__tile--hasActive {
-    background-color: ${(props) => props.theme.primary};
-    color: white;
-    border-radius: 6px;
-
-    @media (min-width: 480px) {
-      border-radius: 8px;
-    }
-
-    &:hover {
-      background-color: ${(props) => props.theme.primary};
-    }
-  }
-`;
-
-const CalendarHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-
-  @media (min-width: 480px) {
-    margin-bottom: 1rem;
-  }
-`;
-
-const CalendarTitle = styled.h4`
-  font-weight: 600;
-  font-size: 1rem;
-  margin: 0;
-
-  @media (min-width: 480px) {
-    font-size: 1.125rem;
-  }
-`;
-
-const ModalContainer = styled(motion.div)`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 1rem;
-`;
-
-const ModalCard = styled(motion.div)`
-  background-color: ${(props) => props.theme.cardTheme};
-  border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-  padding: 1.5rem;
-  width: 95%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-`;
-
-const ModalHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-`;
-
-const ModalTitle = styled.h3`
-  margin: 0;
-  font-weight: 600;
-`;
-
-const SectionTitle = styled.h2`
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: ${(props) => props.theme.primary};
-  margin-top: 0;
-
-  text-align: center;
-  background: ${(props) => props.theme.gradient};
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-
-  @media (min-width: 768px) {
-    font-size: 1.8rem;
-  }
-`;
-
-const SectionDescription = styled.p`
-  font-size: 0.9rem;
-  color: ${(props) => props.theme.text + "80"};
-  text-align: center;
-  margin-bottom: 1.5rem;
-
-  @media (min-width: 768px) {
-    font-size: 1rem;
-  }
-`;
-
-const StepIndicator = styled.div`
-  display: flex;
-  justify-content: center;
-`;
-
-const StepDot = styled.div`
-  width: 8px;
-  height: 8px;
-  background-color: ${(props) =>
-    props.active
-      ? props.theme.primary
-      : props.completed
-      ? props.theme.primary + "80"
-      : props.theme.secondary};
-  border-radius: 50%;
-  margin: 0 4px;
-  transition: all 0.3s ease;
-`;
-
-const StepLabel = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 0 8px;
-`;
-
-const LoadingSpinner = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 400px;
-
-  .spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #3b82f6;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-`;
-
-const GridOverflow = styled.div`
-  overflow-x: auto;
-  white-space: nowrap;
-
-  /* Firefox */
-  scrollbar-width: thin;
-  scrollbar-color: #888 #eee;
-
-  /* Chrome, Safari, Edge */
-  &::-webkit-scrollbar {
-    height: 8px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: #888;
-    border-radius: 4px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background-color: #eee;
-  }
-`;
-
 // Animation variants
 const cardVariants = {
   initial: { opacity: 0, y: 20 },
@@ -639,16 +66,17 @@ const cardVariants = {
   exit: { opacity: 0, y: 20 },
 };
 
-const calendarVariants = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
-};
+const calendarSurfaceClassName =
+  "shadcn-calendar rounded-xl border border-border/70 bg-card/80 p-3 sm:p-4";
+
+// Shared card wrapper Tailwind class for all step panels
+const stepCardCn =
+  "bg-card rounded-[18px] shadow-[0_16px_40px_rgba(15,23,42,0.08)] px-4 pt-5 pb-3 sm:px-6 md:px-7 md:pt-7 md:pb-7 border border-border w-full max-w-5xl min-w-0 mx-auto flex flex-col overflow-y-auto min-h-[calc(100dvh-180px)] md:min-h-[calc(100dvh-140px)]";
 
 // Simplify validation helper
 const validateStep = (step, data) => {
   switch (step) {
-    case 1:
+    case 1: {
       const { semester, branch, courseStartDate, courseEndDate } = data;
       if (!semester)
         return { isValid: false, message: "Please select a semester" };
@@ -659,6 +87,7 @@ const validateStep = (step, data) => {
       if (!courseEndDate)
         return { isValid: false, message: "Please select an end date" };
       return { isValid: true };
+    }
     case 2:
       if (!data.length)
         return { isValid: false, message: "Please add at least one course" };
@@ -669,20 +98,13 @@ const validateStep = (step, data) => {
 };
 
 // Main component
-const TimetableCreator = ({
-  setActiveComponent,
-  setHasTimeTable,
-  setShowHelpModal,
-}) => {
-  const theme = useTheme();
+const TimetableCreator = ({ setActiveComponent, setHasTimeTable }) => {
   const { user, isAuthenticated, isLoading, getAccessTokenSilently } =
     useAuth0();
-  const [currentTheme, setCurrentTheme] = useState(theme);
   const [currentStep, setCurrentStep] = useState(1);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [calendarMode, setCalendarMode] = useState("start");
   const [loading, setLoading] = useState(false);
-  const istOffset = 5.5 * 60 * 60 * 1000;
   const now = new Date(new Date().getTime());
 
   const [mergeMode, setMergeMode] = useState(false);
@@ -708,7 +130,7 @@ const TimetableCreator = ({
   });
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
   const [editingCourseIndex, setEditingCourseIndex] = useState(null);
-  const [courseIdError, setCourseIdError] = useState(false);
+  const courseIdError = false;
 
   // Step 3: Timetable Events
   const [events, setEvents] = useState([]);
@@ -718,10 +140,6 @@ const TimetableCreator = ({
   // Bottom bar visibility management for modals
   useBottomBarVisibility(isCourseModalOpen, "course-modal");
   useBottomBarVisibility(slotAssignmentModalOpen, "slot-assignment-modal");
-
-  useEffect(() => {
-    setCurrentTheme(theme);
-  }, [theme]);
 
   // Handle date selection
   const handleDateSelect = (date) => {
@@ -783,7 +201,7 @@ const TimetableCreator = ({
     // Check for duplicate course code
     const isDuplicate = courses.some(
       (course, index) =>
-        course.name === trimmedCourse.name && index !== editingCourseIndex
+        course.name === trimmedCourse.name && index !== editingCourseIndex,
     );
 
     if (trimmedCourse.name === "" || trimmedCourse.fullName === "") {
@@ -807,7 +225,7 @@ const TimetableCreator = ({
         toast.success("Course added successfully");
       }
       setIsCourseModalOpen(false);
-    } catch (error) {
+    } catch {
       toast.error("Failed to save course");
     }
   };
@@ -820,7 +238,7 @@ const TimetableCreator = ({
     // Also remove events with this course
     const courseToDelete = courses[index];
     const updatedEvents = events.filter(
-      (event) => event.courseId !== courseToDelete.name
+      (event) => event.courseId !== courseToDelete.name,
     );
     setEvents(updatedEvents);
   };
@@ -852,7 +270,7 @@ const TimetableCreator = ({
     // Remove any existing event in this slot
     const updatedEvents = events.filter(
       (event) =>
-        !(event.day === currentSlot.day && event.slotId === currentSlot.slotId)
+        !(event.day === currentSlot.day && event.slotId === currentSlot.slotId),
     );
 
     setEvents([...updatedEvents, newEvent]);
@@ -862,7 +280,7 @@ const TimetableCreator = ({
   // Remove course from slot
   const removeCourseFromSlot = (day, slotId) => {
     const updatedEvents = events.filter(
-      (event) => !(event.day === day && event.slotId === slotId)
+      (event) => !(event.day === day && event.slotId === slotId),
     );
     setEvents(updatedEvents);
   };
@@ -871,7 +289,7 @@ const TimetableCreator = ({
   const getCourseForSlot = (day, slotId) => {
     // First check for direct slot assignment
     let event = events.find(
-      (event) => event.day === day && event.slotId === slotId
+      (event) => event.day === day && event.slotId === slotId,
     );
 
     if (event) return event;
@@ -881,7 +299,7 @@ const TimetableCreator = ({
       (event) =>
         event.day === day &&
         event.mergedSlots &&
-        event.mergedSlots.includes(slotId)
+        event.mergedSlots.includes(slotId),
     );
 
     return event;
@@ -891,7 +309,7 @@ const TimetableCreator = ({
   const nextStep = () => {
     const validation = validateStep(
       currentStep,
-      currentStep === 1 ? userData : currentStep === 2 ? courses : null
+      currentStep === 1 ? userData : currentStep === 2 ? courses : null,
     );
 
     if (!validation.isValid) {
@@ -951,7 +369,7 @@ const TimetableCreator = ({
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (result.data.success) {
@@ -1007,12 +425,12 @@ const TimetableCreator = ({
 
       // Check if this slot is adjacent to existing slots (excluding breaks)
       const slotIndexInNonBreak = nonBreakTimeSlots.findIndex(
-        (s) => s.slotId === slotId
+        (s) => s.slotId === slotId,
       );
 
       const isAdjacent = daySlots.some((slot) => {
         const existingSlotIndexInNonBreak = nonBreakTimeSlots.findIndex(
-          (s) => s.slotId === slot.slotId
+          (s) => s.slotId === slot.slotId,
         );
         return (
           Math.abs(existingSlotIndexInNonBreak - slotIndexInNonBreak) === 1
@@ -1055,11 +473,11 @@ const TimetableCreator = ({
       // Check if slots are consecutive (after filtering out breaks)
       const nonBreakTimeSlots = timeSlots.filter((ts) => !ts.isBreak);
       const slotIndices = slots.map((slotId) =>
-        nonBreakTimeSlots.findIndex((ts) => ts.slotId === slotId)
+        nonBreakTimeSlots.findIndex((ts) => ts.slotId === slotId),
       );
 
       const isConsecutive = slotIndices.every(
-        (idx, i) => i === 0 || idx === slotIndices[i - 1] + 1
+        (idx, i) => i === 0 || idx === slotIndices[i - 1] + 1,
       );
 
       if (!isConsecutive) {
@@ -1082,7 +500,7 @@ const TimetableCreator = ({
 
       // Remove any existing events in these slots
       const updatedEvents = events.filter(
-        (event) => !(event.day === day && slots.includes(event.slotId))
+        (event) => !(event.day === day && slots.includes(event.slotId)),
       );
 
       setEvents([...updatedEvents, newEvent]);
@@ -1097,7 +515,7 @@ const TimetableCreator = ({
   // Add a function to highlight mergeable slots
   const isSlotHighlighted = (day, slotId) => {
     return mergingSlots.some(
-      (slot) => slot.day === day && slot.slotId === slotId
+      (slot) => slot.day === day && slot.slotId === slotId,
     );
   };
 
@@ -1106,42 +524,58 @@ const TimetableCreator = ({
     switch (currentStep) {
       case 1:
         return (
-          <Card
+          <motion.div
             initial="initial"
             animate="animate"
             exit="exit"
             variants={cardVariants}
+            className={stepCardCn}
           >
-            <SectionTitle>Student Information</SectionTitle>
-            <SectionDescription>
+            <h2 className="mt-0 text-center text-xl font-semibold text-foreground sm:text-2xl">
+              Student Information
+            </h2>
+            <p className="mb-5 text-center text-sm text-muted-foreground sm:text-base">
               Enter your basic academic details
-            </SectionDescription>
+            </p>
 
-            <FormGroup>
-              <Label htmlFor="semester">Semester</Label>
-              <Select
-                id="semester"
-                name="semester"
-                value={userData.semester}
-                onChange={handleUserDataChange}
-                required
+            <div className="mb-4">
+              <label
+                htmlFor="semester"
+                className="mb-2 block text-sm font-medium text-foreground"
               >
-                <option value="">Select Semester</option>
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
-                  <option key={num} value={num}>
-                    {num}
-                  </option>
-                ))}
-              </Select>
-            </FormGroup>
+                Semester
+              </label>
+              <UiSelect
+                value={String(userData.semester)}
+                onValueChange={(value) =>
+                  setUserData({ ...userData, semester: value })
+                }
+              >
+                <SelectTrigger id="semester" className="w-full">
+                  <SelectValue placeholder="Select Semester" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                    <SelectItem key={num} value={String(num)}>
+                      Semester {num}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </UiSelect>
+            </div>
 
-            <FormGroup>
-              <Label htmlFor="branch">Branch / Department</Label>
-              <Input
+            <div className="mb-4">
+              <label
+                htmlFor="branch"
+                className="mb-2 block text-sm font-medium text-foreground"
+              >
+                Branch / Department
+              </label>
+              <UiInput
                 type="text"
                 id="branch"
                 name="branch"
-                placeholder="CSE"
+                placeholder="e.g. CSE"
                 value={userData.branch}
                 onChange={(e) => {
                   if (!(e.target.value > 30)) {
@@ -1153,12 +587,14 @@ const TimetableCreator = ({
                 autoComplete="off"
                 required
               />
-            </FormGroup>
+            </div>
 
-            <FormRow>
-              <FormGroup>
-                <Label>Course Start Date</Label>
-                <Input
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="mb-1">
+                <label className="mb-2 block text-sm font-medium text-foreground">
+                  Course Start Date
+                </label>
+                <UiInput
                   type="text"
                   placeholder="Select start date"
                   value={
@@ -1169,12 +605,15 @@ const TimetableCreator = ({
                   onClick={() => openCalendar("start")}
                   readOnly
                   required
+                  className="cursor-pointer"
                 />
-              </FormGroup>
+              </div>
 
-              <FormGroup>
-                <Label>Course End Date</Label>
-                <Input
+              <div className="mb-1">
+                <label className="mb-2 block text-sm font-medium text-foreground">
+                  Course End Date
+                </label>
+                <UiInput
                   type="text"
                   placeholder="Select end date"
                   value={
@@ -1185,15 +624,19 @@ const TimetableCreator = ({
                   onClick={() => openCalendar("end")}
                   readOnly
                   required
+                  className="cursor-pointer"
                 />
-              </FormGroup>
-            </FormRow>
+              </div>
+            </div>
 
-            <FormGroup>
-              <Label htmlFor="minAttendance">
+            <div className="mb-4 mt-2">
+              <label
+                htmlFor="minAttendance"
+                className="mb-2 block text-sm font-medium text-foreground"
+              >
                 Minimum Attendance Percentage ({userData.minAttendance}%)
-              </Label>
-              <div style={{ padding: "0 10px" }}>
+              </label>
+              <div className="px-1">
                 <input
                   type="range"
                   id="minAttendance"
@@ -1204,225 +647,194 @@ const TimetableCreator = ({
                   value={userData.minAttendance}
                   onChange={handleUserDataChange}
                   required
-                  style={{
-                    width: "100%",
-                    height: "8px",
-                    borderRadius: "4px",
-                    appearance: "none",
-                    background: `linear-gradient(to right, ${
-                      currentTheme.primary
-                    } 0%, ${currentTheme.primary} ${
-                      ((userData.minAttendance - 50) / 50) * 100
-                    }%, ${currentTheme.secondary} ${
-                      ((userData.minAttendance - 50) / 50) * 100
-                    }%, ${currentTheme.secondary} 100%)`,
-                    cursor: "pointer",
-                  }}
+                  className="w-full cursor-pointer accent-primary"
                 />
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    marginTop: "8px",
-                  }}
-                >
-                  <span style={{ fontSize: "0.8rem" }}>50%</span>
-                  <span style={{ fontSize: "0.8rem" }}>100%</span>
+                <div className="mt-1 flex justify-between">
+                  <span className="text-xs text-muted-foreground">50%</span>
+                  <span className="text-xs text-muted-foreground">100%</span>
                 </div>
               </div>
-            </FormGroup>
+            </div>
 
-            <ButtonGroup className={"mb-10"}>
-              <PrimaryButton
-                whilehover={{ scale: 1.05 }}
-                whiletap={{ scale: 0.95 }}
-                onClick={nextStep}
-              >
+            <div className="mb-8 mt-4 flex justify-end">
+              <Button onClick={nextStep}>
                 Next <ArrowForward fontSize="small" />
-              </PrimaryButton>
-            </ButtonGroup>
-          </Card>
+              </Button>
+            </div>
+          </motion.div>
         );
 
       case 2:
         return (
-          <Card
+          <motion.div
             initial="initial"
             animate="animate"
             exit="exit"
             variants={cardVariants}
+            className={stepCardCn}
           >
-            <h2></h2>
-            <p></p>
-            <SectionTitle>Course Information</SectionTitle>
-            <SectionDescription>
+            <h2 className="mt-0 text-center text-xl font-semibold text-foreground sm:text-2xl">
+              Course Information
+            </h2>
+            <p className="mb-4 text-center text-sm text-muted-foreground sm:text-base">
               Add all your courses for the semester
-            </SectionDescription>
-            <PrimaryButton
-              whilehover={{ scale: 1.05 }}
-              whiletap={{ scale: 0.95 }}
+            </p>
+
+            <Button
               onClick={() => openCourseModal()}
-              style={{ marginBottom: "1.5rem" }}
+              className="mb-5 self-start"
             >
               <AddCircle fontSize="small" /> Add New Course
-            </PrimaryButton>
+            </Button>
 
             {courses.length === 0 ? (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "2rem 0",
-                  color: `${currentTheme.text}80`,
-                }}
-              >
+              <div className="py-8 text-center text-sm text-muted-foreground">
                 No courses added yet. Click the button above to add your first
                 course.
               </div>
             ) : (
-              <CourseList>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {courses.map((course, index) => (
-                  <CourseCard key={index}>
-                    <CourseCardHeader>
-                      <div>
-                        <CourseName>{course.name}</CourseName>
-                        <div style={{ fontSize: "1rem", marginTop: "0.25rem" }}>
+                  <div
+                    key={index}
+                    className="relative rounded-2xl border border-border bg-background p-4 transition-all hover:border-primary/30 hover:shadow-md"
+                  >
+                    <div className="mb-2 flex items-start justify-between">
+                      <div className="min-w-0 flex-1 pr-2">
+                        <div className="truncate font-semibold text-sm">
+                          {course.name}
+                        </div>
+                        <div className="mt-0.5 truncate text-sm text-muted-foreground">
                           {course.fullName}
                         </div>
                       </div>
-                      <CourseActionButtons>
+                      <div className="flex shrink-0 gap-1">
                         <IconButton
                           size="small"
                           onClick={() => openCourseModal(index)}
-                          style={{ color: currentTheme.primary }}
+                          style={{ color: "hsl(var(--primary))" }}
                         >
                           <Edit fontSize="small" />
                         </IconButton>
                         <IconButton
                           size="small"
                           onClick={() => deleteCourse(index)}
-                          style={{ color: currentTheme.accent }}
+                          style={{ color: "hsl(var(--destructive))" }}
                         >
                           <Delete fontSize="small" />
                         </IconButton>
-                      </CourseActionButtons>
-                    </CourseCardHeader>
-                    <div style={{ marginTop: "0.75rem" }}>
-                      <CourseInfo>
+                      </div>
+                    </div>
+                    <div className="mt-2 space-y-0.5">
+                      <div className="text-xs text-muted-foreground">
                         Type:{" "}
                         {course.type.charAt(0).toUpperCase() +
                           course.type.slice(1)}
-                      </CourseInfo>
-                      <CourseInfo>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
                         Instructor: {course.instructor || "TBD"}
-                      </CourseInfo>
-                      <CourseInfo>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
                         Min. Attendance:{" "}
                         {course.minAttendance || userData.minAttendance}%
-                      </CourseInfo>
+                      </div>
                     </div>
-                  </CourseCard>
+                  </div>
                 ))}
-              </CourseList>
+              </div>
             )}
 
-            <ButtonGroup>
-              <SecondaryButton
-                whilehover={{ scale: 1.05 }}
-                whiletap={{ scale: 0.95 }}
-                onClick={prevStep}
-              >
+            <div className="mt-auto flex justify-end gap-3 pt-4">
+              <Button variant="outline" onClick={prevStep}>
                 <ArrowBack fontSize="small" /> Back
-              </SecondaryButton>
-              <PrimaryButton
-                whilehover={{ scale: 1.05 }}
-                whiletap={{ scale: 0.95 }}
-                onClick={nextStep}
-              >
+              </Button>
+              <Button onClick={nextStep}>
                 Next <ArrowForward fontSize="small" />
-              </PrimaryButton>
-            </ButtonGroup>
-          </Card>
+              </Button>
+            </div>
+          </motion.div>
         );
 
       case 3:
         return (
-          <Card
+          <motion.div
             initial="initial"
             animate="animate"
             exit="exit"
             variants={cardVariants}
+            className={stepCardCn}
           >
-            <SectionDescription>
+            <p className="mb-4 text-center text-sm text-muted-foreground sm:text-base">
               Assign courses to time slots by clicking on an empty cell
-            </SectionDescription>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                marginBottom: "1rem",
-              }}
-            >
-              <SecondaryButton
-                whilehover={{ scale: 1.05 }}
-                whiletap={{ scale: 0.95 }}
+            </p>
+
+            <div className="mb-3 flex flex-wrap items-center gap-3">
+              <Button
+                variant={mergeMode ? "default" : "outline"}
+                size="sm"
                 onClick={() => {
                   setMergeMode(!mergeMode);
                   setMergingSlots([]);
                 }}
-                style={{
-                  backgroundColor: mergeMode
-                    ? currentTheme.primary
-                    : "transparent",
-                  color: mergeMode ? "white" : currentTheme.primary,
-                }}
               >
                 {mergeMode ? "Cancel Merge" : "Merge Slots"}
-              </SecondaryButton>
+              </Button>
               {mergeMode && (
-                <div
-                  style={{
-                    marginLeft: "1rem",
-                    color: currentTheme.text + "80",
-                  }}
-                >
+                <span className="text-xs text-muted-foreground sm:text-sm">
                   Select adjacent slots to merge (same day only)
-                </div>
+                </span>
               )}
             </div>
 
-            {/* Add this button to confirm merge if there are slots selected */}
             {mergeMode && mergingSlots.length > 1 && (
-              <PrimaryButton
-                whilehover={{ scale: 1.05 }}
-                whiletap={{ scale: 0.95 }}
+              <Button
+                size="sm"
                 onClick={() => setSlotAssignmentModalOpen(true)}
-                style={{ marginBottom: "1rem" }}
+                className="mb-3 self-start"
               >
                 Assign Course to Merged Slots
-              </PrimaryButton>
+              </Button>
             )}
-            <GridOverflow>
-              <TimetableGrid>
-                <TimeCell isHeader={true}></TimeCell>
+
+            {/* Scrollable timetable grid */}
+            <div className="w-full min-w-0 max-w-full overflow-x-auto overscroll-x-contain pb-2 touch-pan-x [scrollbar-color:hsl(var(--muted-foreground)/0.4)_transparent] [scrollbar-width:thin]">
+              <div
+                className="grid w-max min-w-[640px] gap-0.5 rounded-2xl bg-border p-0.5"
+                style={{
+                  gridTemplateColumns: "auto repeat(5, minmax(110px, 1fr))",
+                }}
+              >
+                {/* Header row */}
+                <div className="flex min-h-[48px] items-center justify-center rounded-[10px] bg-background px-2 py-2 text-sm font-semibold" />
                 {daysOfWeek.map((day) => (
-                  <DayCell key={day}>{day}</DayCell>
+                  <div
+                    key={day}
+                    className="flex min-h-[48px] items-center justify-center rounded-[10px] bg-background px-2 py-2 text-center text-sm font-semibold"
+                  >
+                    {day}
+                  </div>
                 ))}
 
+                {/* Slot rows */}
                 {timeSlots
-                  .filter((slot) => !slot.isBreak) // Filter out break slots
+                  .filter((slot) => !slot.isBreak)
                   .map((slot) => (
                     <React.Fragment key={slot.slotId}>
-                      <TimeCell>{slot.display}</TimeCell>
+                      <div className="flex min-h-[56px] items-center justify-center rounded-[10px] bg-background px-2 py-2 text-center text-[11px] leading-tight text-foreground sm:text-xs">
+                        {slot.display}
+                      </div>
 
                       {daysOfWeek.map((day) => {
                         const event = getCourseForSlot(day, slot.slotId);
                         const course = event
                           ? courses.find((c) => c.name === event.courseId)
                           : null;
+                        const highlighted = isSlotHighlighted(day, slot.slotId);
 
                         return event && course ? (
-                          <CourseCell
+                          <div
                             key={`${day}-${slot.slotId}`}
+                            className="flex min-h-[56px] cursor-pointer flex-col justify-center rounded-[10px] border border-primary/20 bg-secondary px-2 py-2 transition-all hover:bg-primary/[0.07]"
                             onClick={() =>
                               removeCourseFromSlot(day, slot.slotId)
                             }
@@ -1442,396 +854,353 @@ const TimetableCreator = ({
                                   : "flex",
                             }}
                           >
-                            <CourseName>{course.name}</CourseName>
-                            <CourseInfo>
+                            <div className="truncate text-[11px] font-semibold sm:text-xs">
+                              {course.name}
+                            </div>
+                            <div className="truncate text-[10px] opacity-70 sm:text-xs">
                               {course.instructor || "TBD"}
-                            </CourseInfo>
+                            </div>
                             {event.mergedSlots && (
-                              <CourseInfo>
-                                Merged: {event.mergedSlots.length} slots
-                              </CourseInfo>
+                              <div className="text-[10px] opacity-60">
+                                ×{event.mergedSlots.length} slots
+                              </div>
                             )}
-                          </CourseCell>
+                          </div>
                         ) : (
-                          <EmptySlot
+                          <div
                             key={`${day}-${slot.slotId}`}
+                            className={cn(
+                              "flex min-h-[56px] w-full cursor-pointer items-center justify-center rounded-[10px] text-[11px] text-muted-foreground transition-colors sm:text-xs",
+                              highlighted
+                                ? "border-2 border-dashed border-primary bg-primary/20"
+                                : "bg-background hover:bg-secondary/80",
+                            )}
                             onClick={() =>
                               mergeMode
                                 ? handleSlotMerge(day, slot.slotId)
                                 : openSlotAssignment(day, slot.slotId)
                             }
-                            style={{
-                              backgroundColor: isSlotHighlighted(
-                                day,
-                                slot.slotId
-                              )
-                                ? currentTheme.primary + "30"
-                                : "transparent",
-                              border: isSlotHighlighted(day, slot.slotId)
-                                ? `2px dashed ${currentTheme.primary}`
-                                : "none",
-                            }}
                           >
-                            {mergeMode
-                              ? isSlotHighlighted(day, slot.slotId)
-                                ? "Selected"
-                                : "Select"
-                              : "+ Add"}
-                          </EmptySlot>
+                            {mergeMode ? (highlighted ? "✓" : "+") : "+ Add"}
+                          </div>
                         );
                       })}
                     </React.Fragment>
                   ))}
-              </TimetableGrid>
-            </GridOverflow>
+              </div>
+            </div>
 
-            <ButtonGroup>
-              <SecondaryButton
-                whilehover={{ scale: 1.05 }}
-                whiletap={{ scale: 0.95 }}
-                onClick={prevStep}
-              >
+            <div className="mt-auto flex justify-end gap-3 pt-4">
+              <Button variant="outline" onClick={prevStep}>
                 <ArrowBack fontSize="small" /> Back
-              </SecondaryButton>
-              <PrimaryButton
-                whilehover={{ scale: 1.05 }}
-                whiletap={{ scale: 0.95 }}
-                onClick={() => {
-                  toast.success("Timetable saved successfully!");
-                  getFinalTimetableData();
-                }}
-              >
+              </Button>
+              <Button onClick={getFinalTimetableData}>
                 Finish <ArrowForward fontSize="small" />
-              </PrimaryButton>
-            </ButtonGroup>
-          </Card>
+              </Button>
+            </div>
+          </motion.div>
         );
+
       default:
         return null;
     }
   };
 
   return loading ? (
-    <LoadingSpinner>
-      <div className="spinner" />
-    </LoadingSpinner>
+    <div className="flex min-h-[400px] items-center justify-center">
+      <div className="h-12 w-12 animate-spin rounded-full border-[5px] border-muted border-t-primary" />
+    </div>
   ) : (
-    <div className="flex flex-col gap-2 mt-1">
-      <StepIndicator>
+    <div className="mt-1 flex flex-col gap-2">
+      {/* Step indicator */}
+      <div className="flex flex-wrap justify-center gap-2 py-1 sm:gap-3">
         {[1, 2, 3].map((step) => (
-          <StepLabel key={step}>
-            <StepDot
-              active={step === currentStep}
-              completed={step < currentStep}
+          <div
+            key={step}
+            className={cn(
+              "flex flex-col items-center rounded-full border bg-card px-3 py-2 transition-colors",
+              step === currentStep ? "border-primary/50" : "border-border",
+            )}
+          >
+            <div
+              className={cn(
+                "mx-1 h-2.5 w-2.5 rounded-full transition-all",
+                step === currentStep
+                  ? "bg-primary"
+                  : step < currentStep
+                    ? "bg-primary/50"
+                    : "bg-muted",
+              )}
             />
-            <StepText active={step === currentStep}>
+            <span
+              className={cn(
+                "mt-1 text-xs transition-all",
+                step === currentStep
+                  ? "font-semibold text-primary"
+                  : step < currentStep
+                    ? "font-semibold text-foreground"
+                    : "text-muted-foreground",
+              )}
+            >
               {step === 1
                 ? "Student Info"
                 : step === 2
-                ? "Courses"
-                : "Timetable"}
-            </StepText>
-          </StepLabel>
+                  ? "Courses"
+                  : "Timetable"}
+            </span>
+          </div>
         ))}
-      </StepIndicator>
+      </div>
 
       <AnimatePresence mode="wait">{renderStep()}</AnimatePresence>
 
-      {/* Calendar Modal */}
-      <AnimatePresence>
-        {calendarOpen && (
-          <CalendarContainer
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            variants={calendarVariants}
-            onClick={() => setCalendarOpen(false)}
-          >
-            <CalendarCard
-              onClick={(e) => e.stopPropagation()}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 20, opacity: 0 }}
-            >
-              <CalendarHeader>
-                <CalendarTitle>
-                  {calendarMode === "start"
-                    ? "Select Start Date"
-                    : "Select End Date"}
-                </CalendarTitle>
-                <IconButton size="small" onClick={() => setCalendarOpen(false)}>
-                  <Close />
-                </IconButton>
-              </CalendarHeader>
+      {/* Calendar date picker dialog */}
+      <Dialog open={calendarOpen} onOpenChange={setCalendarOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {calendarMode === "start"
+                ? "Select Start Date"
+                : "Select End Date"}
+            </DialogTitle>
+            <DialogDescription>
+              Pick your semester timeline dates for attendance tracking.
+            </DialogDescription>
+          </DialogHeader>
 
-              <Calendar
-                minDate={
-                  calendarMode === "end" && userData.courseStartDate
-                    ? new Date(new Date().getTime())
-                    : new Date("2020-01-01")
-                }
-                maxDate={
-                  calendarMode === "start" ? now : new Date("2030-01-01")
-                }
-                value={
-                  calendarMode === "start"
-                    ? userData.courseStartDate
-                    : userData.courseEndDate
-                }
-                onChange={handleDateSelect}
+          <div className={calendarSurfaceClassName}>
+            <Calendar
+              className="shadcn-calendar"
+              minDate={
+                calendarMode === "end" && userData.courseStartDate
+                  ? new Date(new Date().getTime())
+                  : new Date("2020-01-01")
+              }
+              maxDate={calendarMode === "start" ? now : new Date("2030-01-01")}
+              value={
+                calendarMode === "start"
+                  ? userData.courseStartDate
+                  : userData.courseEndDate
+              }
+              onChange={handleDateSelect}
+            />
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCalendarOpen(false)}>
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add / edit course dialog */}
+      <Dialog open={isCourseModalOpen} onOpenChange={setIsCourseModalOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingCourseIndex !== null ? "Edit Course" : "Add New Course"}
+            </DialogTitle>
+            <DialogDescription>
+              Define the course metadata used across timetable and attendance.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-1">
+            <div className="space-y-2">
+              <label htmlFor="name" className="text-sm font-medium">
+                Course Code
+              </label>
+              <UiInput
+                type="text"
+                id="name"
+                name="name"
+                placeholder="e.g. MA221TC"
+                value={currentCourse.name}
+                onChange={(e) => {
+                  if (e.target.value.length <= 30) {
+                    handleCourseChange(e);
+                  } else {
+                    toast.info("Course too long");
+                  }
+                }}
+                className={courseIdError ? "border-destructive" : ""}
               />
+              {courseIdError && (
+                <p className="text-xs text-destructive">{courseIdError}</p>
+              )}
+            </div>
 
-              <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-                <PrimaryButton onClick={() => setCalendarOpen(false)}>
-                  Cancel
-                </PrimaryButton>
-              </Box>
-            </CalendarCard>
-          </CalendarContainer>
-        )}
-      </AnimatePresence>
+            <div className="space-y-2">
+              <label htmlFor="fullName" className="text-sm font-medium">
+                Course Name
+              </label>
+              <UiInput
+                type="text"
+                id="fullName"
+                name="fullName"
+                placeholder="e.g. Mathematics II"
+                autoComplete="off"
+                value={currentCourse.fullName}
+                onChange={(e) => {
+                  if (e.target.value.length <= 30) {
+                    handleCourseChange(e);
+                  } else {
+                    toast.info("Name too long");
+                  }
+                }}
+              />
+            </div>
 
-      {/* Course Modal */}
-      <AnimatePresence>
-        {isCourseModalOpen && (
-          <ModalContainer
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            variants={calendarVariants}
-            onClick={() => setIsCourseModalOpen(false)}
-          >
-            <ModalCard
-              onClick={(e) => e.stopPropagation()}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 20, opacity: 0 }}
-            >
-              <ModalHeader>
-                <ModalTitle>
-                  {editingCourseIndex !== null
-                    ? "Edit Course"
-                    : "Add New Course"}
-                </ModalTitle>
-                <IconButton
-                  size="small"
-                  onClick={() => setIsCourseModalOpen(false)}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label htmlFor="type" className="text-sm font-medium">
+                  Course Type
+                </label>
+                <UiSelect
+                  value={currentCourse.type}
+                  onValueChange={(value) =>
+                    setCurrentCourse((prev) => ({ ...prev, type: value }))
+                  }
                 >
-                  <Close />
-                </IconButton>
-              </ModalHeader>
+                  <SelectTrigger id="type">
+                    <SelectValue placeholder="Select course type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="theory">Theory</SelectItem>
+                    <SelectItem value="lab">Lab</SelectItem>
+                    <SelectItem value="session">Session</SelectItem>
+                  </SelectContent>
+                </UiSelect>
+              </div>
 
-              <FormGroup>
-                <Label htmlFor="name">Course Code</Label>
-                <Input
+              <div className="space-y-2">
+                <label htmlFor="instructor" className="text-sm font-medium">
+                  Instructor
+                </label>
+                <UiInput
                   type="text"
-                  id="name"
-                  name="name"
-                  placeholder="e.g. MA221TC"
-                  value={currentCourse.name}
+                  id="instructor"
+                  name="instructor"
+                  placeholder="John Doe"
+                  value={currentCourse.instructor}
                   onChange={(e) => {
-                    if (!(e.target.value > 30)) {
-                      handleCourseChange(e);
-                    } else {
-                      toast.info("Course too long");
-                    }
-                  }}
-                  style={courseIdError ? { borderColor: "red" } : {}}
-                />
-                {courseIdError && (
-                  <div
-                    style={{
-                      color: "red",
-                      fontSize: "0.8rem",
-                      marginTop: "0.25rem",
-                    }}
-                  >
-                    {courseIdError}
-                  </div>
-                )}
-              </FormGroup>
-
-              <FormGroup>
-                <Label htmlFor="fullName">Course Name</Label>
-                <Input
-                  type="text"
-                  id="fullName"
-                  name="fullName"
-                  placeholder="e.g. Mathematics II"
-                  autoComplete="off"
-                  value={currentCourse.fullName}
-                  onChange={(e) => {
-                    if (!(e.target.value > 30)) {
+                    if (e.target.value.length <= 30) {
                       handleCourseChange(e);
                     } else {
                       toast.info("Name too long");
                     }
                   }}
                 />
-              </FormGroup>
+              </div>
+            </div>
 
-              <FormRow>
-                <FormGroup>
-                  <Label htmlFor="type">Course Type</Label>
-                  <Select
-                    id="type"
-                    name="type"
-                    value={currentCourse.type}
-                    onChange={handleCourseChange}
-                  >
-                    <option value="theory">Theory</option>
-                    <option value="lab">Lab</option>
-                    <option value="session">Session</option>
-                  </Select>
-                </FormGroup>
+            <div className="space-y-2">
+              <label
+                htmlFor="courseMinAttendance"
+                className="text-sm font-medium"
+              >
+                Minimum Attendance (%)
+                {currentCourse.minAttendance
+                  ? ""
+                  : ` (Default: ${userData.minAttendance}%)`}
+              </label>
+              <UiInput
+                type="number"
+                id="courseMinAttendance"
+                name="minAttendance"
+                placeholder={`Default: ${userData.minAttendance}%`}
+                min="0"
+                max="100"
+                value={currentCourse.minAttendance}
+                onChange={handleCourseChange}
+              />
+            </div>
+          </div>
 
-                <FormGroup>
-                  <Label htmlFor="instructor">Instructor</Label>
-                  <Input
-                    type="text"
-                    id="instructor"
-                    name="instructor"
-                    placeholder="John Doe"
-                    value={currentCourse.instructor}
-                    onChange={(e) => {
-                      if (!(e.target.value > 30)) {
-                        handleCourseChange(e);
-                      } else {
-                        toast.info("Name too long");
-                      }
-                    }}
-                  />
-                </FormGroup>
-              </FormRow>
-
-              <FormGroup>
-                <Label htmlFor="courseMinAttendance">
-                  Minimum Attendance (%){" "}
-                  {currentCourse.minAttendance
-                    ? ""
-                    : `(Default: ${userData.minAttendance}%)`}
-                </Label>
-                <Input
-                  type="number"
-                  id="courseMinAttendance"
-                  name="minAttendance"
-                  placeholder={`Default: ${userData.minAttendance}%`}
-                  min="0"
-                  max="100"
-                  value={currentCourse.minAttendance}
-                  onChange={handleCourseChange}
-                />
-              </FormGroup>
-
-              <ButtonGroup>
-                <SecondaryButton
-                  whilehover={{ scale: 1.05 }}
-                  whiletap={{ scale: 0.95 }}
-                  onClick={() => setIsCourseModalOpen(false)}
-                >
-                  Cancel
-                </SecondaryButton>
-                <PrimaryButton
-                  whilehover={{ scale: 1.05 }}
-                  whiletap={{ scale: 0.95 }}
-                  onClick={saveCourse}
-                  disabled={!currentCourse.name || !currentCourse.fullName}
-                  style={{
-                    opacity:
-                      currentCourse.name && currentCourse.fullName ? 1 : 0.6,
-                  }}
-                >
-                  {editingCourseIndex !== null ? "Update" : "Add"} Course
-                </PrimaryButton>
-              </ButtonGroup>
-            </ModalCard>
-          </ModalContainer>
-        )}
-      </AnimatePresence>
-
-      {/* Slot Assignment Modal */}
-      <AnimatePresence>
-        {slotAssignmentModalOpen && (
-          <ModalContainer
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            variants={calendarVariants}
-            onClick={() => setSlotAssignmentModalOpen(false)}
-          >
-            <ModalCard
-              onClick={(e) => e.stopPropagation()}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 20, opacity: 0 }}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsCourseModalOpen(false)}
             >
-              <ModalHeader>
-                <ModalTitle>
-                  {mergeMode && mergingSlots.length > 1
-                    ? `Assign Course to ${mergingSlots.length} Merged Slots`
-                    : `Assign Course to ${currentSlot?.day} ${
-                        timeSlots.find((s) => s.slotId === currentSlot?.slotId)
-                          ?.display
-                      }`}
-                </ModalTitle>
-                <IconButton
-                  size="small"
-                  onClick={() => setSlotAssignmentModalOpen(false)}
-                >
-                  <Close />
-                </IconButton>
-              </ModalHeader>
+              Cancel
+            </Button>
+            <Button
+              onClick={saveCourse}
+              disabled={!currentCourse.name || !currentCourse.fullName}
+            >
+              {editingCourseIndex !== null ? "Update" : "Add"} Course
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-              {courses.length === 0 ? (
-                <div
-                  style={{
-                    textAlign: "center",
-                    padding: "1.5rem 0",
-                    color: `${currentTheme.text}80`,
-                  }}
-                >
-                  No courses available. Please add courses first.
-                </div>
-              ) : (
-                <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-                  {courses.map((course, index) => (
-                    <CourseCard
-                      key={index}
-                      onClick={() => assignCourseToSlot(course.name)}
-                      style={{ cursor: "pointer", marginBottom: "0.75rem" }}
-                    >
-                      <CourseName>{course.name}</CourseName>
-                      <div style={{ fontSize: "0.9rem", marginTop: "0.25rem" }}>
-                        {course.fullName}
-                      </div>
-                      <CourseInfo>
-                        Type:{" "}
-                        {course.type.charAt(0).toUpperCase() +
-                          course.type.slice(1)}
-                      </CourseInfo>
-                      <CourseInfo>
-                        Instructor: {course.instructor || "TBD"}
-                      </CourseInfo>
-                    </CourseCard>
-                  ))}
-                </div>
-              )}
+      {/* Slot assignment dialog */}
+      <Dialog
+        open={slotAssignmentModalOpen}
+        onOpenChange={setSlotAssignmentModalOpen}
+      >
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {mergeMode && mergingSlots.length > 1
+                ? `Assign Course to ${mergingSlots.length} Merged Slots`
+                : `Assign Course to ${currentSlot?.day} ${
+                    timeSlots.find((s) => s.slotId === currentSlot?.slotId)
+                      ?.display
+                  }`}
+            </DialogTitle>
+            <DialogDescription>
+              Choose one course to map to this slot selection.
+            </DialogDescription>
+          </DialogHeader>
 
-              <ButtonGroup>
-                <SecondaryButton
-                  whilehover={{ scale: 1.05 }}
-                  whiletap={{ scale: 0.95 }}
-                  onClick={() => setSlotAssignmentModalOpen(false)}
+          {courses.length === 0 ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              No courses available. Please add courses first.
+            </p>
+          ) : (
+            <div className="max-h-[400px] space-y-3 overflow-y-auto pr-1">
+              {courses.map((course, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => assignCourseToSlot(course.name)}
+                  className="w-full rounded-xl border border-border/70 bg-card p-3 text-left transition hover:border-primary/40 hover:bg-accent"
                 >
-                  Cancel
-                </SecondaryButton>
-              </ButtonGroup>
-            </ModalCard>
-          </ModalContainer>
-        )}
-      </AnimatePresence>
+                  <p className="text-sm font-semibold">{course.name}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {course.fullName}
+                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Type:{" "}
+                    {course.type.charAt(0).toUpperCase() + course.type.slice(1)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Instructor: {course.instructor || "TBD"}
+                  </p>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setSlotAssignmentModalOpen(false)}
+            >
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
 
 export default TimetableCreator;
+
+TimetableCreator.propTypes = {
+  setActiveComponent: PropTypes.func.isRequired,
+  setHasTimeTable: PropTypes.func.isRequired,
+};
