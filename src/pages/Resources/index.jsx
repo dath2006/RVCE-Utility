@@ -106,6 +106,7 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
         "Idea lab (22ME28)",
         "Principles of C prog (22CS23)",
         "Maths (22MA21C)",
+        "AI_Foundations_For_Engineers (CI124AT)",
         filters.selectedETC,
         filters.selectedKannada,
         filters.selectedESC,
