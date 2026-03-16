@@ -479,8 +479,8 @@ function Navigation({
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => {
-                toggleTheme();
+              onClick={(event) => {
+                toggleTheme(event.currentTarget);
               }}
               aria-label="Toggle theme"
             >

@@ -18,10 +18,7 @@ import { cn } from "@/lib/utils";
 const FEEDBACK_STORAGE_KEY = "rvce-redesign-feedback-v1";
 const FEEDBACK_VERSION = "redesign-2026-v1";
 
-const MIN_ACTIVE_MS = 5 * 60 * 1000;
-const MIN_PAGE_COUNT = 2;
-const MIN_ACTIONS = 5;
-const MIN_SINCE_FIRST_SEEN_MS = 10 * 60 * 1000;
+const MIN_ACTIVE_MS = 3 * 60 * 1000;
 const REMIND_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
 const SHOW_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
@@ -67,10 +64,7 @@ function canShowPrompt(state, now) {
   if (state.lastShownAt && now - state.lastShownAt < SHOW_COOLDOWN_MS) {
     return false;
   }
-  if (now - state.firstSeenAt < MIN_SINCE_FIRST_SEEN_MS) return false;
   if (state.activeMs < MIN_ACTIVE_MS) return false;
-  if (state.pagesVisited.length < MIN_PAGE_COUNT) return false;
-  if (state.actions < MIN_ACTIONS) return false;
   return true;
 }
 

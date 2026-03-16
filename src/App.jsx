@@ -111,7 +111,11 @@ const ThemeTransitionStyles = createGlobalStyle`
     ::view-transition-group(root),
     ::view-transition-old(root),
     ::view-transition-new(root) {
-      animation-duration: 0.6s;
+      animation-duration: 0.7s;
+    }
+
+    ::view-transition-group(root) {
+      animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
     }
 
     ::view-transition-old(root) {
@@ -121,48 +125,27 @@ const ThemeTransitionStyles = createGlobalStyle`
 
     ::view-transition-new(root) {
       mix-blend-mode: normal;
-      will-change: clip-path;
-      animation: themeCurvedDiagonalReveal 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+      will-change: clip-path, filter;
+      animation: themeButtonReveal 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) both;
     }
 
-    @keyframes themeCurvedDiagonalReveal {
+    @keyframes themeButtonReveal {
       0% {
-        clip-path: circle(0% at -8% -8%);
+        clip-path: circle(
+          var(--theme-transition-start-radius, 0px) at
+            var(--theme-transition-x, 50vw) var(--theme-transition-y, 50vh)
+        );
+        filter: blur(12px) brightness(1.03);
       }
-      22% {
-        clip-path: circle(38% at 14% 14%);
-      }
-      54% {
-        clip-path: circle(88% at 45% 45%);
-      }
-      76% {
-        clip-path: circle(126% at 78% 78%);
+      55% {
+        filter: blur(5px) brightness(1.015);
       }
       100% {
-        clip-path: circle(175% at 112% 112%);
-      }
-    }
-
-    @keyframes themeSoftShimmer {
-      0% {
-        filter: brightness(1) saturate(1)
-          drop-shadow(0 0 0 rgba(255, 255, 255, 0));
-      }
-      34% {
-        filter: brightness(1.04) saturate(1.01)
-          drop-shadow(0 0 6px rgba(255, 255, 255, 0.16));
-      }
-      58% {
-        filter: brightness(1.08) saturate(1.02)
-          drop-shadow(0 0 10px rgba(255, 255, 255, 0.24));
-      }
-      78% {
-        filter: brightness(1.03) saturate(1.01)
-          drop-shadow(0 0 5px rgba(255, 255, 255, 0.12));
-      }
-      100% {
-        filter: brightness(1) saturate(1)
-          drop-shadow(0 0 0 rgba(255, 255, 255, 0));
+        clip-path: circle(
+          var(--theme-transition-end-radius, 150vmax) at
+            var(--theme-transition-x, 50vw) var(--theme-transition-y, 50vh)
+        );
+        filter: blur(0) brightness(1);
       }
     }
   }
@@ -172,6 +155,38 @@ const overlayVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1 },
   exit: { opacity: 0 },
+};
+
+const setThemeTransitionOrigin = (triggerElement) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const rect = triggerElement?.getBoundingClientRect?.();
+  const centerX = rect ? rect.left + rect.width / 2 : window.innerWidth / 2;
+  const centerY = rect ? rect.top + rect.height / 2 : window.innerHeight / 2;
+  const startRadius = rect ? Math.max(rect.width, rect.height) * 0.55 : 0;
+  const endRadius = Math.hypot(
+    Math.max(centerX, window.innerWidth - centerX),
+    Math.max(centerY, window.innerHeight - centerY),
+  );
+
+  document.documentElement.style.setProperty(
+    "--theme-transition-x",
+    `${centerX}px`,
+  );
+  document.documentElement.style.setProperty(
+    "--theme-transition-y",
+    `${centerY}px`,
+  );
+  document.documentElement.style.setProperty(
+    "--theme-transition-start-radius",
+    `${startRadius}px`,
+  );
+  document.documentElement.style.setProperty(
+    "--theme-transition-end-radius",
+    `${endRadius}px`,
+  );
 };
 
 function AppContent() {
@@ -202,7 +217,9 @@ function AppContent() {
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = (triggerElement) => {
+    setThemeTransitionOrigin(triggerElement);
+
     const applyThemeToggle = () => {
       const newTheme = theme === "light" ? "dark" : "light";
       // Synchronously flip the Tailwind dark-class AND React state in the same
