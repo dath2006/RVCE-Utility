@@ -69,10 +69,11 @@ createRoot(document.getElementById("root")).render(
       clientId={import.meta.env.VITE_AUTH0_CLIENTID}
       cacheLocation="localstorage"
       useRefreshTokens={true}
+      useRefreshTokensFallback={true}
       authorizationParams={{
         redirect_uri: window.location.origin,
         audience: import.meta.env.VITE_API_URL,
-        scope: "openid profile email",
+        scope: "openid profile email offline_access",
       }}
     >
       <App />

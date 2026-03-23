@@ -81,6 +81,7 @@ const ScrollViewport = styled.div`
 
   &::-webkit-scrollbar {
     height: 8px;
+    width: 8px;
   }
 
   &::-webkit-scrollbar-thumb {
@@ -98,7 +99,8 @@ const TimetableContainer = styled.div`
   max-width: none;
   background: ${(props) => props.theme.background};
   border: 1px solid rgba(148, 163, 184, 0.25);
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
 
   @media (min-width: 1025px) {
     width: 920px;
@@ -129,11 +131,11 @@ const HeaderCell = styled.div`
   text-align: center;
   position: sticky;
   top: 0;
-  z-index: 6;
+  z-index: 8;
 
   &:first-child {
     left: 0;
-    z-index: 8;
+    z-index: 10;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
   }
 `;
@@ -146,7 +148,7 @@ const TimeCell = styled.div`
   text-align: center;
   position: sticky;
   left: 0;
-  z-index: 5;
+  z-index: 7;
   height: 100%;
   display: flex;
   align-items: center;

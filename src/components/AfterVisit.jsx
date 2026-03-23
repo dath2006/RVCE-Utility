@@ -72,8 +72,16 @@ function sanitizeBulletinHtml(rawHtml) {
     });
   });
 
+  doc.querySelectorAll("a").forEach((anchor) => {
+    anchor.setAttribute("target", "_blank");
+    anchor.setAttribute("rel", "noreferrer");
+  });
+
   return doc.body.innerHTML;
 }
+
+const announcementHtmlClassName =
+  "prose prose-sm max-w-none text-foreground dark:prose-invert prose-headings:mb-2 prose-headings:mt-3 prose-headings:font-semibold prose-p:my-2 prose-p:leading-7 prose-ul:my-2 prose-li:my-1 prose-a:text-sky-700 prose-a:no-underline hover:prose-a:underline prose-blockquote:rounded-xl prose-blockquote:border-l-4 prose-blockquote:border-sky-300 prose-blockquote:bg-sky-50/70 prose-blockquote:px-4 prose-blockquote:py-2 prose-blockquote:text-slate-700 dark:prose-blockquote:bg-slate-900/40";
 
 function StatCard({
   value,
@@ -326,12 +334,14 @@ function AfterVisit({ showAuthCard, setShowAuthCard }) {
                     "Campus bulletin"}
                 </h3> */}
                 {isAnnouncementHtml ? (
-                  <div
-                    className="prose prose-sm mt-2 max-w-3xl text-foreground dark:prose-invert prose-headings:my-2 prose-p:my-2 prose-ul:my-2"
-                    dangerouslySetInnerHTML={{ __html: safeAnnouncementHtml }}
-                  />
+                  <div className="mt-3 rounded-2xl border border-border/70 bg-background/70 p-4">
+                    <div
+                      className={announcementHtmlClassName}
+                      dangerouslySetInnerHTML={{ __html: safeAnnouncementHtml }}
+                    />
+                  </div>
                 ) : (
-                  <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+                  <p className="mt-2 max-w-3xl whitespace-pre-line rounded-2xl border border-border/70 bg-background/70 p-4 text-sm leading-7 text-muted-foreground">
                     {announcementBody}
                   </p>
                 )}
@@ -513,12 +523,14 @@ function AfterVisit({ showAuthCard, setShowAuthCard }) {
 
           <div className="max-h-[48vh] overflow-y-auto pr-1">
             {isAnnouncementHtml ? (
-              <div
-                className="prose prose-sm max-w-none text-foreground dark:prose-invert prose-headings:my-2 prose-p:my-2 prose-ul:my-2"
-                dangerouslySetInnerHTML={{ __html: safeAnnouncementHtml }}
-              />
+              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                <div
+                  className={announcementHtmlClassName}
+                  dangerouslySetInnerHTML={{ __html: safeAnnouncementHtml }}
+                />
+              </div>
             ) : (
-              <p className="text-sm leading-6 text-muted-foreground">
+              <p className="whitespace-pre-line rounded-2xl border border-border/70 bg-background/70 p-4 text-sm leading-7 text-muted-foreground">
                 {announcementBody}
               </p>
             )}

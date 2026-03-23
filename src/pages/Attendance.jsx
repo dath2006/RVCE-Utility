@@ -10,6 +10,7 @@ import {
   InfoIcon,
   LogOut,
   MessageCircleQuestionIcon,
+  UploadCloud,
   X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,6 +23,7 @@ import { BottomBarProvider, useBottomBar } from "../contexts/BottomBarContext";
 import ImportTimeTable from "../components/ImportTimeTable";
 import CustomTimeTable from "../components/CustomTimeTable";
 import MainAttendance from "../components/MainAttendance";
+import PublishTimeTable from "../components/PublishTimeTable";
 import Statistics from "../components/Statistics";
 import ViewTimeTable from "../components/ViewTimeTable";
 
@@ -122,6 +124,12 @@ const navConfig = {
     { id: "main", label: "Attendance", icon: Calendar, kind: "primary" },
     { id: "statistics", label: "Statistics", icon: BarChart2, kind: "primary" },
     { id: "view", label: "View TimeTable", icon: Eye, kind: "primary" },
+    {
+      id: "publish",
+      label: "Publish TimeTable",
+      icon: UploadCloud,
+      kind: "primary",
+    },
     { id: "reset", label: "Reset TimeTable", icon: RefreshCw, kind: "danger" },
   ],
 };
@@ -135,15 +143,34 @@ const mobileActions = {
     { id: "main", label: "Attendance", icon: Calendar },
     { id: "statistics", label: "Stats", icon: BarChart2 },
     { id: "view", label: "View", icon: Eye },
+    { id: "publish", label: "Publish", icon: UploadCloud },
     { id: "reset", label: "Reset", icon: RefreshCw },
     { id: "exit", label: "Exit", icon: LogOut, danger: true },
   ],
 };
 
+const CONSENT_REDIRECT_FLAG = "auth0_consent_redirect_in_progress";
+
+const isConsentRequiredError = (error) => {
+  const normalizedCode = String(
+    error?.error || error?.code || "",
+  ).toLowerCase();
+  const normalizedMessage = String(error?.message || "").toLowerCase();
+  return (
+    normalizedCode === "consent_required" ||
+    normalizedMessage.includes("consent required")
+  );
+};
+
 // eslint-disable-next-line react/prop-types
 const AttendanceContent = ({ setDisableWorkSpace }) => {
-  const { user, isAuthenticated, isLoading, getAccessTokenSilently } =
-    useAuth0();
+  const {
+    user,
+    isAuthenticated,
+    isLoading,
+    getAccessTokenSilently,
+    loginWithRedirect,
+  } = useAuth0();
   const [hasTimeTable, setHasTimeTable] = useState(false);
   const [activeComponent, setActiveComponent] = useState("import");
   const [showHelpModal, setShowHelpModal] = useState(false);
@@ -190,6 +217,7 @@ const AttendanceContent = ({ setDisableWorkSpace }) => {
       try {
         setLoading(true);
         const token = await getAccessTokenSilently();
+        sessionStorage.removeItem(CONSENT_REDIRECT_FLAG);
         const res = await axios.get(
           `${import.meta.env.VITE_API_URL}/timetable/check?email=${user.email}`,
           {
@@ -206,6 +234,22 @@ const AttendanceContent = ({ setDisableWorkSpace }) => {
           setHasTimeTable(hasTable);
         }
       } catch (error) {
+        if (isConsentRequiredError(error)) {
+          if (sessionStorage.getItem(CONSENT_REDIRECT_FLAG) !== "1") {
+            sessionStorage.setItem(CONSENT_REDIRECT_FLAG, "1");
+            await loginWithRedirect({
+              appState: {
+                returnTo: `${window.location.pathname}${window.location.search}`,
+              },
+              authorizationParams: {
+                audience: import.meta.env.VITE_API_URL,
+                scope: "openid profile email offline_access",
+                prompt: "consent",
+              },
+            });
+          }
+          return;
+        }
         console.error("Error checking time table:", error);
       } finally {
         setLoading(false);
@@ -282,6 +326,8 @@ const AttendanceContent = ({ setDisableWorkSpace }) => {
         return <Statistics />;
       case "view":
         return <ViewTimeTable />;
+      case "publish":
+        return <PublishTimeTable />;
       default:
         return <ImportTimeTable onCreateClick={handleCreateTimeTable} />;
     }
@@ -354,7 +400,7 @@ const AttendanceContent = ({ setDisableWorkSpace }) => {
         createPortal(
           <div className="fixed inset-x-0 bottom-0 z-40 px-2 pb-[calc(env(safe-area-inset-bottom,0px)+0.35rem)] pt-1">
             <div
-              className={`mx-auto grid w-full max-w-[27rem] ${mobileNavItems.length > 4 ? "grid-cols-5" : "grid-cols-2"} items-center gap-1 rounded-2xl border border-border/70 bg-background/80 p-1.5 shadow-lg shadow-black/5 backdrop-blur-xl`}
+              className={`mx-auto grid w-full max-w-[27rem] ${mobileNavItems.length > 5 ? "grid-cols-6" : mobileNavItems.length > 4 ? "grid-cols-5" : "grid-cols-2"} items-center gap-1 rounded-2xl border border-border/70 bg-background/80 p-1.5 shadow-lg shadow-black/5 backdrop-blur-xl`}
             >
               {mobileNavItems.map((item) => {
                 const Icon = item.icon;

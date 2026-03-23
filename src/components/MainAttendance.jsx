@@ -1234,6 +1234,11 @@ const MainAttendance = ({ setActiveComponent }) => {
                     const courseData = attendanceState.find(
                       (course) => course.courseId === ele.courseId,
                     );
+                    const courseMeta = courses.find(
+                      (course) => course.name === ele.courseId,
+                    );
+                    const courseDisplayName =
+                      courseMeta?.fullName?.trim() || ele.courseId;
                     const hasPending = courseData && courseData.pending > 0;
                     const attendancePercent = courseData
                       ? courseData.attendancePercentage
@@ -1297,11 +1302,16 @@ const MainAttendance = ({ setActiveComponent }) => {
 
                         <div className="mt-2 flex flex-1 flex-col justify-between">
                           <div>
-                            <p className="text-sm font-semibold tracking-tight text-foreground">
-                              {ele.courseId}
+                            <p
+                              className="truncate text-sm font-semibold tracking-tight text-foreground"
+                              title={courseDisplayName}
+                            >
+                              {courseDisplayName}
                             </p>
                             <p className="mt-0.5 text-[10px] text-muted-foreground">
-                              {ele.custom ? "Custom" : "Scheduled"}
+                              {ele.custom
+                                ? `Custom${ele.courseId ? ` • ${ele.courseId}` : ""}`
+                                : ele.courseId}
                             </p>
                           </div>
 

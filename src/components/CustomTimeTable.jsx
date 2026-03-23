@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar } from "react-calendar";
@@ -136,6 +136,55 @@ const TimetableCreator = ({ setActiveComponent, setHasTimeTable }) => {
   const [events, setEvents] = useState([]);
   const [slotAssignmentModalOpen, setSlotAssignmentModalOpen] = useState(false);
   const [currentSlot, setCurrentSlot] = useState(null);
+
+  useEffect(() => {
+    const rawPrefill = sessionStorage.getItem("communityTimetablePrefill");
+    if (!rawPrefill) {
+      return;
+    }
+
+    try {
+      const prefill = JSON.parse(rawPrefill);
+      const coursesFromPrefill = Array.isArray(prefill?.timeTable?.courses)
+        ? prefill.timeTable.courses
+        : [];
+      const eventsFromPrefill = Array.isArray(prefill?.timeTable?.events)
+        ? prefill.timeTable.events
+        : [];
+
+      setUserData((prev) => ({
+        ...prev,
+        semester: prefill?.semester || prev.semester,
+        branch: prefill?.branch || prev.branch,
+        minAttendance: String(prefill?.minAttendance || prev.minAttendance),
+      }));
+
+      setCourses(
+        coursesFromPrefill.map((course) => ({
+          ...course,
+          minAttendance:
+            course.minAttendance ??
+            prefill?.minAttendance ??
+            userData.minAttendance,
+        })),
+      );
+
+      setEvents(
+        eventsFromPrefill.map((event) => ({
+          ...event,
+          attendance: event.attendance || "pending",
+        })),
+      );
+
+      setCurrentStep(2);
+      toast.success("Community timetable loaded. You can edit and save it.");
+    } catch (error) {
+      console.error("Failed to load community timetable prefill", error);
+      toast.error("Could not load community timetable for editing.");
+    } finally {
+      sessionStorage.removeItem("communityTimetablePrefill");
+    }
+  }, []);
 
   // Bottom bar visibility management for modals
   useBottomBarVisibility(isCourseModalOpen, "course-modal");
