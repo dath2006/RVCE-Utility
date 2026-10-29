@@ -23,7 +23,6 @@ import {
 
 import { useGithubStars } from "../hooks/useGithubStars";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -251,13 +250,6 @@ function Navigation({
                 </p>
               </div>
             </Link>
-            <Badge
-              variant="secondary"
-              className="inline-flex items-center gap-1 rounded-full border border-primary/25 bg-gradient-to-r from-primary/10 via-background to-amber-300/20 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.55),0_4px_10px_rgba(15,23,42,0.08)] sm:px-2.5 sm:text-[11px]"
-            >
-              <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
-              Redesigned
-            </Badge>
           </div>
 
           <div className="hidden items-center gap-3 lg:flex">
