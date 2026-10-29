@@ -133,7 +133,6 @@ function SelectionPopup({ filters, onClose, onSubmit }) {
     filters?.cycle === "5-Sem-CSE" && !filters.selectedElective;
   const [currentStep, setCurrentStep] = useState(needsElective ? 2 : 0);
   const [selection, setSelection] = useState({
-    ...(needsElective ? filters : {}),
     year: "",
     cycle: "",
     selectedESC: "",
@@ -144,6 +143,7 @@ function SelectionPopup({ filters, onClose, onSubmit }) {
     selectedSem4: "",
     selectedInstitutionalElective: "",
     selectedElective: "",
+    ...(needsElective ? filters : {}),
   });
   const [escCourses, setEscCourses] = useState([]);
   const [plcCourses, setPlcCourses] = useState([]);

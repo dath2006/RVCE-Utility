@@ -23,7 +23,6 @@ import { Helmet } from "react-helmet";
 import Essentials from "./pages/Essentials";
 import BottomBar from "./components/BottomBar";
 import { NavigationProvider, useOverlay } from "./contexts/NavigationContext";
-import RedesignFeedbackPrompt from "./components/RedesignFeedbackPrompt";
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -288,11 +287,6 @@ function AppContent() {
         <Router>
           <AppContainer>
             <Analytics />
-            <RedesignFeedbackPrompt
-              user={user}
-              isAuthenticated={isAuthenticated}
-            />
-
             <div className="w-screen h-screen flex flex-col overflow-x-hidden">
               <Navigation
                 theme={theme}
