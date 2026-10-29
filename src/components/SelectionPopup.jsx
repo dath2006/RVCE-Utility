@@ -42,6 +42,13 @@ const institutionalElectives = [
   "CV266TEE-Intelligence Transport Systems",
 ];
 
+const fifthSemElectives = [
+  "ADVANCED ALGORITHMS",
+  "CLOUD COMPUTING",
+  "NLP",
+  "QUANTUM COMPUTING",
+];
+
 function ChoiceCard({
   title,
   description,
@@ -120,9 +127,13 @@ function CourseSelect({ label, value, onValueChange, options, onHelp }) {
   );
 }
 
-function SelectionPopup({ onClose, onSubmit }) {
-  const [currentStep, setCurrentStep] = useState(0);
+function SelectionPopup({ filters, onClose, onSubmit }) {
+  // existing 5th sem users saved before electives existed: jump to the elective step
+  const needsElective =
+    filters?.cycle === "5-Sem-CSE" && !filters.selectedElective;
+  const [currentStep, setCurrentStep] = useState(needsElective ? 2 : 0);
   const [selection, setSelection] = useState({
+    ...(needsElective ? filters : {}),
     year: "",
     cycle: "",
     selectedESC: "",
@@ -132,6 +143,7 @@ function SelectionPopup({ onClose, onSubmit }) {
     selectedSem3: "",
     selectedSem4: "",
     selectedInstitutionalElective: "",
+    selectedElective: "",
   });
   const [escCourses, setEscCourses] = useState([]);
   const [plcCourses, setPlcCourses] = useState([]);
@@ -288,7 +300,7 @@ function SelectionPopup({ onClose, onSubmit }) {
           return true;
         }
         if (selection.cycle === "5-Sem-CSE") {
-          return true;
+          return Boolean(selection.selectedElective);
         }
         if (selection.cycle === "6-Sem-AIML-CSE") {
           return Boolean(selection.selectedInstitutionalElective);
@@ -531,11 +543,15 @@ function SelectionPopup({ onClose, onSubmit }) {
         )}
 
         {selection.cycle === "5-Sem-CSE" && (
-          <Card className="rounded-[1.35rem] border-border/70 bg-muted/40 shadow-none">
-            <CardContent className="p-5 text-sm leading-6 text-muted-foreground">
-              5th sem CSE uses fixed subject filters.
-            </CardContent>
-          </Card>
+          <CourseSelect
+            label="Elective (XX355TBX)"
+            value={selection.selectedElective}
+            onValueChange={(value) =>
+              setSelection((prev) => ({ ...prev, selectedElective: value }))
+            }
+            options={fifthSemElectives}
+            onHelp={() => {}}
+          />
         )}
 
         {selection.cycle === "6-Sem-AIML-CSE" && (

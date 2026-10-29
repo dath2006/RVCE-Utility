@@ -178,7 +178,7 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
       });
     } else if (filters.cycle === "5-Sem-CSE") {
       const semScope = searchFolderStructure("5-Sem-CSE", jsonData);
-      ["TOC", "POME", "DBMS", "CC", "AIML"].forEach((sub) => {
+      ["TOC", "POME", "DBMS", "AIML", filters.selectedElective].forEach((sub) => {
         if (sub) {
           searchFolderStructure(
             sub,
@@ -211,6 +211,13 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
     setDisableWorkSpace(false);
     getFiles();
   }, [setDisableWorkSpace]);
+
+  // 5th sem CSE users who saved filters before electives were added
+  useEffect(() => {
+    if (filters?.cycle === "5-Sem-CSE" && !filters.selectedElective) {
+      setShowFilterDialog(true);
+    }
+  }, [filters]);
 
   useEffect(() => {
     const hasSeenFocus = localStorage.getItem(RESOURCES_FOCUS_KEY) === "true";
