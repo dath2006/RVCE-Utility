@@ -260,9 +260,21 @@ const ImportTimeTable = ({
 
   const canBrowseCommunity = Boolean(sem && dept && createdYear);
   const previewSemester = selectedCommunity?.semester || sem;
+  // Prefer the dates the publisher saved with the timetable; only older
+  // timetables without them fall back to the semester defaults.
+  const getCommunityDates = (community, semester) => {
+    const fallback = getDefaultDates(semester);
+    const start = community?.courseStart ? new Date(community.courseStart) : null;
+    const end = community?.courseEnd ? new Date(community.courseEnd) : null;
+
+    return {
+      courseStart: start && !Number.isNaN(start.getTime()) ? start : fallback.courseStart,
+      courseEnd: end && !Number.isNaN(end.getTime()) ? end : fallback.courseEnd,
+    };
+  };
   const previewDates = useMemo(
-    () => getDefaultDates(previewSemester),
-    [previewSemester],
+    () => getCommunityDates(selectedCommunity, previewSemester),
+    [selectedCommunity, previewSemester],
   );
 
   const getTokenWithConsent = async () => {
@@ -436,7 +448,7 @@ const ImportTimeTable = ({
       if (!token) {
         return;
       }
-      const { courseStart, courseEnd } = getDefaultDates(sem);
+      const { courseStart, courseEnd } = previewDates;
 
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/community/timetables/import`,
