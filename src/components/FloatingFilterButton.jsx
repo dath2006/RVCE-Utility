@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { motion } from "framer-motion";
-import { FilterList } from "@mui/icons-material";
+import { SlidersHorizontal } from "lucide-react";
 
 const FloatingButton = styled(motion.button)`
   position: fixed;
@@ -28,7 +28,7 @@ const FloatingFilterButton = ({ onClick }) => {
       whiletap={{ scale: 0.9 }}
       onClick={onClick}
     >
-      <FilterList />
+      <SlidersHorizontal className="h-5 w-5" />
     </FloatingButton>
   );
 };

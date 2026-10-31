@@ -6,7 +6,7 @@ import ContributionModalPortal from "./ContributionModalPortal";
 import WaveLoader from "../Loading";
 
 const inputClass =
-  "w-full rounded-xl border border-border/70 bg-background/85 px-3 py-2.5 text-sm text-foreground shadow-sm transition focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20";
+  "w-full rounded-lg border border-border/70 bg-background/85 px-3 py-2.5 text-sm text-foreground shadow-sm transition focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20";
 
 const AddRequest = ({
   modalVariants,
@@ -22,7 +22,7 @@ const AddRequest = ({
   return (
     <ContributionModalPortal>
       <motion.div
-        className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-black/60 p-2 backdrop-blur-sm sm:items-center sm:p-4"
+        className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-foreground/40 p-2 backdrop-blur-sm sm:items-center sm:p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -33,7 +33,7 @@ const AddRequest = ({
         }}
       >
         <motion.div
-          className="flex max-h-[calc(100dvh-1rem)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-xl sm:max-h-[calc(100dvh-2rem)]"
+          className="flex max-h-[calc(100dvh-1rem)] w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-border/70 s-surface shadow-xl sm:max-h-[calc(100dvh-2rem)]"
           variants={modalVariants}
           initial="hidden"
           animate="visible"
@@ -52,7 +52,7 @@ const AddRequest = ({
               <div className="border-b border-border/70 px-4 py-4 sm:px-6">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       New Request
                     </p>
                     <h2 className="mt-1 text-xl font-semibold sm:text-2xl">
@@ -79,17 +79,17 @@ const AddRequest = ({
                 className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5"
               >
                 <div className="space-y-6">
-                  <section className="rounded-2xl border border-border/70 bg-background/80 p-4 sm:p-5">
+                  <section className="rounded-lg border border-border/70 bg-background/80 p-4 sm:p-5">
                     <div className="mb-4 flex items-center gap-2">
                       <Tag className="h-4 w-4 text-primary" />
-                      <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      <h3 className="text-sm font-semibold text-muted-foreground">
                         Request Details
                       </h3>
                     </div>
 
                     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                       <div className="space-y-1.5">
-                        <label className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                        <label className="text-xs font-medium text-muted-foreground">
                           Branch
                         </label>
                         <select
@@ -128,7 +128,7 @@ const AddRequest = ({
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                        <label className="text-xs font-medium text-muted-foreground">
                           Semester
                         </label>
                         <select
@@ -154,7 +154,7 @@ const AddRequest = ({
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                        <label className="text-xs font-medium text-muted-foreground">
                           Subject Code
                         </label>
                         <input
@@ -173,7 +173,7 @@ const AddRequest = ({
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                        <label className="text-xs font-medium text-muted-foreground">
                           Subject Name
                         </label>
                         <input
@@ -193,11 +193,11 @@ const AddRequest = ({
                     </div>
                   </section>
 
-                  <section className="rounded-2xl border border-border/70 bg-background/80 p-4 sm:p-5">
+                  <section className="rounded-lg border border-border/70 bg-background/80 p-4 sm:p-5">
                     <div className="mb-4 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
                         <Layers3 className="h-4 w-4 text-primary" />
-                        <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                        <h3 className="text-sm font-semibold text-muted-foreground">
                           Requested Items
                         </h3>
                       </div>
@@ -216,13 +216,13 @@ const AddRequest = ({
                       {newRequest.items.map((item, index) => (
                         <div
                           key={index}
-                          className="rounded-2xl border border-border/70 bg-muted/35 p-4"
+                          className="rounded-lg border border-border/70 bg-muted/35 p-4"
                         >
                           <div className="flex items-start gap-3">
                             <div className="flex-1 space-y-3">
                               <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_180px]">
                                 <div className="space-y-1.5">
-                                  <label className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                                  <label className="text-xs font-medium text-muted-foreground">
                                     Item Name
                                   </label>
                                   <input
@@ -238,7 +238,7 @@ const AddRequest = ({
                                 </div>
 
                                 <div className="space-y-1.5">
-                                  <label className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                                  <label className="text-xs font-medium text-muted-foreground">
                                     Type
                                   </label>
                                   <select
@@ -258,7 +258,7 @@ const AddRequest = ({
                               </div>
 
                               <div className="space-y-1.5">
-                                <label className="inline-flex items-center gap-1 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                                <label className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
                                   <FileText className="h-3.5 w-3.5" />
                                   Description
                                 </label>
@@ -295,19 +295,19 @@ const AddRequest = ({
                     </div>
                   </section>
 
-                  <div className="sticky bottom-0 flex flex-col gap-3 border-t border-border/70 bg-card/95 px-0 pb-0 pt-4 backdrop-blur sm:flex-row sm:justify-end">
+                  <div className="sticky bottom-0 flex flex-col gap-3 border-t border-border/70 s-surface px-0 pb-0 pt-4 backdrop-blur sm:flex-row sm:justify-end">
                     <button
                       type="button"
                       disabled={isLoading}
                       onClick={() => setIsAddModalOpen(false)}
-                      className="rounded-xl border border-border/70 bg-background/85 px-5 py-3 text-sm font-medium transition hover:bg-accent"
+                      className="rounded-lg border border-border/70 bg-background/85 px-5 py-3 text-sm font-medium transition hover:bg-accent"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+                      className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
                     >
                       <Plus className="h-4 w-4" />
                       Create Request

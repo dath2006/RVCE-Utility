@@ -157,8 +157,8 @@ const Statistics = () => {
       <div className="flex min-h-[350px] items-center justify-center">
         <WaveLoader
           size="7em"
-          primaryColor="hsl(220,90%,50%)"
-          secondaryColor="hsl(300,90%,50%)"
+          primaryColor="hsl(var(--primary))"
+          secondaryColor="hsl(var(--sage))"
         />
       </div>
     );
@@ -177,17 +177,6 @@ const Statistics = () => {
 
   return (
     <div className="relative p-1">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(148,163,184,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.15) 1px, transparent 1px)",
-          backgroundSize: "26px 26px",
-          maskImage:
-            "radial-gradient(circle at center, black 36%, transparent 82%)",
-        }}
-      />
 
       <div className="relative flex flex-col gap-4">
         <motion.div
@@ -209,7 +198,7 @@ const Statistics = () => {
 
                 <Badge
                   variant="outline"
-                  className="rounded-full px-3 py-1 text-sm font-bold"
+                  className="rounded-md px-3 py-1 text-sm font-bold"
                 >
                   {overall.attendancePercent}% overall
                 </Badge>
@@ -219,7 +208,7 @@ const Statistics = () => {
                 <Badge
                   variant="outline"
                   className={cn(
-                    "w-fit gap-1.5 rounded-full border-amber-300 bg-amber-100/70 px-3 py-1 text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/35 dark:text-amber-300",
+                    "w-fit gap-1.5 rounded-md border-amber-300 bg-amber-100/70 px-3 py-1 text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/35 dark:text-amber-300",
                   )}
                 >
                   <Clock size={14} />
@@ -231,7 +220,7 @@ const Statistics = () => {
                 <Badge
                   variant="outline"
                   className={cn(
-                    "w-fit gap-1.5 rounded-full border-red-300 bg-red-100/70 px-3 py-1 text-red-900 dark:border-red-900/70 dark:bg-red-950/35 dark:text-red-300",
+                    "w-fit gap-1.5 rounded-md border-red-300 bg-red-100/70 px-3 py-1 text-red-900 dark:border-red-900/70 dark:bg-red-950/35 dark:text-red-300",
                   )}
                 >
                   <AlertTriangle size={14} />
@@ -241,9 +230,9 @@ const Statistics = () => {
             </CardHeader>
 
             <CardContent className="grid grid-cols-2 gap-2 p-4 pt-0 sm:grid-cols-4 sm:p-5 sm:pt-0">
-              <div className="rounded-xl border bg-muted/40 p-3 text-center">
+              <div className="rounded-lg border bg-muted/40 p-3 text-center">
                 <Check size={15} className="mx-auto" />
-                <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                <p className="mt-1 text-[0.65rem] tracking-wider text-muted-foreground">
                   Present
                 </p>
                 <p className="mt-1 text-2xl font-extrabold leading-none">
@@ -251,9 +240,9 @@ const Statistics = () => {
                 </p>
               </div>
 
-              <div className="rounded-xl border bg-muted/40 p-3 text-center">
+              <div className="rounded-lg border bg-muted/40 p-3 text-center">
                 <X size={15} className="mx-auto" />
-                <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                <p className="mt-1 text-[0.65rem] tracking-wider text-muted-foreground">
                   Absent
                 </p>
                 <p className="mt-1 text-2xl font-extrabold leading-none">
@@ -261,9 +250,9 @@ const Statistics = () => {
                 </p>
               </div>
 
-              <div className="rounded-xl border bg-muted/40 p-3 text-center">
+              <div className="rounded-lg border bg-muted/40 p-3 text-center">
                 <Clock size={15} className="mx-auto" />
-                <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                <p className="mt-1 text-[0.65rem] tracking-wider text-muted-foreground">
                   Pending
                 </p>
                 <p className="mt-1 text-2xl font-extrabold leading-none">
@@ -271,9 +260,9 @@ const Statistics = () => {
                 </p>
               </div>
 
-              <div className="rounded-xl border bg-muted/40 p-3 text-center">
+              <div className="rounded-lg border bg-muted/40 p-3 text-center">
                 <Calendar size={15} className="mx-auto" />
-                <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                <p className="mt-1 text-[0.65rem] tracking-wider text-muted-foreground">
                   Classes
                 </p>
                 <p className="mt-1 text-2xl font-extrabold leading-none">
@@ -319,7 +308,7 @@ const Statistics = () => {
                         <Badge
                           variant="outline"
                           className={cn(
-                            "gap-1 rounded-full",
+                            "gap-1 rounded-md",
                             chipClassesByTone.warning,
                           )}
                         >
@@ -332,7 +321,7 @@ const Statistics = () => {
                         <Badge
                           variant="outline"
                           className={cn(
-                            "gap-1 rounded-full",
+                            "gap-1 rounded-md",
                             chipClassesByTone.danger,
                           )}
                         >
@@ -345,7 +334,7 @@ const Statistics = () => {
                         <Badge
                           variant="outline"
                           className={cn(
-                            "gap-1 rounded-full",
+                            "gap-1 rounded-md",
                             chipClassesByTone.safe,
                           )}
                         >
@@ -357,7 +346,7 @@ const Statistics = () => {
                       <Badge
                         variant="outline"
                         className={cn(
-                          "gap-1 rounded-full",
+                          "gap-1 rounded-md",
                           chipClassesByTone[tone],
                         )}
                       >
@@ -390,7 +379,7 @@ const Statistics = () => {
                               <p className="mt-1 text-base font-bold leading-none">
                                 {subject.present}
                               </p>
-                              <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                              <p className="mt-1 text-[0.65rem] tracking-wider text-muted-foreground">
                                 Present
                               </p>
                             </div>
@@ -400,7 +389,7 @@ const Statistics = () => {
                               <p className="mt-1 text-base font-bold leading-none">
                                 {subject.absent}
                               </p>
-                              <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                              <p className="mt-1 text-[0.65rem] tracking-wider text-muted-foreground">
                                 Absent
                               </p>
                             </div>
@@ -410,7 +399,7 @@ const Statistics = () => {
                               <p className="mt-1 text-base font-bold leading-none">
                                 {subjectTotal}
                               </p>
-                              <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                              <p className="mt-1 text-[0.65rem] tracking-wider text-muted-foreground">
                                 Total Classes
                               </p>
                             </div>
@@ -420,7 +409,7 @@ const Statistics = () => {
                               <p className="mt-1 text-base font-bold leading-none">
                                 {subject.minAttendance}%
                               </p>
-                              <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                              <p className="mt-1 text-[0.65rem] tracking-wider text-muted-foreground">
                                 Required
                               </p>
                             </div>
@@ -437,7 +426,7 @@ const Statistics = () => {
                               <p className="mt-1 text-base font-bold leading-none">
                                 {subject.isEligible ? "Yes" : "No"}
                               </p>
-                              <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                              <p className="mt-1 text-[0.65rem] tracking-wider text-muted-foreground">
                                 Eligible
                               </p>
                             </div>
@@ -449,7 +438,7 @@ const Statistics = () => {
                                 <p className="mt-1 text-base font-bold leading-none">
                                   {subject.classCount.requiredPresent}
                                 </p>
-                                <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                                <p className="mt-1 text-[0.65rem] tracking-wider text-muted-foreground">
                                   Required Present
                                 </p>
                               </div>
@@ -465,7 +454,7 @@ const Statistics = () => {
                                 <p className="mt-1 text-base font-bold leading-none">
                                   {subject.classCount.allowedAbsent}
                                 </p>
-                                <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                                <p className="mt-1 text-[0.65rem] tracking-wider text-muted-foreground">
                                   Allowed Absent
                                 </p>
                               </div>
@@ -517,7 +506,7 @@ const Statistics = () => {
 
                           <div className="mt-4 border-t border-dashed pt-3.5">
                             <div className="mb-1.5 flex items-center justify-between gap-3">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              <p className="text-xs font-semibold tracking-wide text-muted-foreground">
                                 Custom minimum attendance
                               </p>
                               <span className="text-sm font-bold text-primary">

@@ -69,23 +69,23 @@ const staggerItem = {
 };
 
 const fieldClassName =
-  "h-11 w-full rounded-xl border border-border/70 bg-background px-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10";
+  "h-11 w-full rounded-lg border border-border/70 bg-background px-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-ring/40";
 
 const textareaClassName =
-  "min-h-[110px] w-full rounded-xl border border-border/70 bg-background px-3 py-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10";
+  "min-h-[110px] w-full rounded-lg border border-border/70 bg-background px-3 py-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-ring/40";
 
 const getAttendanceCardClassName = (attendance, selected) =>
   cn(
-    "relative flex min-h-[92px] w-full flex-col rounded-2xl border p-2.5 sm:p-3 text-left shadow-sm transition-all duration-200",
+    "relative flex min-h-[92px] w-full flex-col rounded-lg border p-2.5 sm:p-3 text-left shadow-sm transition-[box-shadow,border-color] duration-200",
     attendance === "present" &&
       "border-emerald-400/35 bg-emerald-500/10 text-emerald-950 dark:text-emerald-100",
     attendance === "absent" &&
       "border-rose-400/35 bg-rose-500/10 text-rose-950 dark:text-rose-100",
     attendance === "ignore" &&
       "border-slate-400/30 bg-slate-500/10 opacity-70 text-slate-700 dark:text-slate-200",
-    attendance === "pending" && "border-border/70 bg-card text-foreground",
-    selected && "ring-2 ring-primary/30 shadow-lg shadow-primary/10",
-    !selected && "hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg",
+    attendance === "pending" && "border-border/70 s-surface text-foreground",
+    selected && "ring-2 ring-ring/50 shadow-lg",
+    !selected && "hover:border-primary/40 hover:shadow-lg",
   );
 
 const getAttendancePillClassName = (percentage, minAttendance) => {
@@ -531,7 +531,7 @@ const MainAttendance = ({ setActiveComponent }) => {
     <AttendanceModalPortal>
       <motion.div
         className={cn(
-          "fixed inset-0 z-[140] flex bg-black/60 backdrop-blur-[2px]",
+          "fixed inset-0 z-[140] flex bg-foreground/40 backdrop-blur-[2px]",
           mobile
             ? "items-end justify-stretch"
             : "items-center justify-center p-3 sm:p-4",
@@ -549,8 +549,8 @@ const MainAttendance = ({ setActiveComponent }) => {
         <motion.div
           className={cn(
             mobile
-              ? "max-h-[92dvh] w-full overflow-y-auto rounded-t-[28px] border border-border/70 bg-background p-4 shadow-2xl"
-              : "w-full max-w-2xl overflow-y-auto rounded-[28px] border border-border/70 bg-card p-5 shadow-2xl sm:p-6",
+              ? "s-dialog max-h-[92dvh] w-full overflow-y-auto rounded-b-none p-4"
+              : "s-dialog w-full max-w-2xl overflow-y-auto p-5 sm:p-6",
           )}
           initial="hidden"
           animate="visible"
@@ -567,7 +567,7 @@ const MainAttendance = ({ setActiveComponent }) => {
   const renderSectionHeader = (title, onClose) => (
     <div className="flex items-start justify-between gap-4 border-b border-border/70 pb-4">
       <div>
-        <h2 className="text-xl font-semibold text-foreground sm:text-2xl">
+        <h2 className="s-h2">
           {title}
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -577,7 +577,7 @@ const MainAttendance = ({ setActiveComponent }) => {
       <button
         type="button"
         onClick={onClose}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/70 text-muted-foreground transition hover:bg-accent hover:text-foreground"
+        className="s-iconbtn"
       >
         <X className="h-4 w-4" />
       </button>
@@ -694,7 +694,7 @@ const MainAttendance = ({ setActiveComponent }) => {
           </select>
         </div>
 
-        <div className="rounded-2xl border border-border/70 bg-muted/30 p-4">
+        <div className="rounded-lg border border-border/70 bg-muted/30 p-4">
           <p className="text-sm font-medium text-foreground">Time</p>
           <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />
@@ -702,7 +702,7 @@ const MainAttendance = ({ setActiveComponent }) => {
           </div>
         </div>
 
-        <label className="flex items-center gap-3 rounded-2xl border border-border/70 bg-muted/30 p-4 text-sm text-foreground">
+        <label className="flex items-center gap-3 rounded-lg border border-border/70 bg-muted/30 p-4 text-sm text-foreground">
           <input
             type="checkbox"
             className="h-4 w-4 accent-primary"
@@ -733,7 +733,7 @@ const MainAttendance = ({ setActiveComponent }) => {
           <button
             type="button"
             onClick={handleSubjectDelete}
-            className="flex w-full items-center gap-3 rounded-2xl border border-rose-500/25 bg-rose-500/5 px-4 py-3 text-left text-sm font-medium text-rose-600 transition hover:bg-rose-500/10"
+            className="flex w-full items-center gap-3 rounded-lg border border-rose-500/25 bg-rose-500/5 px-4 py-3 text-left text-sm font-medium text-rose-600 transition hover:bg-rose-500/10"
           >
             <Trash2 className="h-4 w-4" />
             Delete this class
@@ -773,7 +773,7 @@ const MainAttendance = ({ setActiveComponent }) => {
                   }));
                 }
               }}
-              className="flex items-center justify-center gap-2 rounded-2xl border border-emerald-400/35 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-700 transition hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:text-emerald-200"
+              className="flex items-center justify-center gap-2 rounded-lg border border-emerald-400/35 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-700 transition hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:text-emerald-200"
             >
               <Check className="h-4 w-4" />
               Present
@@ -802,7 +802,7 @@ const MainAttendance = ({ setActiveComponent }) => {
                   }));
                 }
               }}
-              className="flex items-center justify-center gap-2 rounded-2xl border border-rose-400/35 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-700 transition hover:bg-rose-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:text-rose-200"
+              className="flex items-center justify-center gap-2 rounded-lg border border-rose-400/35 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-700 transition hover:bg-rose-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:text-rose-200"
             >
               <X className="h-4 w-4" />
               Absent
@@ -868,7 +868,7 @@ const MainAttendance = ({ setActiveComponent }) => {
     <div className="space-y-5">
       {renderSectionHeader("Entire Day Attendance", closeDayPanel)}
 
-      <div className="rounded-2xl border border-border/70 bg-muted/30 p-4">
+      <div className="rounded-lg border border-border/70 bg-muted/30 p-4">
         <p className="text-sm font-medium text-foreground">Date</p>
         <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
           <CalendarIcon className="h-4 w-4" />
@@ -880,7 +880,7 @@ const MainAttendance = ({ setActiveComponent }) => {
         <label className="text-sm font-medium text-foreground">
           Set All Classes
         </label>
-        <label className="flex items-center gap-3 rounded-2xl border border-border/70 bg-muted/30 p-4 text-sm text-foreground">
+        <label className="flex items-center gap-3 rounded-lg border border-border/70 bg-muted/30 p-4 text-sm text-foreground">
           <input
             checked={day.every((ele) => ele.attendance === "ignore")}
             type="checkbox"
@@ -921,7 +921,7 @@ const MainAttendance = ({ setActiveComponent }) => {
                 }),
               );
             }}
-            className="flex items-center justify-center gap-2 rounded-2xl border border-emerald-400/35 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-700 transition hover:bg-emerald-500/15 dark:text-emerald-200"
+            className="flex items-center justify-center gap-2 rounded-lg border border-emerald-400/35 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-700 transition hover:bg-emerald-500/15 dark:text-emerald-200"
           >
             <Check className="h-4 w-4" />
             All Present
@@ -942,7 +942,7 @@ const MainAttendance = ({ setActiveComponent }) => {
                 }),
               );
             }}
-            className="flex items-center justify-center gap-2 rounded-2xl border border-rose-400/35 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-700 transition hover:bg-rose-500/15 dark:text-rose-200"
+            className="flex items-center justify-center gap-2 rounded-lg border border-rose-400/35 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-700 transition hover:bg-rose-500/15 dark:text-rose-200"
           >
             <X className="h-4 w-4" />
             All Absent
@@ -997,7 +997,7 @@ const MainAttendance = ({ setActiveComponent }) => {
 
   return (
     <div
-      className="flex w-full flex-col gap-4 rounded-[26px] border border-border/70 bg-card/95 p-3 shadow-sm sm:p-4 lg:p-5"
+      className="flex w-full flex-col gap-6 p-1 sm:p-2"
       onClick={() => {
         setShowJump(false);
         setShowCalendar(false);
@@ -1013,11 +1013,11 @@ const MainAttendance = ({ setActiveComponent }) => {
       }}
     >
       {loading ? (
-        <div className="flex min-h-[420px] items-center justify-center rounded-[24px] border border-border/70 bg-muted/25">
+        <div className="s-surface flex min-h-[420px] items-center justify-center rounded-lg">
           <WaveLoader
             size="7em"
-            primaryColor="hsl(220,90%,50%)"
-            secondaryColor="hsl(300,90%,50%)"
+            primaryColor="hsl(var(--primary))"
+            secondaryColor="hsl(var(--sage))"
           />
         </div>
       ) : semEnd ? (
@@ -1027,13 +1027,9 @@ const MainAttendance = ({ setActiveComponent }) => {
         />
       ) : (
         <>
-          <div className="relative overflow-visible rounded-2xl border border-border/70 bg-muted/35 p-2.5 shadow-sm sm:rounded-[24px] sm:p-4">
+          <div className="relative overflow-visible border-b border-border/70 pb-4">
             <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
               <div className="space-y-2">
-                <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary/70 sm:text-[11px] sm:tracking-[0.22em]">
-                  <CalendarIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  Daily Attendance
-                </div>
 
                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-3">
                   <button
@@ -1042,13 +1038,13 @@ const MainAttendance = ({ setActiveComponent }) => {
                     disabled={
                       new Date(date)?.getTime() <= new Date(accStart)?.getTime()
                     }
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-background text-primary transition hover:bg-accent disabled:cursor-not-allowed disabled:text-muted-foreground sm:h-10 sm:w-10"
+                    className="s-iconbtn"
                   >
                     <ChevronLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </button>
 
                   <div>
-                    <p className="text-sm font-semibold text-foreground sm:text-2xl">
+                    <p className="text-base font-semibold text-foreground sm:text-4xl sm:font-normal sm:font-display">
                       {d.format(date, "ddd, MMM DD YYYY")}
                     </p>
                   </div>
@@ -1061,7 +1057,7 @@ const MainAttendance = ({ setActiveComponent }) => {
                         new Date(now).setHours(0, 0, 0, 0) &&
                       new Date(date)?.getTime() <= new Date(accEnd).getTime()
                     }
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-background text-primary transition hover:bg-accent disabled:cursor-not-allowed disabled:text-muted-foreground sm:h-10 sm:w-10"
+                    className="s-iconbtn"
                   >
                     <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </button>
@@ -1093,7 +1089,7 @@ const MainAttendance = ({ setActiveComponent }) => {
                   exit="exit"
                   variants={overlayVariants}
                   onClick={(event) => event.stopPropagation()}
-                  className="absolute right-0 top-full z-40 mt-3 w-[min(92vw,22rem)] rounded-3xl border border-border/70 bg-card p-4 shadow-2xl"
+                  className="absolute right-0 top-full z-40 mt-3 w-[min(92vw,22rem)] s-surface rounded-lg p-4 shadow-2xl"
                 >
                   <Calendar
                     className="shadcn-calendar"
@@ -1116,7 +1112,7 @@ const MainAttendance = ({ setActiveComponent }) => {
                   exit="exit"
                   variants={overlayVariants}
                   onClick={(event) => event.stopPropagation()}
-                  className="absolute right-0 top-full z-40 mt-3 w-[min(92vw,18rem)] overflow-hidden rounded-3xl border border-border/70 bg-card shadow-2xl"
+                  className="absolute right-0 top-full z-40 mt-3 w-[min(92vw,18rem)] s-surface overflow-hidden rounded-lg shadow-2xl"
                 >
                   <button
                     type="button"
@@ -1169,7 +1165,7 @@ const MainAttendance = ({ setActiveComponent }) => {
                   handleSubjectSelect(firstPendingSlot.slotId);
                 }
               }}
-              className="flex w-full items-center gap-3 rounded-2xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-left text-sm font-medium text-amber-800 shadow-sm transition hover:bg-amber-500/15 dark:text-amber-200"
+              className="flex w-full items-center gap-3 rounded-lg border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-left text-sm font-medium text-amber-800 shadow-sm transition hover:bg-amber-500/15 dark:text-amber-200"
             >
               <AlertTriangle className="h-4 w-4" />
               You have pending attendance to mark
@@ -1208,11 +1204,11 @@ const MainAttendance = ({ setActiveComponent }) => {
                   <div
                     key={item.label}
                     className={cn(
-                      "rounded-xl border p-2 shadow-sm sm:rounded-2xl sm:p-3",
+                      "rounded-lg border p-2 sm:p-3",
                       item.className,
                     )}
                   >
-                    <p className="text-[9px] font-semibold uppercase tracking-[0.1em] sm:text-[11px] sm:tracking-[0.16em]">
+                    <p className="text-xs font-medium sm:text-sm">
                       {item.label}
                     </p>
                     <p className="mt-1 text-lg font-semibold leading-none sm:mt-2 sm:text-2xl">
@@ -1252,8 +1248,7 @@ const MainAttendance = ({ setActiveComponent }) => {
                         key={ele.slotId}
                         type="button"
                         variants={staggerItem}
-                        whileHover={{ y: -4 }}
-                        whileTap={{ scale: 0.985 }}
+                                        whileTap={{ scale: 0.985 }}
                         className={getAttendanceCardClassName(
                           ele.attendance,
                           subject && subject.slotId === ele.slotId,
@@ -1266,7 +1261,7 @@ const MainAttendance = ({ setActiveComponent }) => {
                         {courseData && (
                           <div
                             className={cn(
-                              "absolute -right-2 -top-2 rounded-full border px-2 py-1 text-[11px] font-semibold shadow-sm",
+                              "absolute -right-2 -top-2 rounded-md border px-2 py-1 text-[11px] font-semibold shadow-sm",
                               getAttendancePillClassName(
                                 attendancePercent,
                                 minAttendance,
@@ -1315,7 +1310,7 @@ const MainAttendance = ({ setActiveComponent }) => {
                             </p>
                           </div>
 
-                          <div className="mt-1.5 inline-flex w-fit items-center gap-1 rounded-full border border-border/70 bg-background/80 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                          <div className="mt-1.5 inline-flex w-fit items-center gap-1 rounded-md border border-border/70 bg-background/80 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
                             {ele.attendance === "present" && (
                               <>
                                 <Check className="h-3 w-3 text-emerald-500" />
@@ -1348,7 +1343,7 @@ const MainAttendance = ({ setActiveComponent }) => {
                 ) : (
                   <motion.div
                     variants={staggerItem}
-                    className="col-span-full rounded-3xl border border-dashed border-border/70 bg-muted/20 px-6 py-10 text-center text-sm text-muted-foreground"
+                    className="col-span-full rounded-lg border border-dashed border-border/70 bg-muted/20 px-6 py-10 text-center text-sm text-muted-foreground"
                   >
                     No classes scheduled for this day.
                   </motion.div>
@@ -1356,10 +1351,7 @@ const MainAttendance = ({ setActiveComponent }) => {
               </motion.div>
             </div>
 
-            <aside className="h-fit rounded-2xl border border-border/70 bg-muted/25 p-3 shadow-sm sm:rounded-[24px] sm:p-4 xl:sticky xl:top-4">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary/70 sm:text-[11px] sm:tracking-[0.18em]">
-                Quick Actions
-              </p>
+            <aside className="s-surface h-fit rounded-lg p-3 sm:p-4 xl:sticky xl:top-4">
               <h3 className="mt-1.5 text-base font-semibold text-foreground sm:mt-2 sm:text-lg">
                 Keep today updated
               </h3>
@@ -1393,7 +1385,7 @@ const MainAttendance = ({ setActiveComponent }) => {
                 </Button>
               </div>
 
-              <div className="mt-3 rounded-xl border border-border/70 bg-background/70 p-2.5 sm:mt-5 sm:rounded-2xl sm:p-4">
+              <div className="mt-3 rounded-lg border border-border/70 bg-background/70 p-2.5 sm:mt-5 sm:rounded-lg sm:p-4">
                 <p className="text-xs font-medium text-foreground sm:text-sm">
                   Need attention
                 </p>

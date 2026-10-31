@@ -1,12 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { Close, Fullscreen, FullscreenExit } from "@mui/icons-material";
+import { LoaderCircle, Maximize2, Minimize2, RotateCw, Search, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CircularProgress } from "@mui/material";
-import CachedIcon from "@mui/icons-material/Cached";
-import SearchIcon from "@mui/icons-material/Search";
 
-const iconButtonClass =
-  "inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-background/70 text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50";
+const iconButtonClass = "s-iconbtn";
 
 const FileViewer = ({ url, onClose, title, ...motionProps }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -128,7 +124,7 @@ const FileViewer = ({ url, onClose, title, ...motionProps }) => {
       {...motionProps}
     >
       <div
-        className={`${isFullscreen ? "mx-0 mt-0 rounded-none border-x-0 border-t-0" : "mx-2 mt-2 rounded-xl sm:mx-4"} flex items-center justify-between border border-border/70 bg-card/90 px-2 ${compactHeader ? "py-1" : "py-1.5"} shadow-sm`}
+        className={`${isFullscreen ? "mx-0 mt-0 rounded-none border-x-0 border-t-0" : "mx-2 mt-2 rounded-lg sm:mx-4"} flex items-center justify-between border border-border/70 s-surface px-2 ${compactHeader ? "py-1" : "py-1.5"} shadow-sm`}
       >
         <div className="flex items-center gap-2">
           <button
@@ -138,7 +134,7 @@ const FileViewer = ({ url, onClose, title, ...motionProps }) => {
             disabled={isLoading}
             title="Reload"
           >
-            <CachedIcon />
+            <RotateCw className="h-4 w-4" />
           </button>
           {showSearchButton && (
             <button
@@ -148,29 +144,29 @@ const FileViewer = ({ url, onClose, title, ...motionProps }) => {
               disabled={isLoading}
               title="Search"
             >
-              <SearchIcon />
+              <Search className="h-4 w-4" />
             </button>
           )}
 
           <div className="min-w-0 pl-1">
-            <p className="max-w-[46vw] truncate text-[11px] font-semibold text-foreground sm:max-w-[55vw] sm:text-sm">
+            <p className="max-w-[46vw] truncate text-sm font-semibold text-foreground sm:max-w-[55vw]">
               {title || "Document Viewer"}
             </p>
             {showTipLine && (
-              <p className="text-[10px] text-muted-foreground sm:text-xs">
+              <p className="text-xs text-muted-foreground">
                 Tip: tap inside document and use Ctrl+F / Cmd+F
               </p>
             )}
           </div>
 
           {searchVisible && (
-            <div className="absolute left-3 top-16 z-30 max-w-xs rounded-xl border border-yellow-300 bg-yellow-50 p-3 text-xs text-yellow-800 shadow-lg">
+            <div className="absolute left-3 top-16 z-30 max-w-xs rounded-lg s-surface p-3 pr-6 text-sm text-foreground shadow-lg">
               Click inside the PDF viewer and press Ctrl+F (or ⌘+F on Mac) to
               search
               <button
                 type="button"
                 onClick={() => setSearchVisible(false)}
-                className="absolute right-1 top-1 text-yellow-700 hover:text-yellow-900"
+                className="absolute right-2 top-1 text-muted-foreground hover:text-foreground"
               >
                 ×
               </button>
@@ -186,7 +182,7 @@ const FileViewer = ({ url, onClose, title, ...motionProps }) => {
               onClick={toggleFullscreen}
               title={isFullscreen ? "Minimize" : "Enter fullscreen"}
             >
-              {isFullscreen ? <FullscreenExit /> : <Fullscreen />}
+              {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
             </button>
           ) : (
             <button
@@ -195,22 +191,22 @@ const FileViewer = ({ url, onClose, title, ...motionProps }) => {
               onClick={toggleFullscreen}
               title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
             >
-              {isFullscreen ? <FullscreenExit /> : <Fullscreen />}
+              {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
             </button>
           )}
           <button
             type="button"
-            className={`${iconButtonClass} border-red-300/70 text-red-600 hover:bg-red-50`}
+            className={`${iconButtonClass} s-iconbtn--danger`}
             onClick={onClose}
             title="Close"
           >
-            <Close />
+            <X className="h-4 w-4" />
           </button>
         </div>
       </div>
 
       <div
-        className={`${isFullscreen ? "mx-0 mb-0 mt-0 rounded-none border-x-0 border-b-0" : "mx-2 mb-2 mt-2 rounded-xl sm:mx-4"} relative flex-1 overflow-auto border border-border bg-white shadow-lg`}
+        className={`${isFullscreen ? "mx-0 mb-0 mt-0 rounded-none border-x-0 border-b-0" : "mx-2 mb-2 mt-2 rounded-lg sm:mx-4"} relative flex-1 overflow-auto border border-border bg-white shadow-lg`}
         onClick={(e) => e.stopPropagation()}
       >
         <AnimatePresence>
@@ -221,7 +217,7 @@ const FileViewer = ({ url, onClose, title, ...motionProps }) => {
               transition={{ duration: 0.3 }}
               className="absolute inset-0 z-20 flex items-center justify-center bg-background/75 backdrop-blur-sm"
             >
-              <CircularProgress style={{ color: "inherit" }} />
+              <LoaderCircle className="h-6 w-6 animate-spin text-primary" />
             </motion.div>
           )}
         </AnimatePresence>

@@ -19,17 +19,16 @@ const Shell = styled.div`
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  border-radius: 18px;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  background: ${(props) => props.theme.cardTheme};
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
+  background: transparent;
   overflow: visible;
 `;
 
 const Header = styled.div`
-  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  border-bottom: 1px solid hsl(var(--border));
   padding: 0.9rem 1rem;
-  background: rgba(241, 245, 249, 0.65);
+  background: hsl(var(--secondary) / 0.6);
 
   @media (max-width: 768px) {
     padding: 0.8rem;
@@ -49,7 +48,7 @@ const HeaderTitle = styled.h2`
 const HeaderSub = styled.p`
   margin: 0.35rem 0 0;
   font-size: 0.78rem;
-  color: ${(props) => props.theme.textLight};
+  color: hsl(var(--muted-foreground));
 `;
 
 const ScrollHint = styled.div`
@@ -58,7 +57,7 @@ const ScrollHint = styled.div`
   align-items: center;
   gap: 0.35rem;
   font-size: 0.72rem;
-  color: ${(props) => props.theme.textLight};
+  color: hsl(var(--muted-foreground));
 
   @media (max-width: 1024px) {
     display: inline-flex;
@@ -85,20 +84,20 @@ const ScrollViewport = styled.div`
   }
 
   &::-webkit-scrollbar-thumb {
-    background: rgba(100, 116, 139, 0.5);
-    border-radius: 999px;
+    background: hsl(var(--muted-foreground) / 0.5);
+    border-radius: 4px;
   }
 `;
 
 const TimetableContainer = styled.div`
-  border-radius: 14px;
-  color: ${(props) => props.theme.text};
+  border-radius: var(--radius);
+  color: hsl(var(--foreground));
   display: block;
   width: 860px;
   min-width: 860px;
   max-width: none;
   background: ${(props) => props.theme.background};
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid hsl(var(--border));
   overflow: visible;
   position: relative;
 
@@ -112,7 +111,7 @@ const Grid = styled.div`
   display: grid;
   grid-template-columns: 120px repeat(5, minmax(145px, 1fr));
   gap: 1px;
-  background: rgba(148, 163, 184, 0.2);
+  background: hsl(var(--border));
   width: 100%;
 
   @media (max-width: 1024px) {
@@ -121,13 +120,12 @@ const Grid = styled.div`
 `;
 
 const HeaderCell = styled.div`
-  background: #0f172a;
-  color: #f8fafc;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
   padding: 0.8rem;
   font-weight: 600;
   font-size: 0.82rem;
   letter-spacing: 0.03em;
-  text-transform: uppercase;
   text-align: center;
   position: sticky;
   top: 0;
@@ -136,7 +134,7 @@ const HeaderCell = styled.div`
   &:first-child {
     left: 0;
     z-index: 10;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 2px 0 10px hsl(var(--foreground) / 0.2);
   }
 `;
 
@@ -153,7 +151,7 @@ const TimeCell = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 2px 0 10px rgba(15, 23, 42, 0.1);
+  box-shadow: 2px 0 10px hsl(var(--foreground) / 0.1);
 `;
 
 const EmptyCell = styled.div`
@@ -169,18 +167,18 @@ const EmptyCell = styled.div`
 const StyledEventCard = styled(motion.div)`
   background: ${({ $type }) =>
     $type === "theory"
-      ? "rgba(226, 232, 240, 0.65)"
+      ? "hsl(var(--secondary) / 0.8)"
       : $type === "lab"
-        ? "rgba(220, 252, 231, 0.58)"
-        : "rgba(254, 243, 199, 0.58)"};
-  border-radius: 8px;
+        ? "hsl(var(--sage) / 0.4)"
+        : "hsl(var(--sand) / 0.7)"};
+  border-radius: calc(var(--radius) - 2px);
   padding: 0.62rem;
   grid-row: span ${({ $duration }) => $duration};
   height: 100%;
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.06);
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 3px 12px hsl(var(--foreground) / 0.08);
   overflow: hidden;
 
   @media (max-width: 1024px) {
@@ -197,8 +195,8 @@ const LoadingSpinner = styled.div`
   .spinner {
     width: 50px;
     height: 50px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #3b82f6;
+    border: 5px solid hsl(var(--border));
+    border-top: 5px solid hsl(var(--primary));
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
@@ -370,24 +368,24 @@ const EventCard = ({ event, course }) => {
   return (
     <StyledEventCard $duration={event.duration} $type={course.type}>
       <div className="flex flex-col h-full">
-        <div className="font-semibold text-sm md:text-base text-gray-900">
+        <div className="font-semibold text-sm md:text-base text-foreground">
           {course.name}
         </div>
-        <div className="text-xs text-gray-600 line-clamp-1">
+        <div className="text-xs text-muted-foreground line-clamp-1">
           {course.fullName}
         </div>
         <div className="mt-auto space-y-1">
-          <div className="flex items-center gap-1 text-xs text-gray-600">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <User size={12} />
             <span className="line-clamp-1">{course.instructor}</span>
           </div>
           {course.type === "lab" && (
-            <div className="flex items-center gap-1 text-xs text-emerald-600">
+            <div className="flex items-center gap-1 text-xs text-[hsl(var(--ok))]">
               <GraduationCap size={12} />
               <span>Lab Session</span>
             </div>
           )}
-          <div className="flex items-center gap-1 text-xs text-gray-600">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Clock size={12} />
             <span>
               {event.duration > 1 ? "Double Period" : "Single Period"}

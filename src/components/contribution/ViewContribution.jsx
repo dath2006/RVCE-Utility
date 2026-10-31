@@ -139,20 +139,17 @@ const ViewContribution = ({ userRank }) => {
   }
 
   return (
-    <div className="w-full rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm sm:p-5">
+    <div className="w-full p-4 sm:p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-            Contribution Insights
-          </p>
-          <h2 className="mt-1 text-2xl font-semibold">Your Contributions</h2>
+          <h2 className="s-h2">Your Contributions</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Track each upload, check file status, and review admin feedback.
           </p>
         </div>
 
         {typeof userRank === "number" && (
-          <div className="inline-flex items-center gap-2 self-start rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
+          <div className="inline-flex items-center gap-2 self-start rounded-md border border-primary/25 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
             <BarChart2 className="h-3.5 w-3.5" />
             Rank #{userRank}
           </div>
@@ -160,32 +157,32 @@ const ViewContribution = ({ userRank }) => {
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-        <div className="rounded-xl border border-border/70 bg-background/80 px-3 py-3">
-          <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:text-xs">
+        <div className="rounded-lg border border-border/70 bg-background/80 px-3 py-3">
+          <p className="text-[10px] text-muted-foreground sm:text-xs">
             Accepted
           </p>
           <p className="mt-1 text-lg font-semibold sm:text-2xl">
             {stats.approved}
           </p>
         </div>
-        <div className="rounded-xl border border-border/70 bg-background/80 px-3 py-3">
-          <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:text-xs">
+        <div className="rounded-lg border border-border/70 bg-background/80 px-3 py-3">
+          <p className="text-[10px] text-muted-foreground sm:text-xs">
             Rejected
           </p>
           <p className="mt-1 text-lg font-semibold sm:text-2xl">
             {stats.rejected}
           </p>
         </div>
-        <div className="rounded-xl border border-border/70 bg-background/80 px-3 py-3">
-          <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:text-xs">
+        <div className="rounded-lg border border-border/70 bg-background/80 px-3 py-3">
+          <p className="text-[10px] text-muted-foreground sm:text-xs">
             Pending
           </p>
           <p className="mt-1 text-lg font-semibold sm:text-2xl">
             {stats.pending}
           </p>
         </div>
-        <div className="rounded-xl border border-border/70 bg-background/80 px-3 py-3">
-          <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:text-xs">
+        <div className="rounded-lg border border-border/70 bg-background/80 px-3 py-3">
+          <p className="text-[10px] text-muted-foreground sm:text-xs">
             Total Files
           </p>
           <p className="mt-1 text-lg font-semibold sm:text-2xl">
@@ -195,7 +192,7 @@ const ViewContribution = ({ userRank }) => {
       </div>
 
       {resources.length === 0 ? (
-        <div className="mt-6 flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 bg-muted/30 py-14 text-center">
+        <div className="mt-6 flex flex-col items-center justify-center rounded-lg border border-dashed border-border/80 bg-muted/30 py-14 text-center">
           <FileText className="h-10 w-10 text-muted-foreground" />
           <h3 className="mt-4 text-xl font-medium">No contributions yet</h3>
           <p className="mt-2 max-w-md text-sm text-muted-foreground">
@@ -204,7 +201,7 @@ const ViewContribution = ({ userRank }) => {
           </p>
         </div>
       ) : (
-        <div className="mt-5 space-y-4">
+        <div className="mt-5">
           {paginatedResources.map((resource, index) => {
             const documents = resource.documents || [];
             const firstDocument = documents[0] || {};
@@ -226,7 +223,7 @@ const ViewContribution = ({ userRank }) => {
             return (
               <article
                 key={subjectKey}
-                className="overflow-hidden rounded-2xl border border-border/70 bg-background/80 shadow-sm"
+                className="overflow-hidden border-t border-border/70 first:border-t-0"
               >
                 <button
                   type="button"
@@ -260,17 +257,17 @@ const ViewContribution = ({ userRank }) => {
 
                     <div className="flex items-center gap-2 self-start">
                       {subjectStats.pending > 0 && (
-                        <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] text-amber-600">
+                        <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] text-amber-600">
                           {subjectStats.pending} pending
                         </span>
                       )}
                       {subjectStats.rejected > 0 && (
-                        <span className="rounded-full border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-[11px] text-rose-600">
+                        <span className="rounded-md border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-[11px] text-rose-600">
                           {subjectStats.rejected} rejected
                         </span>
                       )}
                       {subjectStats.approved > 0 && (
-                        <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] text-emerald-600">
+                        <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] text-emerald-600">
                           {subjectStats.approved} accepted
                         </span>
                       )}
@@ -301,7 +298,7 @@ const ViewContribution = ({ userRank }) => {
                           return (
                             <div
                               key={document._id || `${subjectKey}-${docIndex}`}
-                              className="rounded-xl border border-border/70 bg-muted/30 p-3"
+                              className="rounded-lg border border-border/70 bg-muted/30 p-3"
                             >
                               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                 <div className="min-w-0 flex-1">
@@ -329,7 +326,7 @@ const ViewContribution = ({ userRank }) => {
 
                                 <div className="flex items-center gap-2 self-start">
                                   <span
-                                    className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] ${statusClass[status] || statusClass.pending}`}
+                                    className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] ${statusClass[status] || statusClass.pending}`}
                                   >
                                     {status === "approved" ? (
                                       <CheckCircle2 className="h-3.5 w-3.5" />

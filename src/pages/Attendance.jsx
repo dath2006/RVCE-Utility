@@ -37,7 +37,7 @@ const HelpModal = ({ onClose }) => {
     <motion.div
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-foreground/45 p-4 backdrop-blur-[2px]"
       onClick={(event) => {
         if (event.target === event.currentTarget) {
           onClose();
@@ -49,16 +49,16 @@ const HelpModal = ({ onClose }) => {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.96, opacity: 0 }}
         transition={{ type: "spring", damping: 20 }}
-        className="w-full max-w-2xl overflow-hidden rounded-2xl border border-border/70 bg-card shadow-2xl"
+        className="s-dialog w-full max-w-2xl overflow-hidden"
       >
         <div className="flex items-center justify-between border-b border-border/70 px-4 py-3 sm:px-5">
           <h3 className="flex items-center gap-2 text-base font-semibold sm:text-lg">
-            <Youtube size={18} className="text-rose-500" />
+            <Youtube size={18} className="text-destructive" />
             How to use attendance system
           </h3>
           <button
             type="button"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border/70 transition hover:bg-accent"
+            className="s-iconbtn"
             onClick={onClose}
             aria-label="Close help modal"
           >
@@ -66,8 +66,8 @@ const HelpModal = ({ onClose }) => {
           </button>
         </div>
 
-        <div className="max-h-[78vh] overflow-y-auto px-4 py-4 sm:px-5">
-          <div className="aspect-video overflow-hidden rounded-xl border border-border/70 bg-background/70">
+        <div className="s-scroll max-h-[78vh] overflow-y-auto px-4 py-4 sm:px-5">
+          <div className="aspect-video overflow-hidden rounded-lg border border-border/70 bg-background/70">
             <iframe
               width="100%"
               height="100%"
@@ -85,7 +85,7 @@ const HelpModal = ({ onClose }) => {
             your progress.
           </p>
 
-          <div className="mt-5 rounded-xl border border-border/70 bg-background/60 p-4">
+          <div className="mt-5 rounded-lg border border-border/70 bg-background/60 p-4">
             <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold">
               <InfoIcon size={16} />
               Points to Note
@@ -293,11 +293,11 @@ const AttendanceContent = ({ setDisableWorkSpace }) => {
   const renderComponent = () => {
     if (loading) {
       return (
-        <div className="flex min-h-[360px] items-center justify-center rounded-2xl border border-border/70 bg-card/90 p-6">
+        <div className="s-surface flex min-h-[360px] items-center justify-center rounded-lg p-6">
           <WaveLoader
             size="7em"
-            primaryColor="hsl(220,90%,50%)"
-            secondaryColor="hsl(300,90%,50%)"
+            primaryColor="hsl(var(--primary))"
+            secondaryColor="hsl(var(--sage))"
           />
         </div>
       );
@@ -334,31 +334,26 @@ const AttendanceContent = ({ setDisableWorkSpace }) => {
   };
 
   return (
-    <div className="flex h-full w-full min-w-0 flex-col overflow-hidden pt-[73px]">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(hsl(var(--border)/0.35)_1px,transparent_1px),linear-gradient(90deg,hsl(var(--border)/0.35)_1px,transparent_1px)] bg-[size:26px_26px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_88%)]" />
-
-      <div className="flex min-h-0 min-w-0 flex-1 gap-4 p-3 sm:p-4">
+    <div className="flex h-full w-full min-w-0 flex-col overflow-hidden pt-[4.5rem]">
+      <div className="mx-auto flex min-h-0 w-full min-w-0 max-w-[72rem] flex-1 gap-6 p-3 sm:p-4">
         {!isMobile && !loading && (
           <motion.aside
             initial="hidden"
             animate="visible"
             variants={shellFade}
-            className="hidden w-72 shrink-0 rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm md:block"
+            className="s-panel s-panel--tight grain hidden w-72 shrink-0 self-start md:block"
           >
-            <div className="mb-6 rounded-xl border border-primary/20 bg-primary/10 p-3">
-              <p className="text-xs uppercase tracking-[0.18em] text-primary/80">
-                Attendance Hub
-              </p>
-              <h2 className="mt-1 text-lg font-semibold">
-                Plan. Mark. Improve.
-              </h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Same modern design language as Contributions, tuned for daily
-                attendance flow.
+            <div className="s-side-head">
+              <h2 className="s-h2">Plan. Mark. Improve.</h2>
+              <p
+                className="s-body"
+                style={{ marginTop: "0.5rem", fontSize: "0.9375rem" }}
+              >
+                Plan your classes, mark them daily, and track your progress.
               </p>
             </div>
 
-            <nav className="space-y-2">
+            <nav>
               {desktopNavItems.map((item) => {
                 const Icon = item.icon;
                 const active = activeComponent === item.id;
@@ -368,16 +363,12 @@ const AttendanceContent = ({ setDisableWorkSpace }) => {
                     key={item.id}
                     type="button"
                     onClick={() => performAction(item.id)}
-                    className={`group flex w-full items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm transition ${
-                      item.kind === "danger"
-                        ? "border-rose-500/30 bg-rose-500/10 text-rose-600 hover:bg-rose-500/15"
-                        : active
-                          ? "border-primary/35 bg-primary/10 text-primary"
-                          : "border-border/70 bg-background/80 hover:border-primary/25 hover:bg-accent"
-                    }`}
+                    aria-pressed={active}
+                    className={`s-row s-row--nav ${item.kind === "danger" ? "s-row--exit" : ""}`}
                   >
-                    <Icon className="h-4 w-4" />
-                    <span className="font-medium">{item.label}</span>
+                    <Icon className="s-icon h-5 w-5" />
+                    <span className="s-title">{item.label}</span>
+                    <span />
                   </button>
                 );
               })}
@@ -385,9 +376,9 @@ const AttendanceContent = ({ setDisableWorkSpace }) => {
           </motion.aside>
         )}
 
-        <section className="flex min-h-0 min-w-0 flex-1 flex-col rounded-2xl border border-border/70 bg-card/80 shadow-sm">
+        <section className="s-panel s-panel--bare grain flex min-h-0 min-w-0 flex-1 flex-col">
           <div
-            className={`min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 ${isMobile ? "pb-16" : "pb-4"}`}
+            className={`s-scroll min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 ${isMobile ? "pb-16" : "pb-4"}`}
           >
             {renderComponent()}
           </div>
@@ -400,7 +391,7 @@ const AttendanceContent = ({ setDisableWorkSpace }) => {
         createPortal(
           <div className="fixed inset-x-0 bottom-0 z-40 px-2 pb-[calc(env(safe-area-inset-bottom,0px)+0.35rem)] pt-1">
             <div
-              className={`mx-auto grid w-full max-w-[27rem] ${mobileNavItems.length > 5 ? "grid-cols-6" : mobileNavItems.length > 4 ? "grid-cols-5" : "grid-cols-2"} items-center gap-1 rounded-2xl border border-border/70 bg-background/80 p-1.5 shadow-lg shadow-black/5 backdrop-blur-xl`}
+              className={`s-surface mx-auto grid w-full max-w-[27rem] ${mobileNavItems.length > 5 ? "grid-cols-6" : mobileNavItems.length > 4 ? "grid-cols-5" : "grid-cols-2"} items-center gap-1 rounded-lg p-1.5 backdrop-blur-xl`}
             >
               {mobileNavItems.map((item) => {
                 const Icon = item.icon;
@@ -411,15 +402,15 @@ const AttendanceContent = ({ setDisableWorkSpace }) => {
                     key={item.id}
                     type="button"
                     onClick={() => performAction(item.id)}
-                    className={`flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] font-medium leading-none transition-all duration-200 ${
+                    className={`flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-md px-1 py-1.5 text-[11px] font-medium leading-none transition-colors duration-200 ${
                       active
-                        ? "bg-primary/90 text-primary-foreground shadow-sm"
+                        ? "bg-primary text-primary-foreground"
                         : item.danger
-                          ? "text-rose-500 hover:bg-rose-500/10"
+                          ? "text-destructive hover:bg-destructive/10"
                           : "text-muted-foreground hover:bg-accent/80 hover:text-accent-foreground"
                     }`}
                   >
-                    <Icon className="h-3.5 w-3.5" strokeWidth={1.9} />
+                    <Icon className="h-3.5 w-3.5" />
                     <span className="truncate max-[360px]:hidden">
                       {item.label}
                     </span>
@@ -434,15 +425,15 @@ const AttendanceContent = ({ setDisableWorkSpace }) => {
       {!loading && !showHelpModal && (
         <button
           onClick={() => setShowHelpModal(true)}
-          className={`fixed z-[110] inline-flex items-center gap-2 border border-primary/20 bg-primary/10 px-3 py-2 text-primary shadow-sm backdrop-blur transition hover:bg-primary/15 ${
+          className={`s-chip fixed z-[110] ${
             isMobile
-              ? "right-0 top-24 rounded-l-full"
-              : "right-5 top-[calc(73px+1rem)] rounded-full"
+              ? "right-0 top-24 rounded-r-none"
+              : "right-5 top-[calc(4.5rem+1rem)]"
           }`}
           aria-label="Open help"
         >
           <MessageCircleQuestionIcon size={18} />
-          {!isMobile && <span className="text-sm font-medium">Help</span>}
+          {!isMobile && <span>Help</span>}
         </button>
       )}
 

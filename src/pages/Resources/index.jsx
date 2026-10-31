@@ -16,10 +16,9 @@ import SelectionPopup from "../../components/SelectionPopup";
 import { WindowProvider } from "../../components/FileViewer/WindowContext";
 import WaveLoader from "../../components/Loading";
 import axios from "axios";
-import { FilterList } from "@mui/icons-material";
 import { useOverlay } from "../../contexts/NavigationContext";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Clock3, FileText } from "lucide-react";
+import { ChevronDown, Clock3, FileText, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const RECENT_FILES_KEY = "resources_recent_files";
@@ -392,29 +391,29 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
     <motion.div className="flex min-h-[400px] items-center justify-center">
       <WaveLoader
         size="7em"
-        primaryColor="hsl(220,90%,50%)"
-        secondaryColor="hsl(300,90%,50%)"
+        primaryColor="hsl(var(--primary))"
+        secondaryColor="hsl(var(--sage))"
       />
     </motion.div>
   ) : (
     <WindowProvider>
       {focusStep && (
-        <div className="pointer-events-none fixed inset-0 z-30 bg-black/35 backdrop-blur-[1px]" />
+        <div className="pointer-events-none fixed inset-0 z-30 bg-foreground/30 backdrop-blur-[1px]" />
       )}
 
       <div
-        className="mx-auto flex h-full w-full max-w-7xl flex-col px-3 pb-4 sm:px-6 lg:px-8"
+        className="mx-auto flex h-full w-full max-w-[72rem] flex-col px-3 pb-4 sm:px-6"
         style={{ paddingTop: "calc(var(--app-nav-offset, 88px) + 0.4rem)" }}
       >
         <motion.header
-          className="sticky z-40 rounded-2xl border border-border/70 bg-background/85 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/75 md:px-4"
+          className="s-bar sticky z-40 px-3 py-2 md:px-4"
           style={{ top: "var(--app-nav-offset, 88px)" }}
           animate={{
             y: isMobilePortrait && isHeaderCollapsed ? -8 : 0,
             borderTopLeftRadius:
-              isMobilePortrait && isHeaderCollapsed ? 12 : 16,
+              isMobilePortrait && isHeaderCollapsed ? 6 : 8,
             borderTopRightRadius:
-              isMobilePortrait && isHeaderCollapsed ? 12 : 16,
+              isMobilePortrait && isHeaderCollapsed ? 6 : 8,
           }}
           transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
         >
@@ -465,7 +464,7 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
                   className={cn(
                     "h-10 w-10 rounded-lg",
                     focusStep === "recent" &&
-                      "relative z-50 ring-2 ring-primary/90 ring-offset-2 ring-offset-background shadow-[0_0_0_4px_rgba(56,189,248,0.25)]",
+                      "relative z-50 ring-2 ring-primary/90 ring-offset-2 ring-offset-background shadow-[0_0_0_4px_hsl(var(--ring)/0.25)]",
                   )}
                   onClick={() => {
                     setShowRecentPopup((prev) => !prev);
@@ -561,7 +560,7 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
                   className={cn(
                     "h-10 w-10 rounded-lg",
                     focusStep === "filters" &&
-                      "relative z-50 ring-2 ring-primary/90 ring-offset-2 ring-offset-background shadow-[0_0_0_4px_rgba(250,204,21,0.25)]",
+                      "relative z-50 ring-2 ring-primary/90 ring-offset-2 ring-offset-background shadow-[0_0_0_4px_hsl(var(--ring)/0.25)]",
                   )}
                   onClick={() => {
                     setShowFilterDialog(true);
@@ -571,7 +570,7 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
                   }}
                   aria-label="Open filters"
                 >
-                  <FilterList style={{ fontSize: 18 }} />
+                  <SlidersHorizontal className="h-4 w-4" />
                 </Button>
 
                 {focusStep === "filters" && (

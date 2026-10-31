@@ -30,55 +30,55 @@ const WindowControls = ({
       <button
         type="button"
         onClick={onReload}
-        className="rounded-full p-1.5 text-muted-foreground transition hover:bg-accent hover:text-blue-500"
+        className="s-iconbtn"
         title="Reload"
       >
-        <RotateCcw size={18} />
+        <RotateCcw size={16} />
       </button>
 
       <button
         type="button"
         onClick={handleSplitView}
         disabled={!isSplitViewAvailable}
-        className="rounded-full p-1.5 text-muted-foreground transition hover:bg-accent hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-45"
+        className="s-iconbtn"
         title={
           isSplitViewAvailable
             ? "Open in split view"
             : "Keep exactly two active windows for split view"
         }
       >
-        <LayoutSplit size={18} />
+        <LayoutSplit size={16} />
       </button>
 
       <button
         type="button"
         onClick={onMinimize}
-        className="rounded-full p-1.5 text-muted-foreground transition hover:bg-accent hover:text-amber-500"
+        className="s-iconbtn"
         title="Minimize"
       >
-        <CircleMinus size={18} />
+        <CircleMinus size={16} />
       </button>
 
       <button
         type="button"
         onClick={onMaximize}
-        className="rounded-full p-1.5 text-muted-foreground transition hover:bg-accent hover:text-indigo-600"
+        className="s-iconbtn"
         title={currentState === "maximized" ? "Restore" : "Maximize"}
       >
         {currentState === "maximized" ? (
-          <Minimize2 size={18} />
+          <Minimize2 size={16} />
         ) : (
-          <Maximize2 size={18} />
+          <Maximize2 size={16} />
         )}
       </button>
 
       <button
         type="button"
         onClick={onClose}
-        className="rounded-full p-1.5 text-muted-foreground transition hover:bg-red-50 hover:text-red-500"
+        className="s-iconbtn s-iconbtn--danger"
         title="Close"
       >
-        <X size={18} />
+        <X size={16} />
       </button>
     </div>
   );

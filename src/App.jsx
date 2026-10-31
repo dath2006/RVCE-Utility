@@ -44,7 +44,7 @@ const AppContainer = styled.div`
     left: 0;
     right: 0;
     bottom: 0;
-    background: ${(props) => props.theme.background}dd;
+    background: transparent;
     z-index: 0;
   }
 
@@ -263,18 +263,9 @@ function AppContent() {
       /> */}
       <Toaster position="top-right" richColors closeButton duration={3000} />
       <div
-        className={`fixed inset-0 transition-all duration-700 delay-500 ease-in-out ${
+        className={`app-canvas fixed inset-0 transition-all duration-700 delay-500 ease-in-out ${
           loading ? "opacity-0 scale-110" : "opacity-100 scale-100"
         }`}
-        style={{
-          background:
-            theme === "dark"
-              ? "radial-gradient(circle at top, rgba(120, 119, 198, 0.14), transparent 40%), linear-gradient(180deg, #020617 0%, #0f172a 38%, #111827 100%)"
-              : "radial-gradient(circle at top, rgba(15, 23, 42, 0.06), transparent 35%), linear-gradient(180deg, #ffffff 0%, #f8fafc 42%, #eef2ff 100%)",
-          transformStyle: "preserve-3d",
-          width: "100%",
-          height: "100vh",
-        }}
       />
 
       <div

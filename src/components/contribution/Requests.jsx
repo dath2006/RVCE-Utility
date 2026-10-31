@@ -388,13 +388,10 @@ const Requests = () => {
   }
 
   return (
-    <div className="w-full rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm sm:p-5">
+    <div className="w-full p-4 sm:p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-            Requests Hub
-          </p>
-          <h2 className="mt-1 text-2xl font-semibold">Resource Requests</h2>
+          <h2 className="s-h2">Resource Requests</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Browse pending community requests, filter by branch or semester, and
             contribute directly.
@@ -405,7 +402,7 @@ const Requests = () => {
           <button
             type="button"
             onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90"
           >
             <Plus className="h-4 w-4" />
             Add Request
@@ -415,7 +412,7 @@ const Requests = () => {
             <button
               type="button"
               onClick={() => setIsFilterOpen((prev) => !prev)}
-              className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition ${
+              className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition ${
                 hasActiveFilters
                   ? "border-primary/30 bg-primary/10 text-primary"
                   : "border-border/70 bg-background/80 text-foreground hover:bg-accent"
@@ -424,7 +421,7 @@ const Requests = () => {
               <Filter className="h-4 w-4" />
               Filters
               {hasActiveFilters && (
-                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold text-primary-foreground">
+                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-md bg-primary px-1 text-[11px] font-semibold text-primary-foreground">
                   {(filters.branch ? 1 : 0) +
                     (filters.semester ? 1 : 0) +
                     (searchQuery ? 1 : 0)}
@@ -450,24 +447,24 @@ const Requests = () => {
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
-        <div className="rounded-xl border border-border/70 bg-background/80 px-2.5 py-3 sm:p-3">
-          <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground sm:text-xs sm:tracking-[0.14em]">
+        <div className="rounded-lg border border-border/70 bg-background/80 px-2.5 py-3 sm:p-3">
+          <p className="text-[10px] text-muted-foreground sm:text-xs sm:">
             Visible Requests
           </p>
           <p className="mt-1 text-lg font-semibold sm:text-2xl">
             {filteredRequests.length}
           </p>
         </div>
-        <div className="rounded-xl border border-border/70 bg-background/80 px-2.5 py-3 sm:p-3">
-          <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground sm:text-xs sm:tracking-[0.14em]">
+        <div className="rounded-lg border border-border/70 bg-background/80 px-2.5 py-3 sm:p-3">
+          <p className="text-[10px] text-muted-foreground sm:text-xs sm:">
             Open Requests
           </p>
           <p className="mt-1 text-lg font-semibold sm:text-2xl">
             {openRequestsCount}
           </p>
         </div>
-        <div className="rounded-xl border border-border/70 bg-background/80 px-2.5 py-3 sm:p-3">
-          <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground sm:text-xs sm:tracking-[0.14em]">
+        <div className="rounded-lg border border-border/70 bg-background/80 px-2.5 py-3 sm:p-3">
+          <p className="text-[10px] text-muted-foreground sm:text-xs sm:">
             Pending Items
           </p>
           <p className="mt-1 text-lg font-semibold sm:text-2xl">
@@ -485,7 +482,7 @@ const Requests = () => {
             className="mt-4 flex flex-wrap gap-2"
           >
             {searchQuery && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs text-primary">
+              <span className="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/10 px-3 py-1 text-xs text-primary">
                 Search: {searchQuery}
                 <button type="button" onClick={() => setSearchQuery("")}>
                   <X className="h-3.5 w-3.5" />
@@ -493,7 +490,7 @@ const Requests = () => {
               </span>
             )}
             {filters.semester && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-muted/55 px-3 py-1 text-xs text-foreground">
+              <span className="inline-flex items-center gap-1 rounded-md border border-border/70 bg-muted/55 px-3 py-1 text-xs text-foreground">
                 {semesterLabel(filters.semester)}
                 <button
                   type="button"
@@ -506,7 +503,7 @@ const Requests = () => {
               </span>
             )}
             {filters.branch && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-muted/55 px-3 py-1 text-xs text-foreground">
+              <span className="inline-flex items-center gap-1 rounded-md border border-border/70 bg-muted/55 px-3 py-1 text-xs text-foreground">
                 {filters.branch}
                 <button
                   type="button"
@@ -523,12 +520,12 @@ const Requests = () => {
       </AnimatePresence>
 
       {error ? (
-        <div className="mt-6 rounded-xl border border-rose-500/25 bg-rose-500/10 p-4 text-sm text-rose-600">
+        <div className="mt-6 rounded-lg border border-rose-500/25 bg-rose-500/10 p-4 text-sm text-rose-600">
           {error}
         </div>
       ) : filteredRequests.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-full border border-dashed border-border/80 bg-muted/35">
+          <div className="inline-flex h-16 w-16 items-center justify-center rounded-md border border-dashed border-border/80 bg-muted/35">
             <FolderOpen className="h-7 w-7 text-muted-foreground" />
           </div>
           <h3 className="mt-4 text-xl font-medium">
@@ -555,7 +552,7 @@ const Requests = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+          className="mt-5 divide-y divide-border/70"
         >
           {filteredRequests.map((request, index) => {
             const pendingDocuments = (request.documents || []).filter(
@@ -572,9 +569,9 @@ const Requests = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: index * 0.03 }}
-                className="flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-background/80 shadow-sm"
+                className="grid gap-x-8 gap-y-3 py-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]"
               >
-                <div className="border-b border-border/70 px-4 py-4">
+                <div>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <h3 className="truncate text-lg font-semibold">
@@ -585,23 +582,23 @@ const Requests = () => {
                       </p>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1">
-                      <span className="rounded-full border border-border/70 bg-muted/55 px-2.5 py-1 text-[11px] text-muted-foreground">
+                      <span className="rounded-md border border-border/70 bg-muted/55 px-2.5 py-1 text-[11px] text-muted-foreground">
                         {request.branch}
                       </span>
-                      <span className="rounded-full border border-border/70 bg-muted/55 px-2.5 py-1 text-[11px] text-muted-foreground">
+                      <span className="rounded-md border border-border/70 bg-muted/55 px-2.5 py-1 text-[11px] text-muted-foreground">
                         {semesterLabel(request.semester)}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex flex-1 flex-col px-4 py-4">
+                <div className="flex flex-1 flex-col">
                   <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
                     <span className="inline-flex items-center gap-1">
                       <Clock3 className="h-3.5 w-3.5" />
                       {new Date(request.postedAt).toLocaleDateString()}
                     </span>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-primary">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-primary">
                       {pendingDocuments.length} pending
                     </span>
                   </div>
@@ -610,7 +607,7 @@ const Requests = () => {
                     {pendingDocuments.slice(0, 3).map((item, itemIndex) => (
                       <div
                         key={item._id || `${item.name}-${itemIndex}`}
-                        className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-muted/35 px-3 py-2.5"
+                        className="flex items-center justify-between gap-3 rounded-lg border border-border/70 bg-muted/35 px-3 py-2.5"
                       >
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium">
@@ -618,7 +615,7 @@ const Requests = () => {
                           </p>
                         </div>
                         <span
-                          className={`shrink-0 rounded-full border px-2 py-0.5 text-[11px] ${
+                          className={`shrink-0 rounded-md border px-2 py-0.5 text-[11px] ${
                             typeStyles[item.type] || typeStyles.Other
                           }`}
                         >
@@ -685,13 +682,13 @@ const Requests = () => {
         {activeUpload !== null && selectedRequest && (
           <ContributionModalPortal>
             <motion.div
-              className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-black/70 p-2 backdrop-blur-sm sm:items-center sm:p-4"
+              className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-foreground/40 p-2 backdrop-blur-sm sm:items-center sm:p-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
               <motion.div
-                className="max-h-[calc(100dvh-1rem)] w-full max-w-md overflow-y-auto rounded-2xl border border-border/70 bg-card shadow-xl sm:max-h-[calc(100dvh-2rem)]"
+                className="max-h-[calc(100dvh-1rem)] w-full max-w-md overflow-y-auto rounded-lg border border-border/70 s-surface shadow-xl sm:max-h-[calc(100dvh-2rem)]"
                 initial={{ scale: 0.96, opacity: 0, y: 10 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.96, opacity: 0, y: 10 }}
@@ -705,7 +702,7 @@ const Requests = () => {
 
                 <div className="p-5">
                   <div
-                    className={`rounded-2xl border-2 border-dashed p-6 text-center transition ${
+                    className={`rounded-lg border-2 border-dashed p-6 text-center transition ${
                       selectedFiles[activeUpload]
                         ? "border-primary/45 bg-primary/10"
                         : "border-border/70 bg-muted/35"
@@ -765,9 +762,9 @@ const Requests = () => {
                           {uploadProgress[activeUpload]}%
                         </span>
                       </div>
-                      <div className="h-2 rounded-full bg-muted">
+                      <div className="h-2 rounded-md bg-muted">
                         <div
-                          className="h-2 rounded-full bg-primary transition-all"
+                          className="h-2 rounded-md bg-primary transition-all"
                           style={{ width: `${uploadProgress[activeUpload]}%` }}
                         />
                       </div>
@@ -783,7 +780,7 @@ const Requests = () => {
                         (uploadProgress[activeUpload] > 0 &&
                           uploadProgress[activeUpload] < 100)
                       }
-                      className="flex-1 rounded-xl border border-border/70 bg-background/85 px-4 py-2.5 text-sm font-medium transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex-1 rounded-lg border border-border/70 bg-background/85 px-4 py-2.5 text-sm font-medium transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       Cancel
                     </button>
@@ -796,7 +793,7 @@ const Requests = () => {
                         (uploadProgress[activeUpload] > 0 &&
                           uploadProgress[activeUpload] < 100)
                       }
-                      className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {isUploading
                         ? "Uploading..."
@@ -816,19 +813,19 @@ const Requests = () => {
         {showCancelConfirm && (
           <ContributionModalPortal>
             <motion.div
-              className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+              className="fixed inset-0 z-[90] flex items-center justify-center bg-foreground/40 p-4 backdrop-blur-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
               <motion.div
-                className="w-full max-w-sm rounded-2xl border border-border/70 bg-card shadow-xl"
+                className="w-full max-w-sm rounded-lg border border-border/70 s-surface shadow-xl"
                 initial={{ scale: 0.96, opacity: 0, y: 10 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.96, opacity: 0, y: 10 }}
               >
                 <div className="p-5 text-center">
-                  <div className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-full bg-rose-500/10 text-rose-500">
+                  <div className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-md bg-rose-500/10 text-rose-500">
                     <X className="h-5 w-5" />
                   </div>
                   <h3 className="mt-4 text-lg font-semibold">Cancel upload?</h3>
@@ -839,14 +836,14 @@ const Requests = () => {
                     <button
                       type="button"
                       onClick={() => setShowCancelConfirm(false)}
-                      className="flex-1 rounded-xl border border-border/70 bg-background/85 px-4 py-2.5 text-sm font-medium transition hover:bg-accent"
+                      className="flex-1 rounded-lg border border-border/70 bg-background/85 px-4 py-2.5 text-sm font-medium transition hover:bg-accent"
                     >
                       Keep file
                     </button>
                     <button
                       type="button"
                       onClick={confirmCancel}
-                      className="flex-1 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-rose-700"
+                      className="flex-1 rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-rose-700"
                     >
                       Cancel upload
                     </button>

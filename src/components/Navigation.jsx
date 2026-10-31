@@ -32,13 +32,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu";
 
 const navItems = [
   { to: "/", label: "Home", icon: Home },
@@ -90,10 +83,8 @@ function Navigation({
   const [showStarPrompt, setShowStarPrompt] = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   const [isMobileUtilityOpen, setIsMobileUtilityOpen] = useState(false);
-  const [isMobileNavDocked, setIsMobileNavDocked] = useState(false);
   const headerRef = useRef(null);
   const mobilePromptAutoOpenedRef = useRef(false);
-  const lastScrollTopRef = useRef(0);
 
   useEffect(() => {
     const promptDone = localStorage.getItem(GITHUB_STAR_PROMPT_KEY) === "true";
@@ -166,38 +157,6 @@ function Navigation({
     }
   }, [shouldShowMobileStarPrompt]);
 
-  useEffect(() => {
-    const scrollContainer = document.getElementById("main-scroll-container");
-
-    if (!isMobile || !scrollContainer) {
-      setIsMobileNavDocked(false);
-      lastScrollTopRef.current = 0;
-      return;
-    }
-
-    const handleScroll = () => {
-      const scrollTop = scrollContainer.scrollTop;
-      const delta = scrollTop - lastScrollTopRef.current;
-
-      if (scrollTop <= 8) {
-        setIsMobileNavDocked(false);
-      } else if (delta > 1.5 && scrollTop > 24) {
-        setIsMobileNavDocked(true);
-      }
-
-      lastScrollTopRef.current = scrollTop;
-    };
-
-    handleScroll();
-    scrollContainer.addEventListener("scroll", handleScroll, {
-      passive: true,
-    });
-
-    return () => {
-      scrollContainer.removeEventListener("scroll", handleScroll);
-    };
-  }, [isMobile, currentPath]);
-
   const handleProtectedNavigation = (item, event) => {
     if (item.auth && !isAuthenticated) {
       event.preventDefault();
@@ -205,87 +164,47 @@ function Navigation({
     }
   };
 
-  const shouldUseDockedMobileNav = isMobile && isMobileNavDocked;
-
   return (
     <>
       {shouldShowStarPrompt && (
-        <div className="pointer-events-none fixed inset-0 z-[80] hidden bg-black/45 backdrop-blur-[1px] sm:block" />
+        <div className="pointer-events-none fixed inset-0 z-[80] hidden bg-foreground/30 backdrop-blur-[1px] sm:block" />
       )}
 
-      <header
-        ref={headerRef}
-        className={cn(
-          "fixed inset-x-0 top-0 z-[90] transition-all duration-300 ease-out sm:px-6",
-          shouldUseDockedMobileNav ? "px-0 pt-0" : "px-3 pt-3",
-        )}
-      >
-        <div
-          className={cn(
-            "mx-auto flex items-center justify-between border border-border/70 bg-background/80 py-2 backdrop-blur-xl transition-all duration-300 ease-out",
-            shouldUseDockedMobileNav
-              ? "max-w-none rounded-none border-x-0 border-t-0 px-3 shadow-md shadow-black/10"
-              : "max-w-7xl rounded-2xl px-3 shadow-lg shadow-black/5 sm:px-5",
-          )}
-        >
-          <div className="flex items-center gap-3">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-3 rounded-xl px-2 py-1 transition-colors hover:bg-accent"
-            >
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-                <img
-                  src="/logo.svg"
-                  alt="RV Utility logo"
-                  className="h-6 w-6 object-contain"
-                  loading="lazy"
-                />
-              </span>
-              <div className="hidden sm:block">
-                <p className="text-sm font-semibold leading-none tracking-tight">
-                  RV Utility
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Study resources
-                </p>
-              </div>
-            </Link>
-          </div>
+      <header ref={headerRef} className="s-nav">
+        <div className="s-nav-in">
+          <Link to="/" className="s-brand" aria-label="RV Utility home">
+            <span className="s-mark">
+              <img
+                src="/logo.svg"
+                alt="RV Utility logo"
+                className="h-6 w-6 object-contain"
+                loading="lazy"
+              />
+            </span>
+            <span className="s-brand-name">RV Utility</span>
+          </Link>
 
-          <div className="hidden items-center gap-3 lg:flex">
-            <NavigationMenu>
-              <NavigationMenuList>
-                {navItems.map((item) => {
-                  const isActive =
-                    item.to === "/"
-                      ? currentPath === "/"
-                      : currentPath.startsWith(item.to);
+          <nav className="s-links" aria-label="Primary">
+            {navItems.map((item) => {
+              const isActive =
+                item.to === "/"
+                  ? currentPath === "/"
+                  : currentPath.startsWith(item.to);
 
-                  return (
-                    <NavigationMenuItem key={item.to}>
-                      <NavigationMenuLink asChild>
-                        <Link
-                          to={item.to}
-                          onClick={(event) =>
-                            handleProtectedNavigation(item, event)
-                          }
-                          className={cn(
-                            navigationMenuTriggerStyle(),
-                            "bg-transparent",
-                            isActive && "bg-accent text-accent-foreground",
-                          )}
-                        >
-                          {item.label}
-                        </Link>
-                      </NavigationMenuLink>
-                    </NavigationMenuItem>
-                  );
-                })}
-              </NavigationMenuList>
-            </NavigationMenu>
-          </div>
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={(event) => handleProtectedNavigation(item, event)}
+                  aria-current={isActive ? "page" : undefined}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="s-tools">
             {stars !== null && (
               <div
                 className={cn(
@@ -299,9 +218,9 @@ function Navigation({
                   rel="noreferrer"
                   onClick={dismissStarPrompt}
                   className={cn(
-                    "inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-3 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:bg-accent",
+                    "s-chip",
                     shouldShowStarPrompt &&
-                      "ring-2 ring-yellow-400/90 ring-offset-2 ring-offset-background shadow-[0_0_0_4px_rgba(250,204,21,0.22)]",
+                      "ring-2 ring-ring ring-offset-2 ring-offset-background",
                   )}
                 >
                   <Github className="h-4 w-4" />

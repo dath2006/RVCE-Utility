@@ -52,7 +52,7 @@ function Todo() {
       animate={{ opacity: 1, y: 0 }}
       className="w-full max-w-2xl"
     >
-      <Card className="overflow-hidden border-border/70 bg-card/95 shadow-lg">
+      <Card className="overflow-hidden border-border/70 s-surface shadow-lg">
         <CardHeader className="pb-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="text-2xl font-bold tracking-tight sm:text-3xl">
@@ -111,7 +111,7 @@ function Todo() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
                   layout
-                  className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-muted/30 p-3"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-border/70 bg-muted/30 p-3"
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-3">
                     <motion.button
@@ -163,7 +163,7 @@ function Todo() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="rounded-xl border border-dashed border-border/70 bg-muted/20 py-8 text-center"
+              className="rounded-lg border border-dashed border-border/70 bg-muted/20 py-8 text-center"
             >
               <p className="text-sm text-muted-foreground sm:text-base">
                 No tasks yet. Add one to get started.

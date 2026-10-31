@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
 const fieldBaseClass =
-  "w-full rounded-xl border border-border/70 bg-background/85 px-3 py-2.5 text-sm text-foreground shadow-sm transition focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20";
+  "w-full rounded-lg border border-border/70 bg-background/85 px-3 py-2.5 text-sm text-foreground shadow-sm transition focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20";
 
 const FormFields = ({ formData, onChange }) => {
   const branchOptions = [
@@ -31,7 +31,7 @@ const FormFields = ({ formData, onChange }) => {
       className="grid grid-cols-1 gap-3 sm:grid-cols-2"
     >
       <div className="space-y-1.5">
-        <label className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+        <label className="text-sm font-medium text-muted-foreground">
           Semester
         </label>
         <div className="relative">
@@ -56,7 +56,7 @@ const FormFields = ({ formData, onChange }) => {
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+        <label className="text-sm font-medium text-muted-foreground">
           Branch
         </label>
         <div className="relative">
@@ -77,7 +77,7 @@ const FormFields = ({ formData, onChange }) => {
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+        <label className="text-sm font-medium text-muted-foreground">
           Subject Code
         </label>
         <input
@@ -94,7 +94,7 @@ const FormFields = ({ formData, onChange }) => {
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+        <label className="text-sm font-medium text-muted-foreground">
           Subject Name
         </label>
         <input
@@ -111,7 +111,7 @@ const FormFields = ({ formData, onChange }) => {
       </div>
 
       <div className="space-y-1.5 sm:col-span-2">
-        <label className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+        <label className="text-sm font-medium text-muted-foreground">
           Document Type
         </label>
         <div className="relative max-w-sm">

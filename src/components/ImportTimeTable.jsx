@@ -612,13 +612,13 @@ const ImportTimeTable = ({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <Card className="overflow-hidden border-border/70 bg-card/95 shadow-sm">
+        <Card className="overflow-hidden border-0 bg-transparent shadow-none">
           <CardHeader className="border-b border-border/70 bg-muted/40 py-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <CardTitle className="text-base sm:text-lg">
                 Attendance Import
               </CardTitle>
-              <div className="inline-flex rounded-xl border border-border/70 bg-background p-1.5 shadow-sm">
+              <div className="inline-flex rounded-lg border border-border/70 bg-background p-1.5 shadow-sm">
                 <button
                   type="button"
                   onClick={() => setActiveTab("import")}
@@ -806,7 +806,7 @@ const ImportTimeTable = ({
                           return (
                             <div
                               key={row._id}
-                              className="rounded-xl border border-border/70 bg-card p-3"
+                              className="rounded-lg border border-border/70 s-surface p-3"
                             >
                               <div className="flex flex-wrap items-center justify-between gap-2">
                                 <div>
@@ -880,7 +880,7 @@ const ImportTimeTable = ({
                 <motion.div key="create" {...modeMotion}>
                   <Card className="border-border/70 bg-background/70 shadow-none">
                     <CardContent className="flex flex-col items-center gap-3 p-5 text-center sm:p-7">
-                      <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 text-primary">
+                      <div className="rounded-lg border border-primary/20 bg-primary/10 p-4 text-primary">
                         <WandSparkles className="h-6 w-6" />
                       </div>
                       <div className="space-y-2">
@@ -931,16 +931,16 @@ const ImportTimeTable = ({
             </div>
 
             <div className="grid gap-2 sm:grid-cols-2">
-              <div className="rounded-lg border border-border/70 bg-card px-3 py-2">
-                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              <div className="rounded-lg border border-border/70 s-surface px-3 py-2">
+                <p className="text-[11px] tracking-wide text-muted-foreground">
                   Course Start
                 </p>
                 <p className="mt-0.5 text-sm font-semibold">
                   {formatDateLabel(previewDates.courseStart)}
                 </p>
               </div>
-              <div className="rounded-lg border border-border/70 bg-card px-3 py-2">
-                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              <div className="rounded-lg border border-border/70 s-surface px-3 py-2">
+                <p className="text-[11px] tracking-wide text-muted-foreground">
                   Course End
                 </p>
                 <p className="mt-0.5 text-sm font-semibold">
@@ -950,12 +950,12 @@ const ImportTimeTable = ({
             </div>
 
             {loadingPreview ? (
-              <div className="rounded-xl border border-border/70 bg-background/70 p-4 text-sm text-muted-foreground">
+              <div className="rounded-lg border border-border/70 bg-background/70 p-4 text-sm text-muted-foreground">
                 Loading timetable structure...
               </div>
             ) : selectedCommunity?.timeTable ? (
               <div className="space-y-3">
-                <div className="rounded-xl border border-border/70 bg-card p-3">
+                <div className="rounded-lg border border-border/70 s-surface p-3">
                   <p className="text-xs font-medium">Courses</p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {selectedCommunity.timeTable.courses?.map((course) => (
@@ -970,18 +970,18 @@ const ImportTimeTable = ({
                   </div>
                 </div>
 
-                <div className="w-full min-w-0 max-w-full overflow-x-auto overscroll-x-contain rounded-xl border border-border/70 bg-background/40 pb-2 touch-pan-x [scrollbar-color:hsl(var(--muted-foreground)/0.4)_transparent] [scrollbar-width:thin]">
+                <div className="w-full min-w-0 max-w-full overflow-x-auto overscroll-x-contain rounded-lg border border-border/70 bg-background/40 pb-2 touch-pan-x [scrollbar-color:hsl(var(--muted-foreground)/0.4)_transparent] [scrollbar-width:thin]">
                   <div
-                    className="grid w-max min-w-[640px] gap-0.5 rounded-xl bg-border p-0.5"
+                    className="grid w-max min-w-[640px] gap-0.5 rounded-lg bg-border p-0.5"
                     style={{
                       gridTemplateColumns: "auto repeat(5, minmax(110px, 1fr))",
                     }}
                   >
-                    <div className="sticky left-0 top-0 z-40 flex min-h-[46px] items-center justify-center rounded-[10px] border-r border-border/50 bg-background px-2 py-2 text-sm font-semibold" />
+                    <div className="sticky left-0 top-0 z-40 flex min-h-[46px] items-center justify-center rounded-lg border-r border-border/50 bg-background px-2 py-2 text-sm font-semibold" />
                     {previewDays.map((day) => (
                       <div
                         key={day}
-                        className="sticky top-0 z-30 flex min-h-[46px] items-center justify-center rounded-[10px] bg-background px-2 py-2 text-center text-xs font-semibold shadow-[0_1px_0_0_hsl(var(--border))] sm:text-sm"
+                        className="sticky top-0 z-30 flex min-h-[46px] items-center justify-center rounded-lg bg-background px-2 py-2 text-center text-xs font-semibold shadow-[0_1px_0_0_hsl(var(--border))] sm:text-sm"
                       >
                         {day}
                       </div>
@@ -1001,7 +1001,7 @@ const ImportTimeTable = ({
                         >
                           <div
                             key={`slot-${slot.slotId}`}
-                            className="sticky left-0 z-20 flex min-h-[54px] items-center justify-center rounded-[10px] border-r border-border/50 bg-background px-2 py-2 text-center text-[11px] leading-tight text-foreground shadow-[1px_0_0_0_hsl(var(--border))] sm:text-xs"
+                            className="sticky left-0 z-20 flex min-h-[54px] items-center justify-center rounded-lg border-r border-border/50 bg-background px-2 py-2 text-center text-[11px] leading-tight text-foreground shadow-[1px_0_0_0_hsl(var(--border))] sm:text-xs"
                           >
                             {slot.display}
                           </div>
@@ -1022,7 +1022,7 @@ const ImportTimeTable = ({
                             return (
                               <div
                                 key={`${slot.slotId}-${dayIndex}`}
-                                className="flex min-h-[54px] items-center rounded-[10px] bg-background px-2 py-2"
+                                className="flex min-h-[54px] items-center rounded-lg bg-background px-2 py-2"
                               >
                                 {event && course ? (
                                   <div className="w-full rounded-md border border-primary/20 bg-secondary px-2 py-1.5">
@@ -1065,7 +1065,7 @@ const ImportTimeTable = ({
                 </div>
               </div>
             ) : (
-              <div className="rounded-xl border border-border/70 bg-background/70 p-4 text-sm text-muted-foreground">
+              <div className="rounded-lg border border-border/70 bg-background/70 p-4 text-sm text-muted-foreground">
                 No timetable details available for preview.
               </div>
             )}

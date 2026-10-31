@@ -15,7 +15,7 @@ const FileList = ({ files, onRemoveFile, isUploading }) => {
     >
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">Files ({files.length})</h3>
-        <div className="rounded-full border border-border/70 bg-muted/50 px-2.5 py-0.5 text-xs text-muted-foreground">
+        <div className="rounded-md border border-border/70 bg-muted/50 px-2.5 py-0.5 text-xs text-muted-foreground">
           {uploadedCount}/{files.length}
         </div>
       </div>

@@ -263,7 +263,7 @@ const FileExplorer = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
-            className="fixed left-1/2 top-20 z-[1000] flex -translate-x-1/2 items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-lg"
+            className="fixed left-1/2 top-20 z-[1000] flex -translate-x-1/2 items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-lg"
           >
             <CheckCircle2 className="h-4 w-4" /> Added to workspace
           </motion.div>

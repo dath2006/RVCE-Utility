@@ -15,9 +15,7 @@ import {
 import searchFiles from "../hooks/searchFiles";
 import WaveLoader from "./Loading";
 import FileViewer from "./FileViewer";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -62,48 +60,22 @@ function ChoiceCard({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className={cn(
-        "rounded-[1.35rem] border p-4 text-left transition-all",
-        selected
-          ? "border-primary bg-primary text-primary-foreground shadow-md"
-          : "border-border bg-card hover:border-foreground/30 hover:bg-accent/60",
-        disabled &&
-          "cursor-not-allowed opacity-45 hover:border-border hover:bg-card",
-      )}
+      aria-pressed={selected}
+      className="s-choice"
     >
-      <div className="flex items-center justify-between gap-2">
-        <p className="font-medium">{title}</p>
-        {isNew && (
-          <span
-            className={cn(
-              "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-              selected
-                ? "bg-primary-foreground/20 text-primary-foreground"
-                : "bg-primary/10 text-primary",
-            )}
-          >
-            New
-          </span>
-        )}
-      </div>
-      {description && (
-        <p
-          className={cn(
-            "mt-2 text-sm",
-            selected ? "text-primary-foreground/80" : "text-muted-foreground",
-          )}
-        >
-          {description}
-        </p>
-      )}
+      <span className="flex items-center justify-between gap-2">
+        <span className="s-title">{title}</span>
+        {isNew && <span className="s-new">New</span>}
+      </span>
+      {description && <span className="s-choice-note">{description}</span>}
     </button>
   );
 }
 
 function CourseSelect({ label, value, onValueChange, options, onHelp }) {
   return (
-    <Card className="rounded-[1.35rem] border-border/70 shadow-none">
-      <CardContent className="space-y-3 p-4">
+    <div className="s-surface rounded-lg">
+      <div className="space-y-3 p-4">
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm font-medium">{label}</p>
           <Button type="button" variant="ghost" size="icon" onClick={onHelp}>
@@ -122,8 +94,8 @@ function CourseSelect({ label, value, onValueChange, options, onHelp }) {
             ))}
           </SelectContent>
         </Select>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -527,19 +499,15 @@ function SelectionPopup({ filters, onClose, onSubmit }) {
         )}
 
         {selection.cycle === "3-Sem-ECE" && (
-          <Card className="rounded-[1.35rem] border-border/70 bg-muted/40 shadow-none">
-            <CardContent className="p-5 text-sm leading-6 text-muted-foreground">
-              No extra course filter is needed for 3rd sem ECE.
-            </CardContent>
-          </Card>
+          <p className="s-surface rounded-lg p-5 text-sm leading-6 text-muted-foreground">
+            No extra course filter is needed for 3rd sem ECE.
+          </p>
         )}
 
         {selection.cycle === "4-Sem-ECE" && (
-          <Card className="rounded-[1.35rem] border-border/70 bg-muted/40 shadow-none">
-            <CardContent className="p-5 text-sm leading-6 text-muted-foreground">
-              4th sem ECE uses fixed subject filters.
-            </CardContent>
-          </Card>
+          <p className="s-surface rounded-lg p-5 text-sm leading-6 text-muted-foreground">
+            4th sem ECE uses fixed subject filters.
+          </p>
         )}
 
         {selection.cycle === "5-Sem-CSE" && (
@@ -577,8 +545,8 @@ function SelectionPopup({ filters, onClose, onSubmit }) {
       <div className="fixed inset-0 z-[110] flex items-center justify-center bg-background/85 backdrop-blur-sm">
         <WaveLoader
           size="7em"
-          primaryColor="hsl(220,90%,50%)"
-          secondaryColor="hsl(300,90%,50%)"
+          primaryColor="hsl(var(--primary))"
+          secondaryColor="hsl(var(--sage))"
         />
       </div>
     );
@@ -594,16 +562,11 @@ function SelectionPopup({ filters, onClose, onSubmit }) {
           }
         }}
       >
-        <DialogContent className="max-h-[90vh] max-w-3xl overflow-hidden rounded-[2rem] border-border/70 p-0 sm:max-h-[88vh]">
+        <DialogContent className="max-h-[90vh] max-w-3xl overflow-hidden p-0 sm:max-h-[88vh]">
           <div className="grid max-h-[90vh] overflow-hidden lg:grid-cols-[0.78fr_1.22fr]">
-            <div className="hidden border-r border-border/70 bg-muted/40 p-6 lg:block">
-              <Badge
-                variant="secondary"
-                className="rounded-full px-3 py-1 uppercase tracking-[0.2em]"
-              >
-                Onboarding
-              </Badge>
-              <div className="mt-6 space-y-5">
+            <div className="hidden border-r border-border/70 bg-secondary/50 p-6 lg:block">
+              <p className="s-title">Set up your resources</p>
+              <div className="mt-5">
                 {steps.map((step, index) => {
                   const Icon = [GraduationCap, Layers3, BookOpenCheck][index];
 
@@ -612,14 +575,10 @@ function SelectionPopup({ filters, onClose, onSubmit }) {
                       key={step.title}
                       type="button"
                       onClick={() => setCurrentStep(index)}
-                      className={cn(
-                        "flex w-full items-start gap-4 rounded-[1.35rem] border p-4 text-left transition-colors",
-                        index === currentStep
-                          ? "border-primary bg-background shadow-sm"
-                          : "border-border/60 bg-background/60 hover:bg-background",
-                      )}
+                      aria-current={index === currentStep ? "step" : undefined}
+                      className="s-step"
                     >
-                      <span className="mt-0.5 rounded-2xl bg-secondary p-3">
+                      <span className="s-tile-icon">
                         <Icon className="h-4 w-4" />
                       </span>
                       <span>
@@ -641,13 +600,10 @@ function SelectionPopup({ filters, onClose, onSubmit }) {
 
             <div className="flex max-h-[90vh] flex-col overflow-hidden">
               <DialogHeader className="space-y-3 border-b border-border/70 px-6 py-5 text-left">
-                <Badge
-                  variant="outline"
-                  className="w-fit rounded-full px-3 py-1"
-                >
+                <p className="s-label">
                   Step {currentStep + 1} of {steps.length}
-                </Badge>
-                <DialogTitle className="text-2xl">
+                </p>
+                <DialogTitle className="s-h2">
                   {steps[currentStep].title}
                 </DialogTitle>
                 <DialogDescription className="max-w-xl leading-6">
@@ -689,7 +645,7 @@ function SelectionPopup({ filters, onClose, onSubmit }) {
                       type="button"
                       onClick={() => setCurrentStep(index)}
                       className={cn(
-                        "h-2.5 rounded-full transition-all",
+                        "h-1.5 rounded-sm transition-colors",
                         index === currentStep
                           ? "w-8 bg-primary"
                           : "w-2.5 bg-border",

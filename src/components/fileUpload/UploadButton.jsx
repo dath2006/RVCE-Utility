@@ -9,7 +9,7 @@ const UploadButton = ({ onClick, disabled, isUploading, fileCount }) => {
       whileTap={!disabled ? { scale: 0.99 } : {}}
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
+      className={`inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition ${
         disabled
           ? "cursor-not-allowed border border-border/70 bg-muted/50 text-muted-foreground"
           : "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"

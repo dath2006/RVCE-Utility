@@ -337,7 +337,7 @@ const PublishTimeTable = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         {isResolvingPublishState ? (
-          <div className="rounded-xl border border-border/70 bg-muted/40 p-4">
+          <div className="rounded-lg border border-border/70 bg-muted/40 p-4">
             <p className="text-sm font-semibold text-foreground">
               Checking publish status...
             </p>
@@ -346,7 +346,7 @@ const PublishTimeTable = () => {
             </p>
           </div>
         ) : alreadyPublishedCurrentTimetable ? (
-          <div className="rounded-xl border border-amber-300/60 bg-amber-100/40 p-4 text-amber-900">
+          <div className="rounded-lg border border-amber-300/60 bg-amber-100/40 p-4 text-amber-900">
             <p className="text-sm font-semibold">Already Published</p>
             <p className="mt-1 text-sm">
               Your current timetable is already published to the community.
@@ -437,7 +437,7 @@ const PublishTimeTable = () => {
               </div>
             </div>
 
-            <div className="rounded-xl border border-dashed border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed border-border bg-muted/40 p-3 text-sm text-muted-foreground">
               {loadingTimeTable
                 ? "Loading your timetable..."
                 : timetable
@@ -458,7 +458,7 @@ const PublishTimeTable = () => {
           </>
         )}
 
-        <div className="rounded-xl border border-border/70 bg-card/80 p-3">
+        <div className="rounded-lg border border-border/70 s-surface p-3">
           <div className="mb-2 flex items-center justify-between gap-2">
             <p className="text-sm font-semibold">My Published Timetables</p>
             {loadingPublishedRows && (
@@ -472,10 +472,10 @@ const PublishTimeTable = () => {
               return (
                 <div
                   key={item.key}
-                  className={`rounded-xl border p-3 shadow-sm ${item.tone}`}
+                  className={`rounded-lg border p-3 shadow-sm ${item.tone}`}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-90">
+                    <p className="text-[11px] font-semibold opacity-90">
                       {item.label}
                     </p>
                     <Icon className="h-4 w-4 opacity-80" />
@@ -513,16 +513,16 @@ const PublishTimeTable = () => {
                   {formatAcademicYear(row.createdYear)}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                  <span className="rounded-full border border-emerald-300/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-200">
+                  <span className="rounded-md border border-emerald-300/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-200">
                     Imports {row.importCount || 0}
                   </span>
-                  <span className="rounded-full border border-sky-300/40 bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-700 dark:text-sky-200">
+                  <span className="rounded-md border border-sky-300/40 bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-700 dark:text-sky-200">
                     Up {row.upvoteCount || 0}
                   </span>
-                  <span className="rounded-full border border-amber-300/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-200">
+                  <span className="rounded-md border border-amber-300/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-200">
                     Down {row.downvoteCount || 0}
                   </span>
-                  <span className="rounded-full border border-rose-300/40 bg-rose-500/10 px-2 py-0.5 text-[10px] font-medium text-rose-700 dark:text-rose-200">
+                  <span className="rounded-md border border-rose-300/40 bg-rose-500/10 px-2 py-0.5 text-[10px] font-medium text-rose-700 dark:text-rose-200">
                     Reports {row.reportCount || 0}
                   </span>
                 </div>

@@ -1,7 +1,7 @@
 import React from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
-import WorkspacesIcon from "@mui/icons-material/Workspaces";
+import { Layers } from "lucide-react";
 import { useNavigation } from "../contexts/NavigationContext";
 
 const FloatingDrawer = ({ setShowWorkspace }) => {
@@ -23,12 +23,13 @@ const FloatingDrawer = ({ setShowWorkspace }) => {
       <motion.button
         type="button"
         onClick={() => setShowWorkspace(true)}
-        className="relative flex h-12 w-12 items-center justify-center rounded-full border border-border/70 bg-card text-foreground shadow-lg transition-colors duration-200 hover:bg-accent"
-        whileHover={{ scale: 1.05 }}
+        className="s-iconbtn s-iconbtn--solid"
+        style={{ width: "3rem", height: "3rem" }}
         whileTap={{ scale: 0.95 }}
         aria-label="Open workspace"
+        title="Open workspace"
       >
-        <WorkspacesIcon sx={{ fontSize: 22 }} />
+        <Layers className="h-5 w-5" />
       </motion.button>
     </div>,
     document.body,

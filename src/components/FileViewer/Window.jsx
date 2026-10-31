@@ -327,8 +327,6 @@ const Window = ({ data }) => {
       break;
   }
 
-  const isDark = localStorage.getItem("theme") === "dark";
-
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.92, y: 12 }}
@@ -337,8 +335,8 @@ const Window = ({ data }) => {
       transition={{ duration: 0.22, ease: "easeInOut" }}
       ref={windowRef}
       className={`absolute flex flex-col overflow-hidden border border-border/80 bg-background/95 shadow-2xl backdrop-blur-sm ${
-        sizeClasses || "rounded-2xl"
-      } ${data.isActive ? "ring-2 ring-primary/70" : "ring-1 ring-black/5"}`}
+        sizeClasses || "rounded-lg"
+      } ${data.isActive ? "ring-2 ring-primary/70" : "ring-1 ring-border"}`}
       style={{
         ...positionStyle,
         zIndex: data.isActive ? 9999 : data.zIndex,
@@ -346,11 +344,7 @@ const Window = ({ data }) => {
       onClick={handleWindowClick}
     >
       <div
-        className={`select-none border-b px-3 py-1.5 ${
-          isDark
-            ? "border-slate-700 bg-slate-900/90 text-slate-100"
-            : "border-slate-200 bg-slate-50/90 text-slate-800"
-        } flex cursor-grab items-center justify-between active:cursor-grabbing`}
+        className="s-surface flex cursor-grab select-none items-center justify-between border-b border-border px-3 py-1.5 text-foreground active:cursor-grabbing"
         onMouseDown={handleDragStart}
       >
         <div className="min-w-0 pr-2">
@@ -390,7 +384,7 @@ const Window = ({ data }) => {
 
         {!data.isActive && (
           <div
-            className="absolute inset-0 bg-black/5 transition-opacity"
+            className="absolute inset-0 bg-foreground/5 transition-opacity"
             onClick={handleWindowClick}
           />
         )}

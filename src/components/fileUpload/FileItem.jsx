@@ -64,7 +64,7 @@ const FileItem = ({ fileItem, onRemove }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -6 }}
       transition={{ duration: 0.2 }}
-      className="relative overflow-hidden rounded-xl border border-border/70 bg-background/85 p-3"
+      className="relative overflow-hidden rounded-lg border border-border/70 bg-background/85 p-3"
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 flex-1 items-center gap-3">

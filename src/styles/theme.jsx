@@ -1,16 +1,16 @@
 export const lightTheme = {
-  cardTheme: "#fff",
-  background: "#f7f9fb", // lighter, modern background
-  text: "#23272f",
-  primary: "#357abd", // blue
-  secondary: "#f3f6fa", // subtle light
+  cardTheme: "#f9f7f1",
+  background: "#f4f1ea", // lighter, modern background
+  text: "#171b2b",
+  primary: "#292f61", // blue
+  secondary: "#ebe6da", // subtle light
   accent: "#ffb300", // gold accent
-  surface: "#fff",
-  border: "#e3e8ee",
-  gradient: "linear-gradient(135deg, #357abd 0%, #8b5cf6 100%)", // blue to purple
-  glassbgc: "rgba(255, 255, 255, 0.85)",
-  shadow: "#b6c2d1",
-  shadowHover: "#357abd",
+  surface: "#f9f7f1",
+  border: "#d9d3c6",
+  gradient: "linear-gradient(135deg, #292f61 0%, #6f9a86 100%)", // indigo to sage
+  glassbgc: "rgba(248, 245, 238, 0.85)",
+  shadow: "#c9c1b0",
+  shadowHover: "#292f61",
   gold: "#FFD700",
   silver: "#C0C0C0",
   bronze: "#CD7F32",
@@ -22,18 +22,18 @@ export const lightTheme = {
 };
 
 export const darkTheme = {
-  cardTheme: "#23272f",
-  background: "#0F172A", // deep dark
-  text: "#f3f6fa",
-  primary: "#4a90e2", // lighter blue for dark
-  secondary: "#23272f",
+  cardTheme: "#1a1d2a",
+  background: "#111320", // deep dark
+  text: "#ece6d8",
+  primary: "#9fb0ee", // lighter blue for dark
+  secondary: "#1a1d2a",
   accent: "#ffb300", // gold accent
-  surface: "#23272f",
-  border: "#2d313a",
-  gradient: "linear-gradient(135deg, #4a90e2 0%, #8b5cf6 100%)", // blue to purple
-  glassbgc: "rgba(17, 25, 40, 0.85)",
+  surface: "#1a1d2a",
+  border: "#373b49",
+  gradient: "linear-gradient(135deg, #9fb0ee 0%, #8b5cf6 100%)", // blue to purple
+  glassbgc: "rgba(17, 19, 32, 0.85)",
   shadow: "#10131a",
-  shadowHover: "#4a90e2",
+  shadowHover: "#9fb0ee",
   gold: "#FFD700",
   silver: "#C0C0C0",
   bronze: "#CD7F32",

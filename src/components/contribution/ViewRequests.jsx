@@ -408,7 +408,7 @@ const ViewRequests = () => {
 
   if (error) {
     return (
-      <div className="flex min-h-[360px] flex-col items-center justify-center gap-3 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-6 text-center">
+      <div className="flex min-h-[360px] flex-col items-center justify-center gap-3 rounded-lg border border-rose-500/30 bg-rose-500/10 p-6 text-center">
         <h3 className="text-lg font-semibold text-rose-700">
           Unable to load requests
         </h3>
@@ -425,13 +425,10 @@ const ViewRequests = () => {
   }
 
   return (
-    <div className="w-full rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm sm:p-5">
+    <div className="w-full p-4 sm:p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-            Request Control
-          </p>
-          <h2 className="mt-1 text-2xl font-semibold">Your Requests</h2>
+          <h2 className="s-h2">Your Requests</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Review incoming contributions, approve the best file, or reject with
             feedback.
@@ -444,7 +441,7 @@ const ViewRequests = () => {
             setExpandedRequests({});
             setIsAddModalOpen(true);
           }}
-          className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90"
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90"
         >
           <Plus className="h-4 w-4" />
           Add Request
@@ -452,32 +449,32 @@ const ViewRequests = () => {
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-        <div className="rounded-xl border border-border/70 bg-background/80 px-3 py-3">
-          <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:text-xs">
+        <div className="rounded-lg border border-border/70 bg-background/80 px-3 py-3">
+          <p className="text-[10px] text-muted-foreground sm:text-xs">
             Pending
           </p>
           <p className="mt-1 text-lg font-semibold sm:text-2xl">
             {stats.pending}
           </p>
         </div>
-        <div className="rounded-xl border border-border/70 bg-background/80 px-3 py-3">
-          <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:text-xs">
+        <div className="rounded-lg border border-border/70 bg-background/80 px-3 py-3">
+          <p className="text-[10px] text-muted-foreground sm:text-xs">
             Reviewing
           </p>
           <p className="mt-1 text-lg font-semibold sm:text-2xl">
             {stats.reviewing}
           </p>
         </div>
-        <div className="rounded-xl border border-border/70 bg-background/80 px-3 py-3">
-          <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:text-xs">
+        <div className="rounded-lg border border-border/70 bg-background/80 px-3 py-3">
+          <p className="text-[10px] text-muted-foreground sm:text-xs">
             Completed
           </p>
           <p className="mt-1 text-lg font-semibold sm:text-2xl">
             {stats.completed}
           </p>
         </div>
-        <div className="rounded-xl border border-border/70 bg-background/80 px-3 py-3">
-          <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:text-xs">
+        <div className="rounded-lg border border-border/70 bg-background/80 px-3 py-3">
+          <p className="text-[10px] text-muted-foreground sm:text-xs">
             Total
           </p>
           <p className="mt-1 text-lg font-semibold sm:text-2xl">
@@ -487,7 +484,7 @@ const ViewRequests = () => {
       </div>
 
       {requests.length === 0 ? (
-        <div className="mt-6 flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 bg-muted/30 py-14 text-center">
+        <div className="mt-6 flex flex-col items-center justify-center rounded-lg border border-dashed border-border/80 bg-muted/30 py-14 text-center">
           <Book className="h-10 w-10 text-muted-foreground" />
           <h3 className="mt-4 text-xl font-medium">No requests yet</h3>
           <p className="mt-2 max-w-md text-sm text-muted-foreground">
@@ -496,14 +493,14 @@ const ViewRequests = () => {
           </p>
         </div>
       ) : (
-        <div className="mt-5 space-y-4">
+        <div className="mt-5">
           {paginatedRequests.map((request) => {
             const isExpanded = Boolean(expandedRequests[request._id]);
 
             return (
               <article
                 key={request._id}
-                className="overflow-hidden rounded-2xl border border-border/70 bg-background/80 shadow-sm"
+                className="overflow-hidden border-t border-border/70 first:border-t-0"
               >
                 <button
                   type="button"
@@ -525,10 +522,10 @@ const ViewRequests = () => {
                             ? new Date(request.postedAt).toLocaleDateString()
                             : "Unknown date"}
                         </span>
-                        <span className="rounded-full border border-border/70 bg-muted/55 px-2 py-0.5">
+                        <span className="rounded-md border border-border/70 bg-muted/55 px-2 py-0.5">
                           {request.branch} - {semesterLabel(request.semester)}
                         </span>
-                        <span className="rounded-full border border-border/70 bg-muted/55 px-2 py-0.5">
+                        <span className="rounded-md border border-border/70 bg-muted/55 px-2 py-0.5">
                           {request.documents?.length || 0} document(s)
                         </span>
                       </div>
@@ -536,7 +533,7 @@ const ViewRequests = () => {
 
                     <div className="flex items-center gap-2 self-start">
                       <span
-                        className={`rounded-full border px-2.5 py-1 text-[11px] ${requestStatusClass[request.status] || requestStatusClass.pending}`}
+                        className={`rounded-md border px-2.5 py-1 text-[11px] ${requestStatusClass[request.status] || requestStatusClass.pending}`}
                       >
                         {request.status || "pending"}
                       </span>
@@ -604,7 +601,7 @@ const ViewRequests = () => {
                                   document._id ||
                                   `${request._id}-${documentIndex}`
                                 }
-                                className="rounded-xl border border-border/70 bg-muted/30 p-3"
+                                className="rounded-lg border border-border/70 bg-muted/30 p-3"
                               >
                                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                   <div className="min-w-0">
@@ -622,7 +619,7 @@ const ViewRequests = () => {
                                   </div>
 
                                   <span
-                                    className={`rounded-full border px-2.5 py-1 text-[11px] ${fileTypeClass[document.type] || fileTypeClass.Other}`}
+                                    className={`rounded-md border px-2.5 py-1 text-[11px] ${fileTypeClass[document.type] || fileTypeClass.Other}`}
                                   >
                                     {document.type || "Other"}
                                   </span>
@@ -674,7 +671,7 @@ const ViewRequests = () => {
 
                                           <div className="flex flex-col items-end gap-2">
                                             <span
-                                              className={`rounded-full border px-2.5 py-1 text-[11px] ${fileStatusClass[file.status] || fileStatusClass.pending}`}
+                                              className={`rounded-md border px-2.5 py-1 text-[11px] ${fileStatusClass[file.status] || fileStatusClass.pending}`}
                                             >
                                               {file.status || "pending"}
                                             </span>
@@ -832,7 +829,7 @@ const ViewRequests = () => {
         {deleteRequestId && (
           <ContributionModalPortal>
             <motion.div
-              className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-black/60 p-2 backdrop-blur-sm sm:items-center sm:p-4"
+              className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-foreground/40 p-2 backdrop-blur-sm sm:items-center sm:p-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -843,7 +840,7 @@ const ViewRequests = () => {
               }}
             >
               <motion.div
-                className="w-full max-w-md rounded-2xl border border-border/70 bg-card shadow-xl"
+                className="w-full max-w-md rounded-lg border border-border/70 s-surface shadow-xl"
                 variants={modalVariants}
                 initial="hidden"
                 animate="visible"
@@ -859,14 +856,14 @@ const ViewRequests = () => {
                     <button
                       type="button"
                       onClick={() => setDeleteRequestId(null)}
-                      className="flex-1 rounded-xl border border-border/70 bg-background/85 px-4 py-2.5 text-sm font-medium transition hover:bg-accent"
+                      className="flex-1 rounded-lg border border-border/70 bg-background/85 px-4 py-2.5 text-sm font-medium transition hover:bg-accent"
                     >
                       Cancel
                     </button>
                     <button
                       type="button"
                       onClick={() => handleDeleteRequest(deleteRequestId)}
-                      className="flex-1 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-rose-700"
+                      className="flex-1 rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-rose-700"
                     >
                       Delete
                     </button>
@@ -882,7 +879,7 @@ const ViewRequests = () => {
         {showPreviewModal && previewFile && previewAction && (
           <ContributionModalPortal>
             <motion.div
-              className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-black/60 p-2 backdrop-blur-sm sm:items-center sm:p-4"
+              className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-foreground/40 p-2 backdrop-blur-sm sm:items-center sm:p-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -893,7 +890,7 @@ const ViewRequests = () => {
               }}
             >
               <motion.div
-                className="flex max-h-[calc(100dvh-1rem)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-xl sm:max-h-[calc(100dvh-2rem)]"
+                className="flex max-h-[calc(100dvh-1rem)] w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-border/70 s-surface shadow-xl sm:max-h-[calc(100dvh-2rem)]"
                 variants={modalVariants}
                 initial="hidden"
                 animate="visible"
@@ -921,7 +918,7 @@ const ViewRequests = () => {
                     </button>
                   </div>
 
-                  <div className="mb-4 rounded-xl border border-border/70 bg-muted/30 p-3">
+                  <div className="mb-4 rounded-lg border border-border/70 bg-muted/30 p-3">
                     <iframe
                       src={previewFile.webViewLink}
                       className="h-[45vh] w-full rounded-lg sm:h-[58vh]"
@@ -931,7 +928,7 @@ const ViewRequests = () => {
 
                   {previewAction.type === "rejected" && (
                     <div className="mb-4">
-                      <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
                         Rejection Comment
                       </label>
                       <textarea
@@ -941,7 +938,7 @@ const ViewRequests = () => {
                         }
                         rows={3}
                         placeholder="Explain clearly why this file does not satisfy the request..."
-                        className="w-full rounded-xl border border-border/70 bg-background/85 px-3 py-2.5 text-sm text-foreground shadow-sm transition focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-lg border border-border/70 bg-background/85 px-3 py-2.5 text-sm text-foreground shadow-sm transition focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
                       />
                     </div>
                   )}
@@ -951,7 +948,7 @@ const ViewRequests = () => {
                       type="button"
                       onClick={closePreview}
                       disabled={isActionLoading}
-                      className="rounded-xl border border-border/70 bg-background/85 px-4 py-2.5 text-sm font-medium transition hover:bg-accent disabled:opacity-50"
+                      className="rounded-lg border border-border/70 bg-background/85 px-4 py-2.5 text-sm font-medium transition hover:bg-accent disabled:opacity-50"
                     >
                       Cancel
                     </button>
@@ -963,7 +960,7 @@ const ViewRequests = () => {
                         (previewAction.type === "rejected" &&
                           !rejectComment.trim())
                       }
-                      className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition disabled:opacity-50 ${
+                      className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition disabled:opacity-50 ${
                         previewAction.type === "approved"
                           ? "bg-emerald-600 hover:bg-emerald-700"
                           : "bg-rose-600 hover:bg-rose-700"

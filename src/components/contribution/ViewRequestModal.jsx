@@ -36,13 +36,13 @@ const ViewRequestModal = ({
   return (
     <ContributionModalPortal>
       <motion.div
-        className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-black/60 p-2 backdrop-blur-sm sm:items-center sm:p-4"
+        className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-foreground/40 p-2 backdrop-blur-sm sm:items-center sm:p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
         <motion.div
-          className="flex max-h-[calc(100dvh-1rem)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-xl sm:max-h-[calc(100dvh-2rem)]"
+          className="flex max-h-[calc(100dvh-1rem)] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-border/70 s-surface shadow-xl sm:max-h-[calc(100dvh-2rem)]"
           variants={modalVariants}
           initial="hidden"
           animate="visible"
@@ -66,38 +66,38 @@ const ViewRequestModal = ({
 
           <div className="min-h-0 space-y-6 overflow-y-auto p-4 sm:p-6">
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-              <div className="rounded-xl border border-border/70 bg-background/80 p-3">
-                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+              <div className="rounded-lg border border-border/70 bg-background/80 p-3">
+                <p className="text-xs text-muted-foreground">
                   Subject Code
                 </p>
                 <p className="mt-1 font-medium break-all">
                   {selectedRequest.subjectCode || "Untitled Request"}
                 </p>
               </div>
-              <div className="rounded-xl border border-border/70 bg-background/80 p-3">
-                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+              <div className="rounded-lg border border-border/70 bg-background/80 p-3">
+                <p className="text-xs text-muted-foreground">
                   Subject
                 </p>
                 <p className="mt-1 font-medium">
                   {selectedRequest.subject || "N/A"}
                 </p>
               </div>
-              <div className="rounded-xl border border-border/70 bg-background/80 p-3">
-                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+              <div className="rounded-lg border border-border/70 bg-background/80 p-3">
+                <p className="text-xs text-muted-foreground">
                   User
                 </p>
                 <p className="mt-1 font-medium text-primary">
                   @{selectedRequest.user.split(".")[0]}
                 </p>
               </div>
-              <div className="rounded-xl border border-border/70 bg-background/80 p-3">
-                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+              <div className="rounded-lg border border-border/70 bg-background/80 p-3">
+                <p className="text-xs text-muted-foreground">
                   Branch
                 </p>
                 <p className="mt-1 font-medium">{selectedRequest.branch}</p>
               </div>
-              <div className="rounded-xl border border-border/70 bg-background/80 p-3">
-                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+              <div className="rounded-lg border border-border/70 bg-background/80 p-3">
+                <p className="text-xs text-muted-foreground">
                   Semester
                 </p>
                 <p className="mt-1 font-medium">
@@ -106,7 +106,7 @@ const ViewRequestModal = ({
               </div>
             </div>
 
-            <div className="rounded-xl border border-border/70 bg-background/80 p-4">
+            <div className="rounded-lg border border-border/70 bg-background/80 p-4">
               <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
                 <Clock3 className="h-4 w-4" />
                 Posted {new Date(selectedRequest.postedAt).toLocaleDateString()}
@@ -120,7 +120,7 @@ const ViewRequestModal = ({
                 {pendingDocuments.map((item, index) => (
                   <div
                     key={item._id || `${item.name}-${index}`}
-                    className="rounded-xl border border-border/70 bg-muted/35 p-4"
+                    className="rounded-lg border border-border/70 bg-muted/35 p-4"
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0 flex-1">
@@ -129,7 +129,7 @@ const ViewRequestModal = ({
                             {item.name}
                           </h4>
                           <span
-                            className={`rounded-full border px-2 py-0.5 text-[11px] ${typeStyles[item.type] || typeStyles.Other}`}
+                            className={`rounded-md border px-2 py-0.5 text-[11px] ${typeStyles[item.type] || typeStyles.Other}`}
                           >
                             {item.type}
                           </span>
@@ -144,7 +144,7 @@ const ViewRequestModal = ({
                       <button
                         type="button"
                         onClick={() => setActiveUpload(index)}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
                       >
                         <Upload className="h-4 w-4" />
                         Contribute
@@ -159,7 +159,7 @@ const ViewRequestModal = ({
               <button
                 type="button"
                 onClick={() => setIsViewModalOpen(false)}
-                className="rounded-xl border border-border/70 bg-background/85 px-6 py-3 text-sm font-medium transition hover:bg-accent"
+                className="rounded-lg border border-border/70 bg-background/85 px-6 py-3 text-sm font-medium transition hover:bg-accent"
               >
                 Close
               </button>

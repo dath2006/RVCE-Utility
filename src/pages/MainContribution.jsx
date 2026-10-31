@@ -58,7 +58,7 @@ const HelpModal = ({ onClose }) => {
     <motion.div
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-foreground/40 p-4 backdrop-blur-sm"
       onClick={(event) => {
         if (event.target === event.currentTarget) {
           onClose();
@@ -70,7 +70,7 @@ const HelpModal = ({ onClose }) => {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.96, opacity: 0 }}
         transition={{ type: "spring", damping: 20 }}
-        className="w-full max-w-2xl overflow-hidden rounded-2xl border border-border/70 bg-card"
+        className="w-full max-w-2xl overflow-hidden rounded-lg border border-border/70 s-surface"
       >
         <div className="flex items-center justify-between border-b border-border/70 px-4 py-3 sm:px-5">
           <h3 className="flex items-center gap-2 text-base font-semibold sm:text-lg">
@@ -87,7 +87,7 @@ const HelpModal = ({ onClose }) => {
         </div>
 
         <div className="max-h-[78vh] overflow-y-auto px-4 py-4 sm:px-5">
-          <div className="aspect-video overflow-hidden rounded-xl border border-border/70 bg-black">
+          <div className="aspect-video overflow-hidden rounded-lg border border-border/70 bg-black">
             <iframe
               width="100%"
               height="100%"
@@ -104,7 +104,7 @@ const HelpModal = ({ onClose }) => {
             This short video demonstrates how to use the contribution system.
           </p>
 
-          <div className="mt-5 rounded-xl border border-border/70 bg-muted/40 p-4">
+          <div className="mt-5 rounded-lg border border-border/70 bg-muted/40 p-4">
             <h4 className="mb-3 flex items-center gap-2 font-medium">
               <InfoIcon className="h-4 w-4" /> Points to note
             </h4>
@@ -202,35 +202,31 @@ const MainContributionContent = ({ setDisableWorkSpace }) => {
 
   return (
     <div
-      className="mx-auto flex h-full w-full max-w-[1600px] flex-col px-3 pb-5 sm:px-5 lg:px-6 xl:px-8"
+      className="mx-auto flex h-full w-full max-w-[72rem] flex-col px-3 pb-5 sm:px-6"
       style={{ paddingTop: "calc(var(--app-nav-offset, 88px) + 0.35rem)" }}
     >
       <div
         className={`grid min-h-0 flex-1 gap-3 ${isMobile ? "mt-0" : "mt-1"} lg:grid-cols-[250px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)]`}
       >
         {!isMobile && (
-          <aside className="rounded-2xl border border-border/70 bg-card/80 p-3 shadow-sm backdrop-blur">
-            <div className="mb-3 rounded-xl border border-border/70 bg-background/75 p-3">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                Contribution Workspace
-              </p>
-              <h1 className="mt-1 text-lg font-semibold text-foreground">
+          <aside className="s-panel s-panel--tight grain self-start">
+            <div className="s-side-head">
+              <p className="s-label">Contribution workspace</p>
+              <h1 className="s-h2" style={{ marginTop: "0.25rem" }}>
                 {activeTab.label}
               </h1>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              <p className="s-body" style={{ marginTop: "0.5rem", fontSize: "0.9375rem" }}>
                 {activeTab.description}
               </p>
 
-              <div className="mt-3 flex items-center gap-2">
+              <div className="s-actions" style={{ marginTop: "0.75rem", gap: "0.75rem" }}>
                 {typeof userRank === "number" && (
-                  <div className="rounded-full border border-border/70 bg-muted/50 px-3 py-1 text-xs text-muted-foreground">
-                    Rank #{userRank}
-                  </div>
+                  <p className="s-label">Rank #{userRank}</p>
                 )}
 
                 <button
                   type="button"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-background/80 transition hover:bg-accent"
+                  className="s-btn s-btn--sm s-btn--quiet"
                   onClick={() => setShowHelpModal(true)}
                   aria-label="Open contribution help"
                 >
@@ -239,7 +235,7 @@ const MainContributionContent = ({ setDisableWorkSpace }) => {
               </div>
             </div>
 
-            <nav className="space-y-2">
+            <nav>
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const active = activeComponent === tab.key;
@@ -248,52 +244,38 @@ const MainContributionContent = ({ setDisableWorkSpace }) => {
                   <button
                     key={tab.key}
                     type="button"
-                    className={`w-full rounded-xl border px-3 py-2.5 text-left transition ${
-                      active
-                        ? "border-primary/40 bg-primary/10"
-                        : "border-transparent hover:border-border/70 hover:bg-accent/40"
-                    }`}
+                    className="s-row"
+                    aria-pressed={active}
+                    style={{ paddingBlock: "1rem" }}
                     onClick={() => setActiveComponent(tab.key)}
                   >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`inline-flex h-8 w-8 items-center justify-center rounded-lg ${
-                          active
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        <Icon className="h-4 w-4" />
+                    <Icon className="s-icon h-5 w-5" />
+                    <span className="min-w-0">
+                      <span className="s-title block truncate">{tab.label}</span>
+                      <span className="s-body block" style={{ fontSize: "0.875rem" }}>
+                        {tab.description}
                       </span>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-foreground">
-                          {tab.label}
-                        </p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {tab.description}
-                        </p>
-                      </div>
-                    </div>
+                    </span>
+                    <span />
                   </button>
                 );
               })}
 
               <button
                 type="button"
-                className="mt-3 flex w-full items-center gap-3 rounded-xl border border-rose-500/30 bg-rose-500/5 px-3 py-2.5 text-left text-sm font-medium text-rose-500 transition hover:bg-rose-500/10"
+                className="s-row s-row--exit"
                 onClick={() => navigate("/")}
               >
-                <LogOut className="h-4 w-4" />
-                <span>Exit workspace</span>
+                <LogOut className="h-5 w-5" />
+                <span className="s-title">Exit workspace</span>
+                <span />
               </button>
             </nav>
           </aside>
         )}
 
         <section
-          className={`min-h-0 overflow-auto rounded-2xl border border-border/70 bg-card/70 shadow-sm backdrop-blur ${
-            activeComponent === "contribute" ? "p-2 sm:p-3" : "p-1 sm:p-2"
-          }`}
+          className="s-panel s-panel--tight s-panel--scroll grain min-h-0"
         >
           {renderComponent()}
         </section>
@@ -304,7 +286,7 @@ const MainContributionContent = ({ setDisableWorkSpace }) => {
         isBottomBarVisible &&
         createPortal(
           <div className="fixed inset-x-0 bottom-0 z-40 px-2 pb-[calc(env(safe-area-inset-bottom,0px)+0.35rem)] pt-1">
-            <nav className="mx-auto grid w-full max-w-[27rem] grid-cols-5 items-center gap-1 rounded-2xl border border-border/70 bg-background/80 p-1.5 shadow-lg shadow-black/5 backdrop-blur-xl">
+            <nav className="mx-auto grid w-full max-w-[27rem] grid-cols-5 items-center gap-1 rounded-lg border border-border/70 bg-background/80 p-1.5 shadow-lg shadow-black/5 backdrop-blur-xl">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const active = activeComponent === tab.key;
@@ -313,7 +295,7 @@ const MainContributionContent = ({ setDisableWorkSpace }) => {
                   <button
                     key={tab.key}
                     type="button"
-                    className={`flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] font-medium leading-none transition-all duration-200 ${
+                    className={`flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 text-[10px] font-medium leading-none transition-all duration-200 ${
                       active
                         ? "bg-primary/90 text-primary-foreground shadow-sm"
                         : "text-muted-foreground hover:bg-accent/80 hover:text-accent-foreground"
@@ -330,7 +312,7 @@ const MainContributionContent = ({ setDisableWorkSpace }) => {
 
               <button
                 type="button"
-                className="flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] font-medium leading-none text-rose-500 transition-all duration-200 hover:bg-rose-500/10"
+                className="flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 text-[10px] font-medium leading-none text-rose-500 transition-all duration-200 hover:bg-rose-500/10"
                 onClick={() => navigate("/")}
               >
                 <LogOut className="h-3.5 w-3.5" />

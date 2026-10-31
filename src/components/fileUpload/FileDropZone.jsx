@@ -18,7 +18,7 @@ const FileDropZone = ({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay: 0.05 }}
-      className={`relative min-h-[180px] rounded-2xl border-2 border-dashed p-5 text-center transition ${
+      className={`relative min-h-[180px] rounded-lg border-2 border-dashed p-5 text-center transition ${
         isDragging
           ? "border-primary/60 bg-primary/10"
           : "border-border/70 bg-muted/35 hover:border-primary/35 hover:bg-muted/55"
@@ -31,7 +31,7 @@ const FileDropZone = ({
     >
       <div className="flex h-full flex-col items-center justify-center gap-3">
         <div
-          className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl border ${
+          className={`inline-flex h-12 w-12 items-center justify-center rounded-lg border ${
             isDragging
               ? "border-primary/45 bg-primary/20 text-primary"
               : "border-border/70 bg-background/80 text-muted-foreground"
@@ -51,7 +51,7 @@ const FileDropZone = ({
           </p>
         </div>
 
-        <div className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/75 px-3 py-1 text-xs text-muted-foreground">
+        <div className="inline-flex items-center gap-1 rounded-md border border-border/70 bg-background/75 px-3 py-1 text-xs text-muted-foreground">
           <Sparkles className="h-3.5 w-3.5" />
           PDF, DOC, DOCX, PPT, PPTX, TXT
         </div>

@@ -1,7 +1,27 @@
 import { motion, AnimatePresence } from "framer-motion";
 import React from "react";
-import { Download, Eye, FileText, Folder, Plus } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import {
+  Download,
+  Eye,
+  File as FileIcon,
+  FileImage,
+  FileText,
+  Folder,
+  Plus,
+  Presentation,
+  Table2,
+} from "lucide-react";
+
+const fileIconFor = (mimeType = "") => {
+  if (mimeType.includes("presentation") || mimeType.includes("powerpoint"))
+    return Presentation;
+  if (mimeType.includes("spreadsheet") || mimeType.includes("excel"))
+    return Table2;
+  if (mimeType.startsWith("image/")) return FileImage;
+  if (mimeType.includes("pdf") || mimeType.includes("document") || mimeType.includes("word") || mimeType.startsWith("text/"))
+    return FileText;
+  return FileIcon;
+};
 import { Button } from "@/components/ui/button";
 
 const FileCard = ({
@@ -109,25 +129,26 @@ const FileCard = ({
 
   return (
     <motion.div
-      whileHover={!isMobile ? { scale: 1.02 } : undefined}
       whileTap={{ scale: 0.985 }}
       onClick={handleClick}
       onMouseEnter={
         !isMobile ? () => !isFolder && setActiveCardId(item.id) : undefined
       }
       onMouseLeave={!isMobile ? () => setActiveCardId(null) : undefined}
-      className="file-card-action-area relative cursor-pointer overflow-hidden rounded-xl border border-border/70 bg-card p-5 text-card-foreground shadow-sm transition-colors hover:bg-accent/20"
+      className={`file-card-action-area s-tile grain ${isFolder ? "s-tile--folder" : ""}`}
     >
       <div
         className={`flex items-center gap-4 transition-all duration-200 ${
           showActions ? "blur-[1px] opacity-70" : "opacity-100"
         }`}
       >
-        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-secondary-foreground">
+        <span className="s-tile-icon">
           {isFolder ? (
             <Folder className="h-5 w-5" />
           ) : (
-            <FileText className="h-5 w-5" />
+            React.createElement(fileIconFor(item.mimeType), {
+              className: "h-5 w-5",
+            })
           )}
         </span>
         <p className="line-clamp-2 break-words text-sm font-medium leading-5">
@@ -136,12 +157,7 @@ const FileCard = ({
       </div>
 
       {subjectTag && (
-        <Badge
-          variant="outline"
-          className="absolute right-2 top-2 max-w-[55%] truncate rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-medium text-primary"
-        >
-          {subjectTag}
-        </Badge>
+        <span className="s-tile-tag">{subjectTag}</span>
       )}
 
       <AnimatePresence>
@@ -157,7 +173,7 @@ const FileCard = ({
               <Button
                 type="button"
                 size="icon"
-                className="rounded-full"
+                className="s-iconbtn s-iconbtn--solid h-10 w-10"
                 onClick={(e) => {
                   e.stopPropagation();
                   onAddToWorkspace(item);
@@ -173,7 +189,7 @@ const FileCard = ({
               <Button
                 type="button"
                 size="icon"
-                className="rounded-full"
+                className="s-iconbtn s-iconbtn--solid h-10 w-10"
                 onClick={(e) => {
                   e.stopPropagation();
                   onView(item);
@@ -189,7 +205,7 @@ const FileCard = ({
               <Button
                 type="button"
                 size="icon"
-                className="rounded-full"
+                className="s-iconbtn s-iconbtn--solid h-10 w-10"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDownload(item);

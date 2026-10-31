@@ -1,12 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  Close,
-  Description,
-  Fullscreen,
-  GetApp,
-  Visibility,
-} from "@mui/icons-material";
+import { Download, Eye, FileText, Maximize2, X } from "lucide-react";
 
 const getSubjectLabel = (file) => {
   if (file?.parentName) return file.parentName;
@@ -21,12 +15,13 @@ const getSubjectLabel = (file) => {
   return file.path[0] || "Resources";
 };
 
-const ActionButton = ({ label, className, onClick, children }) => (
+const ActionButton = ({ label, className = "", onClick, children }) => (
   <button
     type="button"
     onClick={onClick}
     aria-label={label}
-    className={`inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-background text-foreground transition hover:scale-105 hover:bg-accent ${className}`}
+    title={label}
+    className={`s-iconbtn ${className}`}
   >
     {children}
   </button>
@@ -36,57 +31,38 @@ const WorkspaceCard = ({ file, onRemove, onView, onDownload }) => {
   const subject = getSubjectLabel(file);
 
   return (
-    <motion.div
+    <motion.li
       layout
-      initial={{ opacity: 0, y: 14 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -12 }}
-      className="rounded-2xl border border-border/70 bg-card p-3 shadow-sm sm:p-4"
+      exit={{ opacity: 0, y: -8 }}
+      className="s-ws-row"
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-start gap-3">
-          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Description fontSize="small" />
-          </span>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-foreground sm:text-base">
-              {file.name}
-            </p>
-            <p className="mt-1 line-clamp-1 text-xs text-muted-foreground sm:text-sm">
-              {subject}
-            </p>
-          </div>
-        </div>
-
-        <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary sm:text-xs">
+      <span className="s-tile-icon">
+        <FileText className="h-5 w-5" />
+      </span>
+      <div className="min-w-0">
+        <p className="s-title truncate">{file.name}</p>
+        <p className="s-body truncate" style={{ fontSize: "0.875rem" }}>
           {subject}
-        </span>
+        </p>
       </div>
-
-      <div className="mt-3 flex items-center justify-end gap-2 border-t border-border/60 pt-3">
+      <div className="flex items-center gap-2">
+        <ActionButton label="View file" onClick={() => onView(file)}>
+          <Eye className="h-4 w-4" />
+        </ActionButton>
+        <ActionButton label="Download file" onClick={() => onDownload(file)}>
+          <Download className="h-4 w-4" />
+        </ActionButton>
         <ActionButton
           label="Remove from workspace"
-          className="text-red-600 hover:bg-red-50"
+          className="s-iconbtn--danger"
           onClick={() => onRemove(file.id)}
         >
-          <Close fontSize="small" />
-        </ActionButton>
-        <ActionButton
-          label="Download file"
-          className="text-blue-600 hover:bg-blue-50"
-          onClick={() => onDownload(file)}
-        >
-          <GetApp fontSize="small" />
-        </ActionButton>
-        <ActionButton
-          label="View file"
-          className="text-emerald-600 hover:bg-emerald-50"
-          onClick={() => onView(file)}
-        >
-          <Visibility fontSize="small" />
+          <X className="h-4 w-4" />
         </ActionButton>
       </div>
-    </motion.div>
+    </motion.li>
   );
 };
 
@@ -117,6 +93,7 @@ const Workspace = ({ onClose, setViewerFile }) => {
         setDownloadStatus(null);
       }, 2800);
     }
+
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
@@ -199,12 +176,14 @@ const Workspace = ({ onClose, setViewerFile }) => {
         exit={{ y: "100%" }}
         transition={{ type: "spring", damping: 28, stiffness: 280 }}
         style={panelStyle}
-        className="fixed inset-x-0 bottom-0 z-[1001] flex flex-col border-t border-border/80 bg-background/95 shadow-[0_-16px_40px_rgba(0,0,0,0.18)] backdrop-blur-xl"
+        className="s-sheet fixed inset-x-0 bottom-0 z-[1001] flex flex-col"
       >
-        <div className="flex items-center justify-between gap-3 border-b border-border/70 px-3 py-3 sm:px-5">
+        <div className="flex items-center justify-between gap-3 border-b border-border/70 s-ws-pad py-3">
           <div>
-            <h3 className="text-base font-semibold sm:text-lg">Workspace</h3>
-            <p className="text-xs text-muted-foreground sm:text-sm">
+            <h3 className="s-title" style={{ fontSize: "1.375rem" }}>
+              Workspace
+            </h3>
+            <p className="s-label">
               {files.length} file{files.length === 1 ? "" : "s"} pinned
             </p>
           </div>
@@ -214,7 +193,7 @@ const Workspace = ({ onClose, setViewerFile }) => {
               type="button"
               onClick={handleClearAll}
               disabled={files.length === 0}
-              className="rounded-full border border-red-300 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4 sm:text-sm"
+              className="s-btn s-btn--sm s-btn--quiet s-btn--danger"
             >
               Clear all
             </button>
@@ -225,15 +204,20 @@ const Workspace = ({ onClose, setViewerFile }) => {
                 onClose();
                 setIsOpen(false);
               }}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-foreground transition hover:bg-accent"
+              className="s-iconbtn"
+              style={{ width: "2.5rem", height: "2.5rem" }}
               aria-label="Close workspace"
             >
-              {isOpen ? <Close /> : <Fullscreen />}
+              {isOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Maximize2 className="h-5 w-5" />
+              )}
             </button>
           </div>
         </div>
 
-        <div className="relative flex-1 overflow-y-auto px-3 py-3 sm:px-5 sm:py-4">
+        <div className="s-scroll s-ws-pad relative flex-1 overflow-y-auto py-2">
           {files.length === 0 ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
               <img
@@ -241,14 +225,14 @@ const Workspace = ({ onClose, setViewerFile }) => {
                 alt="Add files to workspace"
                 className="h-auto w-full max-w-sm opacity-85"
               />
-              <p className="mt-4 max-w-md text-sm text-muted-foreground sm:text-base">
+              <p className="s-body mt-4 max-w-md">
                 Your workspace is empty. Add files with the + button and they
                 will appear here for quick access.
               </p>
             </div>
           ) : (
-            <AnimatePresence>
-              <div className="grid grid-cols-1 gap-3 pb-6 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="s-ws-list">
+              <AnimatePresence>
                 {files.map((file) => (
                   <WorkspaceCard
                     key={file.id}
@@ -258,8 +242,8 @@ const Workspace = ({ onClose, setViewerFile }) => {
                     onDownload={onDownload}
                   />
                 ))}
-              </div>
-            </AnimatePresence>
+              </AnimatePresence>
+            </ul>
           )}
         </div>
       </motion.div>
@@ -270,7 +254,7 @@ const Workspace = ({ onClose, setViewerFile }) => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 30 }}
-            className="fixed bottom-6 right-4 z-[1002] rounded-xl border border-border bg-card/95 px-4 py-3 text-sm shadow-xl backdrop-blur sm:right-8"
+            className="s-surface fixed bottom-6 right-4 z-[1002] rounded-lg px-4 py-3 text-sm shadow-xl sm:right-8"
           >
             {downloadStatus === "preparing" && "Preparing download..."}
             {downloadStatus === "ready" && "Download ready!"}

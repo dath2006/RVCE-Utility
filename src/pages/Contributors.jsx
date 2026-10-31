@@ -1,25 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import axios from "axios";
 import { toast } from "sonner";
 import { useAuth0 } from "@auth0/auth0-react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Github,
-  Handshake,
-  Mail,
-  Medal,
-  Star,
-  Trophy,
-  Users,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Github, Handshake, Mail } from "lucide-react";
 
 import WaveLoader from "../components/Loading";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -54,14 +40,7 @@ const fileTypeLabels = {
 
 const fileTypeOrder = ["Notes", "QP", "Lab", "Textbook", "Other"];
 
-const ContributorRankIcon = ({ rank }) => {
-  if (rank === 1) return <Trophy className="h-4 w-4 text-amber-500" />;
-  if (rank === 2 || rank === 3)
-    return <Medal className="h-4 w-4 text-slate-400" />;
-  return <Star className="h-4 w-4 text-primary" />;
-};
-
-const StatTile = ({ label, value, delay = 0 }) => {
+const StatTile = ({ label, value }) => {
   const [displayValue, setDisplayValue] = useState(0);
 
   useEffect(() => {
@@ -86,22 +65,10 @@ const StatTile = ({ label, value, delay = 0 }) => {
   }, [value]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.28, delay }}
-    >
-      <Card className="rounded-2xl border-border/70 bg-card/85">
-        <CardContent className="p-4 text-center sm:p-5">
-          <p className="text-2xl font-bold text-primary sm:text-3xl">
-            {displayValue.toLocaleString()}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-            {label}
-          </p>
-        </CardContent>
-      </Card>
-    </motion.div>
+    <div>
+      <p className="s-figure">{displayValue.toLocaleString()}</p>
+      <p className="s-label">{label}</p>
+    </div>
   );
 };
 
@@ -231,8 +198,8 @@ const Contributors = ({
       <div className="flex min-h-[60vh] items-center justify-center">
         <WaveLoader
           size="7em"
-          primaryColor="hsl(220,90%,50%)"
-          secondaryColor="hsl(300,90%,50%)"
+          primaryColor="hsl(var(--primary))"
+          secondaryColor="hsl(var(--sage))"
         />
       </div>
     );
@@ -240,286 +207,215 @@ const Contributors = ({
 
   return (
     <main
-      className="mx-auto w-full max-w-7xl px-3 pb-24 sm:px-6 lg:px-8"
-      style={{ paddingTop: "calc(var(--app-nav-offset, 88px) + 0.7rem)" }}
+      className="s-wrap"
+      style={{ paddingTop: "calc(var(--app-nav-offset, 88px) + 2rem)" }}
     >
-      <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/85 p-5 shadow-sm backdrop-blur sm:p-8">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -top-16 left-1/4 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
-          <div className="absolute -bottom-20 right-1/4 h-56 w-56 rounded-full bg-foreground/5 blur-3xl" />
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25 }}
-          className="relative"
-        >
-          <Badge
-            variant="secondary"
-            className="rounded-full px-3 py-1 text-xs tracking-[0.2em]"
+      <header className="s-stack">
+        <h1 className="s-display">Community contributions</h1>
+        <p className="s-lead">
+          Top contributors, resource counts, and the contribution workflow.
+        </p>
+        <div className="s-actions">
+          <button
+            type="button"
+            className="s-btn"
+            onClick={() => {
+              if (!isAuthenticated && !isLoading) {
+                setShowAuthCard(!showAuthCard);
+              } else {
+                navigate("/contribute", { state: { userRank } });
+              }
+            }}
           >
-            CONTRIBUTORS
-          </Badge>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-5xl">
-            Community Contributions
-          </h1>
-          <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground sm:text-base">
-            Explore top contributors, see resource distribution, and join the
-            contribution workflow. This page shows clear ranking, category
-            counts, and total activity.
-          </p>
-
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <Button
-              className="rounded-full px-6"
-              onClick={() => {
-                if (!isAuthenticated && !isLoading) {
-                  setShowAuthCard(!showAuthCard);
-                } else {
-                  navigate("/contribute", { state: { userRank } });
-                }
-              }}
-            >
-              <Handshake className="h-4 w-4" />
-              Start Contributing
-            </Button>
-            {userRank && (
-              <Badge variant="outline" className="rounded-full px-4 py-1.5">
-                Your Rank: #{userRank}
-              </Badge>
-            )}
-          </div>
-        </motion.div>
-      </section>
-
-      <section className="mt-5 grid grid-cols-2 gap-3 sm:mt-6 sm:grid-cols-3 sm:gap-4">
-        <StatTile
-          label="Total Contributors"
-          value={contributors.length}
-          delay={0.03}
-        />
-        <StatTile
-          label="Resources Shared"
-          value={totalResources}
-          delay={0.08}
-        />
-        <StatTile
-          label="Major Contributors"
-          value={majorContributors.length}
-          delay={0.13}
-        />
-      </section>
-
-      <section className="mt-8">
-        <div className="mb-4 flex items-center gap-2 sm:mb-5">
-          <Trophy className="h-5 w-5 text-amber-500" />
-          <h2 className="text-xl font-semibold sm:text-2xl">
-            Major Contributors
-          </h2>
+            <Handshake className="h-4 w-4" />
+            Start contributing
+          </button>
+          {userRank && <p className="s-label">Your rank: #{userRank}</p>}
         </div>
+      </header>
 
-        <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+      <section className="s-figures">
+        <StatTile label="Total contributors" value={contributors.length} />
+        <StatTile label="Resources shared" value={totalResources} />
+        <StatTile label="Major contributors" value={majorContributors.length} />
+      </section>
+
+      <section className="s-section">
+        <div className="s-section-head">
+          <h2 className="s-h2">Major contributors</h2>
+        </div>
+        <ul className="s-rows s-panel s-panel--sand s-panel--flush grain">
           {majorContributors.map((contributor) => (
-            <Card
-              key={contributor.name}
-              className="rounded-2xl border-border/70 bg-card/90"
-            >
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">{contributor.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm leading-6 text-muted-foreground">
+            <li key={contributor.name} className="s-row s-row--top">
+              <span />
+              <span>
+                <span className="s-title block">{contributor.name}</span>
+                <span className="s-body block" style={{ marginTop: "0.25rem" }}>
                   {contributor.description}
-                </p>
-                {contributor.github && (
-                  <Button
-                    variant="outline"
-                    className="mt-4 rounded-full"
-                    onClick={() =>
-                      window.open(
-                        contributor.github,
-                        "_blank",
-                        "noopener,noreferrer",
-                      )
-                    }
-                  >
-                    <Github className="h-4 w-4" />
-                    View GitHub
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+                </span>
+              </span>
+              {contributor.github ? (
+                <button
+                  type="button"
+                  className="s-btn s-btn--sm s-btn--quiet"
+                  onClick={() =>
+                    window.open(
+                      contributor.github,
+                      "_blank",
+                      "noopener,noreferrer",
+                    )
+                  }
+                >
+                  <Github className="h-4 w-4" />
+                  View GitHub
+                </button>
+              ) : (
+                <span />
+              )}
+            </li>
           ))}
-        </div>
+        </ul>
       </section>
 
-      <section id="contributors-list" className="mt-8">
-        <div className="mb-4 flex items-center gap-2 sm:mb-5">
-          <Users className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-semibold sm:text-2xl">
-            All Contributors
-          </h2>
+      <section id="contributors-list" className="s-section">
+        <div className="s-section-head">
+          <h2 className="s-h2">All contributors</h2>
+          {regularContributors.length > 0 && (
+            <p className="s-label">
+              Showing {startIndex + 1}-
+              {Math.min(endIndex, regularContributors.length)} of{" "}
+              {regularContributors.length}
+            </p>
+          )}
         </div>
 
         {regularContributors.length === 0 ? (
-          <Card className="rounded-2xl border-dashed border-border/80 bg-card/70">
-            <CardContent className="py-10 text-center">
-              <Users className="mx-auto h-8 w-8 text-muted-foreground" />
-              <p className="mt-3 text-lg font-medium">No contributors yet</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Be the first to contribute resources to the community.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="s-panel grain">
+            <p className="s-title">No contributors yet</p>
+            <p className="s-body">
+              Be the first to contribute resources to the community.
+            </p>
+          </div>
         ) : (
           <>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <ol className="s-rows s-panel s-panel--flush grain">
               {currentContributors.map((contributor, index) => {
                 const globalRank = startIndex + index + 1;
                 const counts = getFileTypeCounts(contributor.resources || []);
+                const breakdown = fileTypeOrder
+                  .filter((fileType) => counts[fileType])
+                  .map(
+                    (fileType) =>
+                      `${fileTypeLabels[fileType]} ${counts[fileType]}`,
+                  )
+                  .join(", ");
 
                 return (
-                  <motion.div
+                  <li
                     key={`${contributor.name}-${globalRank}`}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, delay: index * 0.04 }}
+                    className="s-row s-row--ranked"
                   >
-                    <Card className="h-full rounded-2xl border-border/70 bg-card/90">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between gap-3">
-                          <CardTitle className="line-clamp-2 text-base sm:text-lg">
-                            {contributor.name}
-                          </CardTitle>
-                          <Badge
-                            variant="secondary"
-                            className="rounded-full px-2.5 py-1 text-xs"
-                          >
-                            <ContributorRankIcon rank={globalRank} /> #
-                            {globalRank}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-
-                      <CardContent>
-                        <div className="flex flex-wrap gap-1.5">
-                          {fileTypeOrder.map((fileType) => {
-                            if (!counts[fileType]) return null;
-                            return (
-                              <Badge
-                                key={fileType}
-                                variant="outline"
-                                className="rounded-full text-[11px]"
-                              >
-                                {fileTypeLabels[fileType]}: {counts[fileType]}
-                              </Badge>
-                            );
-                          })}
-                        </div>
-
-                        <div className="mt-4 flex items-center justify-between border-t border-border/70 pt-3">
-                          <div>
-                            <p className="text-xl font-bold text-primary">
-                              {contributor.resources.length}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Total resources
-                            </p>
-                          </div>
-
-                          {contributor.github && (
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              className="h-9 w-9 rounded-full"
-                              onClick={() =>
-                                window.open(
-                                  contributor.github,
-                                  "_blank",
-                                  "noopener,noreferrer",
-                                )
-                              }
-                              aria-label={`View ${contributor.name} GitHub`}
-                            >
-                              <Github className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
+                    <span className="s-step-num">{globalRank}</span>
+                    <span className="min-w-0">
+                      <span className="s-title block">{contributor.name}</span>
+                      {breakdown && (
+                        <span
+                          className="s-body block"
+                          style={{ fontSize: "0.875rem" }}
+                        >
+                          {breakdown}
+                        </span>
+                      )}
+                    </span>
+                    <span className="s-tail">
+                      <span className="s-total">
+                        <span className="s-total-n">
+                          {contributor.resources.length}
+                        </span>
+                        <span className="s-label">Total resources</span>
+                      </span>
+                      {contributor.github && (
+                        <button
+                          type="button"
+                          className="s-btn s-btn--sm s-btn--quiet"
+                          onClick={() =>
+                            window.open(
+                              contributor.github,
+                              "_blank",
+                              "noopener,noreferrer",
+                            )
+                          }
+                          aria-label={`View ${contributor.name} GitHub`}
+                        >
+                          <Github className="h-4 w-4" />
+                        </button>
+                      )}
+                    </span>
+                  </li>
                 );
               })}
-            </div>
+            </ol>
 
             {totalPages > 1 && (
-              <div className="mt-6 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-9 w-9 rounded-full"
+              <div className="s-pager">
+                <button
+                  type="button"
+                  className="s-btn s-btn--sm s-btn--quiet"
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                   aria-label="Previous page"
                 >
                   <ChevronLeft className="h-4 w-4" />
-                </Button>
+                </button>
 
                 {getPaginationButtons().map((item, index) => (
-                  <Button
+                  <button
+                    type="button"
                     key={`${item}-${index}`}
-                    variant={item === currentPage ? "default" : "outline"}
-                    className="h-9 min-w-9 rounded-full px-3"
+                    className={`s-btn s-btn--sm ${item === currentPage ? "" : "s-btn--quiet"}`}
                     onClick={() =>
                       typeof item === "number" && handlePageChange(item)
                     }
                     disabled={item === "..."}
                   >
                     {item}
-                  </Button>
+                  </button>
                 ))}
 
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-9 w-9 rounded-full"
+                <button
+                  type="button"
+                  className="s-btn s-btn--sm s-btn--quiet"
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
                   aria-label="Next page"
                 >
                   <ChevronRight className="h-4 w-4" />
-                </Button>
-
-                <p className="w-full text-center text-xs text-muted-foreground sm:w-auto sm:text-sm">
-                  Showing {startIndex + 1}-
-                  {Math.min(endIndex, regularContributors.length)} of{" "}
-                  {regularContributors.length}
-                </p>
+                </button>
               </div>
             )}
           </>
         )}
       </section>
 
-      <section className="mt-8 rounded-3xl border border-border/70 bg-card/85 p-5 text-center shadow-sm backdrop-blur sm:p-7">
-        <h3 className="text-xl font-semibold sm:text-2xl">
-          Want to get in touch?
-        </h3>
-        <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-          Reach out for feedback, collaboration, or contribution-related
-          support.
-        </p>
-        <Button
-          className="mt-4 rounded-full px-6"
+      <footer className="s-foot">
+        <div>
+          <p className="s-title">Want to get in touch?</p>
+          <p className="s-body">
+            Reach out for feedback, collaboration, or contribution-related
+            support.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="s-btn"
           onClick={() => {
             window.location.href = "mailto:rvceutility@gmail.com";
           }}
         >
           <Mail className="h-4 w-4" />
-          Contact Us
-        </Button>
-      </section>
+          Contact us
+        </button>
+      </footer>
     </main>
   );
 };

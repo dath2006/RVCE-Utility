@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Search, X } from "lucide-react";
 
 const inputClass =
-  "w-full rounded-xl border border-border/70 bg-background/85 px-3 py-2.5 text-sm text-foreground shadow-sm transition focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20";
+  "w-full rounded-lg border border-border/70 bg-background/85 px-3 py-2.5 text-sm text-foreground shadow-sm transition focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20";
 
 const FilterRequests = ({
   clearFilters,
@@ -42,7 +42,7 @@ const FilterRequests = ({
 
       <div className="space-y-4">
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
             Search
           </label>
           <div className="relative">
@@ -58,7 +58,7 @@ const FilterRequests = ({
         </div>
 
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
             Semester
           </label>
           <select
@@ -79,7 +79,7 @@ const FilterRequests = ({
         </div>
 
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
             Branch
           </label>
           <select
@@ -121,7 +121,7 @@ const FilterRequests = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[94] bg-black/45 backdrop-blur-[1px] sm:hidden"
+        className="fixed inset-0 z-[94] bg-foreground/40 backdrop-blur-[1px] sm:hidden"
         onClick={onClose}
       />
 
@@ -130,7 +130,7 @@ const FilterRequests = ({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 12 }}
         transition={{ duration: 0.18 }}
-        className="fixed inset-x-2 bottom-0 z-[95] max-h-[calc(100dvh-var(--app-nav-offset,88px)-0.5rem)] overflow-y-auto rounded-t-2xl border border-border/70 bg-card/95 p-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] shadow-xl backdrop-blur sm:hidden"
+        className="fixed inset-x-2 bottom-0 z-[95] max-h-[calc(100dvh-var(--app-nav-offset,88px)-0.5rem)] overflow-y-auto rounded-t-lg border border-border/70 s-surface p-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] shadow-xl backdrop-blur sm:hidden"
       >
         {content}
       </motion.div>
@@ -140,7 +140,7 @@ const FilterRequests = ({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 8 }}
         transition={{ duration: 0.18 }}
-        className="absolute right-0 z-20 mt-2 hidden w-96 rounded-2xl border border-border/70 bg-card/95 p-4 shadow-xl backdrop-blur sm:block"
+        className="absolute right-0 z-20 mt-2 hidden w-96 rounded-lg border border-border/70 s-surface p-4 shadow-xl backdrop-blur sm:block"
       >
         {content}
       </motion.div>

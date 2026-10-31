@@ -1,30 +1,21 @@
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import {
   Award,
   BookA,
-  BookOpen,
   Calculator,
   Calendar,
-  Code,
   ExternalLink,
   Github,
-  Heart,
   Languages,
   Mail,
   Play,
   Scale,
-  Sparkles,
   Star,
 } from "lucide-react";
 
 import FileViewer from "../components/FileViewer";
 import { useOverlay } from "../contexts/NavigationContext";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
 
 const BASE_URL = "https://rvceutility-quizzes.netlify.app";
 
@@ -56,10 +47,10 @@ const subjects = {
       { slug: "kara-kusha", title: "ಕರಕುಶ" },
       {
         slug: "karnatakada-yekikarana",
-        title: "ಕರ್ನಾಟಕದ ಏಕೀಕರಣ ಒಂದು ಅಪೂರ್ವ ಚರಿತ್",
+        title: "ಕರ್ನಾಟಕದ ಏಕೀಕರಣ ಒಂದು ಅಪೂರ್ವ ಚರಿತ್",
       },
       { slug: "adalitha-bhashe-kannada", title: "ಆಡಳಿತ ಭಾಷೆಯಾಗಿ ಕನ್ನಡ" },
-      { slug: "keertanegalu", title: "ಕೀರ್ತನೆಗಳು" },
+      { slug: "keertanegalu", title: "ಕೀರ್ತನೆಗಳು" },
       {
         slug: "vishveshwarayya",
         title: "ಡಾ. ವಿಶ್ವೇಶ್ವರಯ್ಯ: ವ್ಯಕ್ತಿ ಮತ್ತು ಐತಿಹ್ಯ",
@@ -110,255 +101,179 @@ function Essentials() {
     window.open("https://github.com/VivaanHooda", "_blank");
   };
 
+  const tools = [
+    {
+      title: "Grade calculator",
+      icon: Calculator,
+      caption: "Contributed by Vivaan Hooda.",
+      action: "Open calculator",
+      onClick: handleGradeCalculator,
+    },
+    {
+      title: "2026 holiday list",
+      icon: Calendar,
+      caption: "Academic holidays and break windows.",
+      action: "View holidays",
+      onClick: handleHolidayList,
+    },
+    {
+      title: "Quick tools",
+      icon: Award,
+      caption: "More utilities are being added.",
+      action: "Explore",
+      onClick: () => window.alert("More tools coming soon!"),
+    },
+  ];
+
   return (
     <div
-      className="mx-auto w-full max-w-7xl px-3 pb-24 sm:px-6 lg:px-8"
-      style={{ paddingTop: "calc(var(--app-nav-offset, 88px) + 0.5rem)" }}
+      className="s-wrap"
+      style={{ paddingTop: "calc(var(--app-nav-offset, 88px) + 2rem)" }}
     >
-      <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/85 p-5 shadow-sm backdrop-blur sm:p-8">
-        <div className="pointer-events-none absolute right-4 top-4 h-24 w-24 rounded-full bg-primary/10 blur-2xl" />
-        <motion.div
-          initial={{ opacity: 0, y: -16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="relative"
-        >
-          <Badge variant="secondary" className="rounded-full px-3 py-1">
-            Essentials Hub
-          </Badge>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-            Essentials
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">
-            Quizzes, calculators, academic references, and contribution
-            shortcuts in one focused workspace.
-          </p>
-        </motion.div>
-      </section>
+      <header className="s-stack" style={{ marginBottom: "3rem" }}>
+        <h1 className="s-display">Essentials</h1>
+        <p className="s-lead">
+          Quizzes, calculators, and academic references in one place.
+        </p>
+      </header>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
-        <Card className="rounded-3xl border-border/70 bg-card/90 shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl">
-              <BookOpen className="h-5 w-5" />
-              Subject Quizzes
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Pick a subject, then attempt chapter-wise quizzes.
-            </p>
-          </CardHeader>
-
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div className="s-cols">
+        <section>
+          <div className="s-section-head">
+            <h2 className="s-h2">Subject quizzes</h2>
+            <p className="s-label">Pick a subject, then attempt a chapter.</p>
+          </div>
+          <div className="s-panel s-panel--flush grain">
+            <ul className="s-rows">
               {Object.entries(subjects).map(([subject, data]) => {
                 const Icon = data.icon;
                 const isActive = selectedSubject === subject;
 
                 return (
-                  <button
-                    key={subject}
-                    type="button"
-                    onClick={() => handleSubjectSelect(subject)}
-                    className={cn(
-                      "rounded-2xl border p-4 text-left transition-all",
-                      isActive
-                        ? "border-primary bg-primary text-primary-foreground shadow-md"
-                        : "border-border bg-background hover:border-primary/40 hover:bg-accent/40",
-                    )}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={cn(
-                          "inline-flex h-8 w-8 items-center justify-center rounded-lg",
-                          isActive
-                            ? "bg-primary-foreground/20"
-                            : "bg-primary/10 text-primary",
-                        )}
-                      >
-                        <Icon className="h-4 w-4" />
-                      </span>
-                      <p className="text-sm font-semibold">{subject}</p>
-                    </div>
-                    <p
-                      className={cn(
-                        "mt-2 text-xs",
-                        isActive
-                          ? "text-primary-foreground/85"
-                          : "text-muted-foreground",
-                      )}
+                  <li key={subject}>
+                    <button
+                      type="button"
+                      className="s-row"
+                      aria-pressed={isActive}
+                      onClick={() => handleSubjectSelect(subject)}
                     >
-                      {data.chapters.length} chapters
-                    </p>
-                  </button>
+                      <Icon className="s-icon h-5 w-5" />
+                      <span>
+                        <span className="s-title block">{subject}</span>
+                        <span className="s-body block">
+                          {data.chapters.length} chapters
+                        </span>
+                      </span>
+                      <span />
+                    </button>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
 
-            <AnimatePresence mode="wait">
-              {selectedSubject && (
-                <motion.div
-                  key={selectedSubject}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="rounded-2xl border border-border/70 bg-background p-4"
-                >
-                  <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold sm:text-base">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    {selectedSubject} Chapters
-                  </h2>
-                  <div className="space-y-2">
-                    {subjects[selectedSubject].chapters.map(
-                      (chapter, index) => (
-                        <div
-                          key={chapter.slug}
-                          className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-card p-3"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs text-muted-foreground">
-                              Chapter {index + 1}
-                            </p>
-                            <p className="text-sm font-medium leading-5 break-words">
-                              {chapter.title}
-                            </p>
-                          </div>
-                          <Button
-                            size="sm"
-                            className="shrink-0 rounded-full"
-                            onClick={() =>
-                              handleAttempt(
-                                subjects[selectedSubject].slug,
-                                chapter.slug,
-                              )
-                            }
-                          >
-                            <Play className="h-3.5 w-3.5" />
-                            Attempt
-                          </Button>
-                        </div>
-                      ),
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </CardContent>
-        </Card>
-
-        <div className="grid gap-4">
-          <Card className="rounded-3xl border-border/70 bg-card/90 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Calculator className="h-4 w-4" />
-                Grade Calculator
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-3 text-sm text-muted-foreground">
-                Contributed by Vivaan Hooda.
-              </p>
-              <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
-                <Heart className="h-3.5 w-3.5" />
-                <button
-                  type="button"
-                  onClick={handleContributorGithub}
-                  className="inline-flex items-center gap-1 text-primary hover:underline"
-                >
-                  Vivaan Hooda
-                  <ExternalLink className="h-3 w-3" />
-                </button>
+            {selectedSubject && (
+              <div key={selectedSubject} className="s-chapters">
+                <h3 className="s-title">{selectedSubject} chapters</h3>
+                <ul className="s-rows">
+                  {subjects[selectedSubject].chapters.map((chapter, index) => (
+                    <li key={chapter.slug} className="s-row">
+                      <span className="s-step-num">{index + 1}</span>
+                      <span
+                        className="s-title"
+                        style={{ overflowWrap: "anywhere" }}
+                      >
+                        {chapter.title}
+                      </span>
+                      <button
+                        type="button"
+                        className="s-btn s-btn--sm"
+                        onClick={() =>
+                          handleAttempt(
+                            subjects[selectedSubject].slug,
+                            chapter.slug,
+                          )
+                        }
+                      >
+                        <Play className="h-3.5 w-3.5" />
+                        Attempt
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <Button
-                className="w-full rounded-xl"
-                onClick={handleGradeCalculator}
-              >
-                Open Calculator
-              </Button>
-            </CardContent>
-          </Card>
+            )}
+          </div>
+        </section>
 
-          <Card className="rounded-3xl border-border/70 bg-card/90 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Calendar className="h-4 w-4" />
-                2026 Holiday List
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-3 text-sm text-muted-foreground">
-                Academic holidays and break windows.
-              </p>
-              <Button className="w-full rounded-xl" onClick={handleHolidayList}>
-                View Holidays
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-3xl border-border/70 bg-card/90 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Award className="h-4 w-4" />
-                Quick Tools
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-3 text-sm text-muted-foreground">
-                More utilities are being added.
-              </p>
-              <Button
-                variant="outline"
-                className="w-full rounded-xl"
-                onClick={() => window.alert("More tools coming soon!")}
-              >
-                Explore
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+        <section>
+          <div className="s-section-head">
+            <h2 className="s-h2">Tools</h2>
+          </div>
+          <div className="s-panel s-panel--sand s-panel--flush grain">
+            <ul className="s-rows">
+              {tools.map((tool) => {
+                const Icon = tool.icon;
+                return (
+                  <li key={tool.title} className="s-row">
+                    <Icon className="s-icon h-5 w-5" />
+                    <span>
+                      <span className="s-title block">{tool.title}</span>
+                      <span className="s-body block">{tool.caption}</span>
+                      {tool.title === "Grade calculator" && (
+                        <button
+                          type="button"
+                          onClick={handleContributorGithub}
+                          className="s-link"
+                          style={{ fontSize: "0.875rem", marginTop: "0.25rem" }}
+                        >
+                          Vivaan Hooda
+                          <ExternalLink className="ml-1 inline h-3 w-3" />
+                        </button>
+                      )}
+                    </span>
+                    <button
+                      type="button"
+                      className="s-btn s-btn--sm s-btn--quiet"
+                      onClick={tool.onClick}
+                    >
+                      {tool.action}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </section>
       </div>
 
-      <Card className="mt-4 rounded-3xl border-border/70 bg-card/90 shadow-sm">
-        <CardContent className="p-5 sm:p-7">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                Developer
-              </p>
-              <h3 className="mt-1 flex items-center gap-2 text-2xl font-semibold">
-                <Code className="h-5 w-5 text-primary" />
-                Sathish Dath
-              </h3>
-              <p className="mt-1 text-sm text-primary">
-                Computer Science Engineering
-              </p>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                If this platform helps you, star the project and feel free to
-                contribute with ideas or code.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                className="rounded-full"
-                onClick={handleGithubStar}
-              >
-                <Github className="h-4 w-4" />
-                <Star className="h-4 w-4" />
-                Star Project
-              </Button>
-              <Button className="rounded-full" onClick={handleMailDeveloper}>
-                <Mail className="h-4 w-4" />
-                Join Contributors
-              </Button>
-            </div>
-          </div>
-          <Separator className="my-4" />
-          <p className="text-xs text-muted-foreground">
-            Built for speed, clarity, and academic focus.
+      <footer className="s-foot">
+        <div>
+          <p className="s-title">Sathish Dath</p>
+          <p className="s-label">Computer Science Engineering</p>
+          <p
+            className="s-body"
+            style={{ marginTop: "0.5rem", maxWidth: "36rem" }}
+          >
+            If this platform helps you, star the project and feel free to
+            contribute with ideas or code.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="s-actions">
+          <button
+            type="button"
+            className="s-btn s-btn--quiet"
+            onClick={handleGithubStar}
+          >
+            <Github className="h-4 w-4" />
+            <Star className="h-4 w-4" />
+            Star project
+          </button>
+          <button type="button" className="s-btn" onClick={handleMailDeveloper}>
+            <Mail className="h-4 w-4" />
+            Join contributors
+          </button>
+        </div>
+      </footer>
 
       <AnimatePresence>
         {selectedUrl && (

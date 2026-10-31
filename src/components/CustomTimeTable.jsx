@@ -67,11 +67,11 @@ const cardVariants = {
 };
 
 const calendarSurfaceClassName =
-  "shadcn-calendar rounded-xl border border-border/70 bg-card/80 p-3 sm:p-4";
+  "shadcn-calendar rounded-lg border border-border/70 s-surface p-3 sm:p-4";
 
 // Shared card wrapper Tailwind class for all step panels
 const stepCardCn =
-  "bg-card rounded-[18px] shadow-[0_16px_40px_rgba(15,23,42,0.08)] px-4 pt-5 pb-3 sm:px-6 md:px-7 md:pt-7 md:pb-7 border border-border w-full max-w-5xl min-w-0 mx-auto flex flex-col overflow-y-auto min-h-[calc(100dvh-180px)] md:min-h-[calc(100dvh-140px)]";
+  "px-4 pt-5 pb-3 sm:px-6 md:px-7 md:pt-7 md:pb-7 w-full max-w-5xl min-w-0 mx-auto flex flex-col overflow-y-auto min-h-[calc(100dvh-180px)] md:min-h-[calc(100dvh-140px)]";
 
 // Simplify validation helper
 const validateStep = (step, data) => {
@@ -746,7 +746,7 @@ const TimetableCreator = ({ setActiveComponent, setHasTimeTable }) => {
                 {courses.map((course, index) => (
                   <div
                     key={index}
-                    className="relative rounded-2xl border border-border bg-background p-4 transition-all hover:border-primary/30 hover:shadow-md"
+                    className="relative rounded-lg border border-border bg-background p-4 transition-all hover:border-primary/30 hover:shadow-md"
                   >
                     <div className="mb-2 flex items-start justify-between">
                       <div className="min-w-0 flex-1 pr-2">
@@ -848,17 +848,17 @@ const TimetableCreator = ({ setActiveComponent, setHasTimeTable }) => {
             {/* Scrollable timetable grid */}
             <div className="w-full min-w-0 max-w-full overflow-x-auto overscroll-x-contain pb-2 touch-pan-x [scrollbar-color:hsl(var(--muted-foreground)/0.4)_transparent] [scrollbar-width:thin]">
               <div
-                className="grid w-max min-w-[640px] gap-0.5 rounded-2xl bg-border p-0.5"
+                className="grid w-max min-w-[640px] gap-0.5 rounded-lg bg-border p-0.5"
                 style={{
                   gridTemplateColumns: "auto repeat(5, minmax(110px, 1fr))",
                 }}
               >
                 {/* Header row */}
-                <div className="flex min-h-[48px] items-center justify-center rounded-[10px] bg-background px-2 py-2 text-sm font-semibold" />
+                <div className="flex min-h-[48px] items-center justify-center rounded-lg bg-background px-2 py-2 text-sm font-semibold" />
                 {daysOfWeek.map((day) => (
                   <div
                     key={day}
-                    className="flex min-h-[48px] items-center justify-center rounded-[10px] bg-background px-2 py-2 text-center text-sm font-semibold"
+                    className="flex min-h-[48px] items-center justify-center rounded-lg bg-background px-2 py-2 text-center text-sm font-semibold"
                   >
                     {day}
                   </div>
@@ -869,7 +869,7 @@ const TimetableCreator = ({ setActiveComponent, setHasTimeTable }) => {
                   .filter((slot) => !slot.isBreak)
                   .map((slot) => (
                     <React.Fragment key={slot.slotId}>
-                      <div className="flex min-h-[56px] items-center justify-center rounded-[10px] bg-background px-2 py-2 text-center text-[11px] leading-tight text-foreground sm:text-xs">
+                      <div className="flex min-h-[56px] items-center justify-center rounded-lg bg-background px-2 py-2 text-center text-[11px] leading-tight text-foreground sm:text-xs">
                         {slot.display}
                       </div>
 
@@ -883,7 +883,7 @@ const TimetableCreator = ({ setActiveComponent, setHasTimeTable }) => {
                         return event && course ? (
                           <div
                             key={`${day}-${slot.slotId}`}
-                            className="flex min-h-[56px] cursor-pointer flex-col justify-center rounded-[10px] border border-primary/20 bg-secondary px-2 py-2 transition-all hover:bg-primary/[0.07]"
+                            className="flex min-h-[56px] cursor-pointer flex-col justify-center rounded-lg border border-primary/20 bg-secondary px-2 py-2 transition-all hover:bg-primary/[0.07]"
                             onClick={() =>
                               removeCourseFromSlot(day, slot.slotId)
                             }
@@ -919,7 +919,7 @@ const TimetableCreator = ({ setActiveComponent, setHasTimeTable }) => {
                           <div
                             key={`${day}-${slot.slotId}`}
                             className={cn(
-                              "flex min-h-[56px] w-full cursor-pointer items-center justify-center rounded-[10px] text-[11px] text-muted-foreground transition-colors sm:text-xs",
+                              "flex min-h-[56px] w-full cursor-pointer items-center justify-center rounded-lg text-[11px] text-muted-foreground transition-colors sm:text-xs",
                               highlighted
                                 ? "border-2 border-dashed border-primary bg-primary/20"
                                 : "bg-background hover:bg-secondary/80",
@@ -967,7 +967,7 @@ const TimetableCreator = ({ setActiveComponent, setHasTimeTable }) => {
           <div
             key={step}
             className={cn(
-              "flex flex-col items-center rounded-full border bg-card px-3 py-2 transition-colors",
+              "flex flex-col items-center rounded-md border s-surface px-3 py-2 transition-colors",
               step === currentStep ? "border-primary/50" : "border-border",
             )}
           >
@@ -1215,7 +1215,7 @@ const TimetableCreator = ({ setActiveComponent, setHasTimeTable }) => {
                   key={index}
                   type="button"
                   onClick={() => assignCourseToSlot(course.name)}
-                  className="w-full rounded-xl border border-border/70 bg-card p-3 text-left transition hover:border-primary/40 hover:bg-accent"
+                  className="w-full rounded-lg border border-border/70 s-surface p-3 text-left transition hover:border-primary/40 hover:bg-accent"
                 >
                   <p className="text-sm font-semibold">{course.name}</p>
                   <p className="mt-1 text-sm text-muted-foreground">

@@ -8,7 +8,7 @@ const GlobalStyles = createGlobalStyle`
   }
 
   body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Hanken Grotesk', 'Inter', sans-serif;
     background: ${(props) => props.theme.background};
     color: ${(props) => props.theme.text};
     transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
