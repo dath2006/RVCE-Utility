@@ -123,6 +123,7 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
         "DTL (CS237DL)",
         "DSA (IS233AI)",
         "ADLD (CS234AI)",
+        "Quantum Computing Essentials (CS236AT)",
         filters.selectedSem3,
       ].forEach((sub) => {
         if (sub) {
@@ -132,7 +133,13 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
         }
       });
     } else if (filters.cycle === "3-Sem-ECE") {
-      ["network", "Maths ECE", "digital", "analog"].forEach((sub) => {
+      [
+        "network",
+        "Maths ECE",
+        "digital",
+        "analog",
+        "Foundations of Engineering Measurements and Safety (EE236AI)",
+      ].forEach((sub) => {
         if (sub) {
           searchFolderStructure(sub, jsonData).forEach((data) =>
             arr.push(data),
@@ -177,7 +184,14 @@ const Resources = ({ screenSize, setDisableWorkSpace }) => {
       });
     } else if (filters.cycle === "5-Sem-CSE") {
       const semScope = searchFolderStructure("5-Sem-CSE", jsonData);
-      ["TOC", "POME", "DBMS", "AIML", filters.selectedElective].forEach((sub) => {
+      [
+        "TOC",
+        "POME",
+        "DBMS",
+        "AIML",
+        "VAPT (CYX55TBD)",
+        filters.selectedElective,
+      ].forEach((sub) => {
         if (sub) {
           searchFolderStructure(
             sub,
